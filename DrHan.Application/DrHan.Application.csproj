@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Folder Include="BackgroundJobs\" />
+        <Folder Include="Commons\" />
+        <Folder Include="DTOs\" />
+        <Folder Include="Extensions\" />
+        <Folder Include="Features\" />
+        <Folder Include="Automapper\" />
+        <Folder Include="Interfaces\" />
+        <Folder Include="Specifications\" />
+        <Folder Include="Notifications\" />
+    </ItemGroup>
+
+</Project>

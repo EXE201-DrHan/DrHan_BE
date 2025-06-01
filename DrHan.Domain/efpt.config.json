@@ -1,0 +1,210 @@
+﻿{
+  "CodeGenerationMode": 4,
+  "ContextClassName": "MealTestContext",
+  "ContextNamespace": null,
+  "FilterSchemas": false,
+  "IncludeConnectionString": false,
+  "ModelNamespace": null,
+  "OutputContextPath": null,
+  "OutputPath": "Models",
+  "PreserveCasingWithRegex": true,
+  "ProjectRootNamespace": "DrHan.Domain",
+  "Schemas": null,
+  "SelectedHandlebarsLanguage": 2,
+  "SelectedToBeGenerated": 0,
+  "T4TemplatePath": null,
+  "Tables": [
+    {
+      "Name": "[dbo].[allergen_cross_reactivity]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[allergen_names]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[allergens]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[blog_images]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[blog_tags]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[blogs]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[cross_reactivity_groups]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[emergency_medications]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[families]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[family_member_permissions]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[family_members]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[food_products]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[ingredient_allergens]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[ingredient_names]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[ingredient_nutrition]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[ingredients]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[meal_plan_entries]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[meal_plan_shopping_items]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[meal_plans]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[notifications]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[plan_features]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[product_allergen_free_claims]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[product_allergens]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[product_images]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[product_ingredients]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[product_nutrition]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[recipe_allergen_free_claims]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[recipe_allergens]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[recipe_images]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[recipe_ingredients]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[recipe_instructions]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[recipe_nutrition]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[recipes]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[scan_history]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[subscription_plans]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[system_config]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[system_config_details]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[user_activities]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[user_allergies]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[user_allergy_symptoms]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[user_subscriptions]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[users]",
+      "ObjectType": 0
+    }
+  ],
+  "UiHint": null,
+  "UncountableWords": null,
+  "UseAsyncStoredProcedureCalls": true,
+  "UseBoolPropertiesWithoutDefaultSql": false,
+  "UseDatabaseNames": false,
+  "UseDateOnlyTimeOnly": true,
+  "UseDbContextSplitting": false,
+  "UseDecimalDataAnnotationForSprocResult": true,
+  "UseFluentApiOnly": true,
+  "UseHandleBars": false,
+  "UseHierarchyId": false,
+  "UseInflector": true,
+  "UseLegacyPluralizer": false,
+  "UseManyToManyEntity": false,
+  "UseNoDefaultConstructor": false,
+  "UseNoNavigations": false,
+  "UseNoObjectFilter": false,
+  "UseNodaTime": false,
+  "UseNullableReferences": false,
+  "UsePrefixNavigationNaming": false,
+  "UseSchemaFolders": false,
+  "UseSchemaNamespaces": false,
+  "UseSpatial": false,
+  "UseT4": false
+}
