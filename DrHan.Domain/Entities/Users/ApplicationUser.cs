@@ -1,4 +1,5 @@
 #nullable disable
+using DrHan.Domain.Constants.Status;
 using DrHan.Domain.Entities.Families;
 using DrHan.Domain.Entities.MealPlans;
 using Microsoft.AspNetCore.Identity;
@@ -13,10 +14,10 @@ public class ApplicationUser : IdentityUser<int>
     public string ProfileImageUrl { get; set; }
     public string? SubscriptionTier { get; set; }
     public string? SubscriptionStatus { get; set; }
+    public string? RefreshToken {  get; set; }
     public DateTime? SubscriptionExpiresAt { get; set; }
     public DateTime? LastLoginAt { get; set; }
-    public bool? IsActive { get; set; }
-    public bool? IsDeleted { get; set; }
+    public UserStatus Status {  get; set; }
     
     public DateTime? CreatedAt { get; set; }
     

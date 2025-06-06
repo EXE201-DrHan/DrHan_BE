@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using DrHan.Application.Interfaces.Repository;
 using DrHan.Domain.Entities;
 using DrHan.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;

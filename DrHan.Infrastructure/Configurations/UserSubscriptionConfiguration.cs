@@ -8,5 +8,11 @@ public class UserSubscriptionConfiguration : IEntityTypeConfiguration<UserSubscr
     {
         builder.HasIndex(us => us.UserId);
         builder.HasIndex(us => us.PlanId);
+        builder.Property(us => us.Status)
+            .HasConversion(
+                v => v.ToString(),
+                v => (DrHan.Domain.Constants.Status.UserSubscriptionStatus)System.Enum.Parse(typeof(DrHan.Domain.Constants.Status.UserSubscriptionStatus), v)
+            )
+            .HasDefaultValue(DrHan.Domain.Constants.Status.UserSubscriptionStatus.Active);
     }
 } 

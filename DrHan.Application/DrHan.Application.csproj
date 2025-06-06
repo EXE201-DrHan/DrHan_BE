@@ -8,14 +8,23 @@
 
     <ItemGroup>
         <Folder Include="BackgroundJobs\" />
-        <Folder Include="Commons\" />
-        <Folder Include="DTOs\" />
-        <Folder Include="Extensions\" />
-        <Folder Include="Features\" />
+        <Folder Include="Commons\Constants\" />
         <Folder Include="Automapper\" />
-        <Folder Include="Interfaces\" />
-        <Folder Include="Specifications\" />
+        <Folder Include="Services\AuthenticationServices\Commands\LoginUser\" />
+        <Folder Include="StaticQuery\" />
         <Folder Include="Notifications\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="AutoMapper" Version="14.0.0" />
+      <PackageReference Include="FluentValidation" Version="12.0.0" />
+      <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.1" />
+      <PackageReference Include="MediatR" Version="12.5.0" />
+      <PackageReference Include="payOS" Version="1.0.9" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\DrHan.Domain\DrHan.Domain.csproj" />
     </ItemGroup>
 
 </Project>

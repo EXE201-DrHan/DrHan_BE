@@ -1,6 +1,6 @@
 ﻿using DrHan.Domain.Entities;
 
-namespace DrHan.Infrastructure.Repositories.HCP.Repository.GenericRepository
+namespace DrHan.Application.Interfaces.Repository
 {
     public interface IUnitOfWork
     {
@@ -13,7 +13,7 @@ namespace DrHan.Infrastructure.Repositories.HCP.Repository.GenericRepository
         Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> operation, CancellationToken cancellationToken = default);
         bool HasChanges();
         void RejectChanges();
-        Repositories.IGenericRepository<TEntity> Repository<TEntity>() where TEntity : BaseEntity;
+        IGenericRepository<TEntity> Repository<TEntity>() where TEntity : BaseEntity;
         Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
     }
 }

@@ -8,6 +8,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using DrHan.Application.Interfaces.Repository;
+using DrHan.Application.Commons;
 
 namespace DrHan.Infrastructure.Repositories
 {
@@ -145,6 +147,39 @@ namespace DrHan.Infrastructure.Repositories
                 query = orderBy(query);
             }
             return await query.ToListAsync();
+        }
+
+        public async Task<IPaginatedList<T>> ListAsyncWithPaginated(Expression<Func<T, bool>>? filter = null, Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null, Func<IQueryable<T>, IIncludableQueryable<T, object>>? includeProperties = null, PaginationRequest? pagination = null, CancellationToken cancellationToken = default)
+        {
+            IQueryable<T> query = _context.Set<T>();
+
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
+            if (includeProperties != null)
+            {
+                query = includeProperties(query);
+            }
+
+            if (orderBy != null)
+            {
+                query = orderBy(query);
+            }
+            if (pagination != null)
+            {
+                query = query.Skip(pagination.Skip).Take(pagination.PageSize);
+            }
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            var items = await query.ToListAsync(cancellationToken);
+
+            return PaginatedList<T>.Create(
+                items,
+                pagination?.PageNumber ?? 1,
+                pagination?.PageSize ?? totalCount,
+                totalCount);
         }
     }
 }

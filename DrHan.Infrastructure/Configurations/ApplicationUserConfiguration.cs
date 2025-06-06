@@ -1,3 +1,4 @@
+using DrHan.Domain.Constants.Status;
 using DrHan.Domain.Entities.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -12,8 +13,11 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
         builder.HasIndex(u => u.PhoneNumber).IsUnique();
         builder.HasIndex(u => u.Email).IsUnique();
         builder.HasIndex(u => u.FullName);
-        builder.HasIndex(u => u.IsActive);
-        builder.HasIndex(u => u.IsDeleted);
+        builder.Property(u => u.Status)
+            .HasConversion(
+            convertToProviderExpression: v => v.ToString(),
+            convertFromProviderExpression: v => (UserStatus)Enum.Parse(typeof(UserStatus), v))
+            .HasDefaultValue(UserStatus.Enabled);
         // Properties
         builder.Property(u => u.CreatedAt).ValueGeneratedOnAdd().HasDefaultValueSql("getdate()");
         builder.Property(u => u.UpdatedAt).ValueGeneratedOnAddOrUpdate().HasDefaultValueSql("getdate()");

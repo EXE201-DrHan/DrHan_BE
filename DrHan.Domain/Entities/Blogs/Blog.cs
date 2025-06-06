@@ -1,5 +1,6 @@
 #nullable disable
 namespace DrHan.Domain.Entities.Blogs;
+using DrHan.Domain.Constants.Status;
 
 public class Blog : BaseEntity
 {
@@ -13,14 +14,13 @@ public class Blog : BaseEntity
 
     public string AuthorName { get; set; }
 
-    public string Status { get; set; }
+    public BlogStatus Status { get; set; }
 
     public bool? IsFeatured { get; set; }
 
     public int? ViewCount { get; set; }
 
     public DateTime? PublishedAt { get; set; }
-    public bool? IsActive { get; set; }
 
     public virtual ICollection<BlogImage> BlogImages { get; set; } = new List<BlogImage>();
 

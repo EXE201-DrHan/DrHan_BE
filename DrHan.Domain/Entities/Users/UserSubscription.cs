@@ -1,5 +1,6 @@
 #nullable disable
 namespace DrHan.Domain.Entities.Users;
+using DrHan.Domain.Constants.Status;
 
 public class UserSubscription : BaseEntity
 {
@@ -9,7 +10,7 @@ public class UserSubscription : BaseEntity
 
     public DateTime? EndDate { get; set; }
 
-    public string Status { get; set; }
+    public UserSubscriptionStatus Status { get; set; }
 
     public int UsageCount { get; set; }
 

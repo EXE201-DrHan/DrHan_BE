@@ -1,14 +1,9 @@
-﻿using DrHan.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
+﻿using System.Linq.Expressions;
+using DrHan.Application.Commons;
+using DrHan.Domain.Entities;
 using Microsoft.EntityFrameworkCore.Query;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace DrHan.Infrastructure.Repositories
+namespace DrHan.Application.Interfaces.Repository
 {
     public interface IGenericRepository<T>
     where T : BaseEntity
@@ -39,5 +34,11 @@ namespace DrHan.Infrastructure.Repositories
            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
            Func<IQueryable<T>, IIncludableQueryable<T, object>>? includeProperties = null
        );
+        Task<IPaginatedList<T>> ListAsyncWithPaginated(
+        Expression<Func<T, bool>>? filter = null,
+        Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>>? includeProperties = null,
+        PaginationRequest? pagination = null,
+        CancellationToken cancellationToken = default);
     }
 }
