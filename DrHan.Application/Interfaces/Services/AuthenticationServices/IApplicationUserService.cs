@@ -15,7 +15,7 @@ namespace DrHan.Application.Interfaces.Services.AuthenticationServices
         Task<IList<ApplicationUser>> GetUsersByRoleAsync(string role);
         Task<IReadOnlyList<T>> GetAllUsersWithFilterAsync(Expression<Func<T, bool>> filter);
         Task<T?> GetUserWithFilterAsync(Expression<Func<T, bool>> filter);
-        Task<int> CountAsync (Expression<Func<T, bool>> filter);
+        Task<int> CountAsync(Expression<Func<T, bool>> filter);
         Task InsertBulkAsync(IEnumerable<(ApplicationUser user, string password)> usersWithPassword);
         Task UpdateAsync(ApplicationUser user);
         Task InsertAsync(ApplicationUser user, string password);
@@ -30,5 +30,11 @@ namespace DrHan.Application.Interfaces.Services.AuthenticationServices
             Func<IQueryable<ApplicationUser>, IOrderedQueryable<ApplicationUser>> orderBy = null,
             PaginationRequest pagination = null);
         Task<int> CountUserByRoleAsync(string role, Expression<Func<ApplicationUser, bool>> filter = null);
+        Task<bool> CheckPasswordAsync(ApplicationUser user, string password);
+        Task<string> GenerateEmailConfirmationTokenAsync(ApplicationUser user);
+        Task<bool> ConfirmEmailAsync(ApplicationUser user, string token);
+        Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user);
+        Task<bool> ResetPasswordAsync(ApplicationUser user, string token, string newPassword);
+        Task<bool> IsEmailConfirmedAsync(ApplicationUser user);
     }
 }

@@ -4,8 +4,6 @@ using DrHan.API.Extensions;
 using DrHan.API.Middlewares;
 using DrHan.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Serilog.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +14,8 @@ builder.Services.AddApplications(builder.Configuration);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+//builder.Logging.ClearProviders();
+//builder.Logging.AddConsole();
 builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
@@ -24,17 +24,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 using var scope = app.Services.CreateScope();
 var applicationDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
 app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseMiddleware<TimeLoggingMiddleware>();
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
+
 try
 {
     await applicationDbContext.Database.MigrateAsync();

@@ -194,5 +194,21 @@ namespace DrHan.Infrastructure.ExternalServices.AuthenticationService
 
             return await query.CountAsync();
         }
+
+        public async Task<bool> CheckPasswordAsync(ApplicationUser user, string password)
+        {
+            return await _userManager.CheckPasswordAsync(user, password);
+        }
+
+        public async Task<string> GenerateEmailConfirmationTokenAsync(ApplicationUser user)
+        {
+            return await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        }
+
+        public async Task<bool> ConfirmEmailAsync(ApplicationUser user, string token)
+        {
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            return result.Succeeded;
+        }
     }
 }

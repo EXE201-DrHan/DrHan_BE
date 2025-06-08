@@ -38,5 +38,19 @@ namespace DrHan.Application.Interfaces.Services.AuthenticationServices
         /// <param name="userId">The ID of the user whose tokens should be revoked.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
         Task RevokeUserToken(string userId);
+
+        /// <summary>
+        /// Validates a refresh token for the specified user.
+        /// </summary>
+        /// <param name="userId">The ID of the user.</param>
+        /// <param name="refreshToken">The refresh token to validate.</param>
+        /// <returns>A task representing the asynchronous operation with a boolean result.</returns>
+        Task<bool> ValidateRefreshToken(string userId, string refreshToken);
+
+        /// <summary>
+        /// Gets the expiration time for access tokens.
+        /// </summary>
+        /// <returns>DateTime representing when the access token expires.</returns>
+        DateTime GetAccessTokenExpiration();
     }
 }

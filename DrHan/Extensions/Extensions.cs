@@ -123,10 +123,10 @@ namespace DrHan.API.Extensions
             builder.Services.AddScoped<TimeLoggingMiddleware>();
 
             // Add Serilogs
-            builder.Host.UseSerilog((context, configuration) =>
-            {
-                configuration.ReadFrom.Configuration(context.Configuration);
-            });
+            //builder.Host.UseSerilog((context, configuration) =>
+            //{
+            //    configuration.ReadFrom.Configuration(context.Configuration);
+            //});
 
         }
     }
