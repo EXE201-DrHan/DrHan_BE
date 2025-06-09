@@ -8,7 +8,6 @@
 
     <ItemGroup>
         <Folder Include="BackgroundJobs\" />
-        <Folder Include="Commons\Constants\" />
         <Folder Include="Automapper\" />
         <Folder Include="Services\AuthenticationServices\Commands\LoginUser\" />
         <Folder Include="StaticQuery\" />

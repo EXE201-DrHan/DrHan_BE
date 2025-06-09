@@ -8,6 +8,9 @@ using System.Text;
 using DrHan.Domain.Entities.Users;
 using DrHan.Domain.Constants.Status;
 using DrHan.Application.DTOs.Authentication;
+using Microsoft.Extensions.Logging;
+using DrHan.Domain.Constants;
+using DrHan.Domain.Constants.Roles;
 
 namespace DrHan.Application.Services.AuthenticationServices.Commands.RegisterUser
 {
@@ -16,15 +19,18 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.RegisterUse
         private readonly IApplicationUserService<ApplicationUser> _userService;
         private readonly IEmailService _emailService;
         private readonly IUserTokenService _tokenService;
+        private readonly ILogger<RegisterUserCommandHandler> _logger;
 
         public RegisterUserCommandHandler(
             IApplicationUserService<ApplicationUser> userService,
             IEmailService emailService,
-            IUserTokenService tokenService)
+            IUserTokenService tokenService,
+            ILogger<RegisterUserCommandHandler> logger)
         {
             _userService = userService;
             _emailService = emailService;
             _tokenService = tokenService;
+            _logger = logger;
         }
 
         public async Task<AppResponse<RegisterUserResponse>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
@@ -35,14 +41,18 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.RegisterUse
                 return new AppResponse<RegisterUserResponse>()
                     .SetErrorResponse("Email", "User with this email already exists");
             }
-
+            if (!Enum.TryParse<Gender>(request.Gender, true, out var genderEnum))
+            {
+                return new AppResponse<RegisterUserResponse>()
+                    .SetErrorResponse("Gender", "Invalid gender value");
+            }
             var user = new ApplicationUser
             {
                 UserName = request.Email,
                 Email = request.Email,
                 FullName = request.FullName,
                 DateOfBirth = request.DateOfBirth,
-                Gender = request.Gender,
+                Gender = genderEnum,
                 Status = UserStatus.Enabled,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -51,7 +61,7 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.RegisterUse
             try
             {
                 await _userService.InsertAsync(user, request.Password);
-                await _userService.AssignRoleAsync(user, "User");
+                await _userService.AssignRoleAsync(user, UserRoles.Customer.ToString());
 
                 var token = await _userService.GenerateEmailConfirmationTokenAsync(user);
                 var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
@@ -83,6 +93,7 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.RegisterUse
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 return new AppResponse<RegisterUserResponse>()
                     .SetErrorResponse("Registration", ex.Message);
             }

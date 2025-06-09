@@ -39,12 +39,25 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.SendPasswor
             {
                 var token = await _userService.GeneratePasswordResetTokenAsync(user);
                 var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-                var resetLink = $"https://yourdomain.com/reset-password?userId={user.Id}&token={encodedToken}";
+                
+                // You can customize this URL to point to your frontend
+                var resetLink = $"https://localhost:3000/reset-password?userId={user.Id}&token={encodedToken}";
+
+                var emailBody = $@"
+                    <h2>Password Reset Request</h2>
+                    <p>Hello {user.FullName ?? user.Email},</p>
+                    <p>You have requested to reset your password. Please click the link below to reset your password:</p>
+                    <p><a href='{resetLink}' style='background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Reset Password</a></p>
+                    <p>If you did not request this password reset, please ignore this email.</p>
+                    <p><strong>This link will expire in 1 hour for security purposes.</strong></p>
+                    <br>
+                    <p>Best regards,<br>DrHan Team</p>
+                ";
 
                 await _emailService.SendPasswordResetAsync(
                     user.Email!,
-                    "Reset your password",
-                    $"Please reset your password by clicking <a href='{resetLink}'>here</a>. This link will expire in 1 hour.");
+                    "Reset your password - DrHan",
+                    emailBody);
 
                 return new AppResponse<SendPasswordResetResponse>()
                     .SetSuccessResponse(new SendPasswordResetResponse

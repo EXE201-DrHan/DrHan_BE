@@ -1,6 +1,7 @@
 using MediatR;
 using FluentValidation;
 using DrHan.Application.Commons;
+using DrHan.Application.DTOs.Authentication;
 
 namespace DrHan.Application.Services.AuthenticationServices.Commands.LogoutUser
 {

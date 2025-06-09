@@ -1,0 +1,218 @@
+[
+  {
+    "Id": 1,
+    "IngredientId": 1,
+    "Name": "Nước mắm",
+    "IsPrimary": true
+  },
+  {
+    "Id": 2,
+    "IngredientId": 1,
+    "Name": "Fish Sauce",
+    "IsPrimary": false
+  },
+  {
+    "Id": 3,
+    "IngredientId": 2,
+    "Name": "Tôm tươi",
+    "IsPrimary": true
+  },
+  {
+    "Id": 4,
+    "IngredientId": 2,
+    "Name": "Fresh Shrimp",
+    "IsPrimary": false
+  },
+  {
+    "Id": 5,
+    "IngredientId": 3,
+    "Name": "Đậu phộng rang",
+    "IsPrimary": true
+  },
+  {
+    "Id": 6,
+    "IngredientId": 3,
+    "Name": "Roasted Peanut",
+    "IsPrimary": false
+  },
+  {
+    "Id": 7,
+    "IngredientId": 4,
+    "Name": "Thịt bò",
+    "IsPrimary": true
+  },
+  {
+    "Id": 8,
+    "IngredientId": 4,
+    "Name": "Beef",
+    "IsPrimary": false
+  },
+  {
+    "Id": 9,
+    "IngredientId": 5,
+    "Name": "Sữa đặc",
+    "IsPrimary": true
+  },
+  {
+    "Id": 10,
+    "IngredientId": 5,
+    "Name": "Condensed Milk",
+    "IsPrimary": false
+  },
+  {
+    "Id": 11,
+    "IngredientId": 6,
+    "Name": "Trứng gà",
+    "IsPrimary": true
+  },
+  {
+    "Id": 12,
+    "IngredientId": 6,
+    "Name": "Chicken Egg",
+    "IsPrimary": false
+  },
+  {
+    "Id": 13,
+    "IngredientId": 7,
+    "Name": "Nước tương",
+    "IsPrimary": true
+  },
+  {
+    "Id": 14,
+    "IngredientId": 7,
+    "Name": "Soy Sauce",
+    "IsPrimary": false
+  },
+  {
+    "Id": 15,
+    "IngredientId": 8,
+    "Name": "Bánh mì",
+    "IsPrimary": true
+  },
+  {
+    "Id": 16,
+    "IngredientId": 8,
+    "Name": "Baguette",
+    "IsPrimary": false
+  },
+  {
+    "Id": 17,
+    "IngredientId": 9,
+    "Name": "Mè rang",
+    "IsPrimary": true
+  },
+  {
+    "Id": 18,
+    "IngredientId": 9,
+    "Name": "Roasted Sesame",
+    "IsPrimary": false
+  },
+  {
+    "Id": 19,
+    "IngredientId": 10,
+    "Name": "Cua tươi",
+    "IsPrimary": true
+  },
+  {
+    "Id": 20,
+    "IngredientId": 10,
+    "Name": "Fresh Crab",
+    "IsPrimary": false
+  },
+  {
+    "Id": 21,
+    "IngredientId": 11,
+    "Name": "Hạt điều rang",
+    "IsPrimary": true
+  },
+  {
+    "Id": 22,
+    "IngredientId": 11,
+    "Name": "Roasted Cashew",
+    "IsPrimary": false
+  },
+  {
+    "Id": 23,
+    "IngredientId": 12,
+    "Name": "Mực tươi",
+    "IsPrimary": true
+  },
+  {
+    "Id": 24,
+    "IngredientId": 12,
+    "Name": "Fresh Squid",
+    "IsPrimary": false
+  },
+  {
+    "Id": 25,
+    "IngredientId": 13,
+    "Name": "Cải bẹ muối",
+    "IsPrimary": true
+  },
+  {
+    "Id": 26,
+    "IngredientId": 13,
+    "Name": "Pickled Mustard Greens",
+    "IsPrimary": false
+  },
+  {
+    "Id": 27,
+    "IngredientId": 14,
+    "Name": "Thịt heo",
+    "IsPrimary": true
+  },
+  {
+    "Id": 28,
+    "IngredientId": 14,
+    "Name": "Pork",
+    "IsPrimary": false
+  },
+  {
+    "Id": 29,
+    "IngredientId": 15,
+    "Name": "Cá tươi",
+    "IsPrimary": true
+  },
+  {
+    "Id": 30,
+    "IngredientId": 15,
+    "Name": "Fresh Fish",
+    "IsPrimary": false
+  },
+  {
+    "Id": 31,
+    "IngredientId": 16,
+    "Name": "Mắm tôm",
+    "IsPrimary": true
+  },
+  {
+    "Id": 32,
+    "IngredientId": 16,
+    "Name": "Shrimp Paste",
+    "IsPrimary": false
+  },
+  {
+    "Id": 33,
+    "IngredientId": 17,
+    "Name": "Dầu đậu phộng",
+    "IsPrimary": true
+  },
+  {
+    "Id": 34,
+    "IngredientId": 17,
+    "Name": "Peanut Oil",
+    "IsPrimary": false
+  },
+  {
+    "Id": 35,
+    "IngredientId": 18,
+    "Name": "Đậu hũ",
+    "IsPrimary": true
+  },
+  {
+    "Id": 36,
+    "IngredientId": 18,
+    "Name": "Tofu",
+    "IsPrimary": false
+  }
+] 

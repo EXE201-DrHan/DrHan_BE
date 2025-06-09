@@ -1,4 +1,5 @@
 #nullable disable
+using DrHan.Domain.Constants;
 using DrHan.Domain.Constants.Status;
 using DrHan.Domain.Entities.Families;
 using DrHan.Domain.Entities.MealPlans;
@@ -10,7 +11,7 @@ public class ApplicationUser : IdentityUser<int>
 {
     public string FullName { get; set; }
     public DateTime? DateOfBirth { get; set; }
-    public string Gender { get; set; }
+    public Gender Gender { get; set; }
     public string ProfileImageUrl { get; set; }
     public string? SubscriptionTier { get; set; }
     public string? SubscriptionStatus { get; set; }
@@ -32,6 +33,5 @@ public class ApplicationUser : IdentityUser<int>
     public virtual ICollection<UserAllergy> UserAllergies { get; set; } = new List<UserAllergy>();
     public virtual ICollection<UserSubscription> UserSubscriptions { get; set; } = new List<UserSubscription>();
     
-    public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 
 }

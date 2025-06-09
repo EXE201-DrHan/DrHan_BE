@@ -12,5 +12,6 @@ namespace DrHan.Application.DTOs.Authentication
         public DateTime? LastLoginAt { get; set; }
         public string? Token { get; set; }
         public string? RefreshToken { get; set; }
+        public DateTime? TokenExpiresAt { get; set; }
     }
 } 

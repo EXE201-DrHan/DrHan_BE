@@ -1,0 +1,116 @@
+[
+  {
+    "Id": 1,
+    "IngredientId": 1,
+    "AllergenId": 2,
+    "AllergenType": "Contains"
+  },
+  {
+    "Id": 2,
+    "IngredientId": 1,
+    "AllergenId": 15,
+    "AllergenType": "Contains"
+  },
+  {
+    "Id": 3,
+    "IngredientId": 2,
+    "AllergenId": 1,
+    "AllergenType": "Contains"
+  },
+  {
+    "Id": 4,
+    "IngredientId": 3,
+    "AllergenId": 4,
+    "AllergenType": "Contains"
+  },
+  {
+    "Id": 5,
+    "IngredientId": 4,
+    "AllergenId": 5,
+    "AllergenType": "Contains"
+  },
+  {
+    "Id": 6,
+    "IngredientId": 5,
+    "AllergenId": 6,
+    "AllergenType": "Contains"
+  },
+  {
+    "Id": 7,
+    "IngredientId": 6,
+    "AllergenId": 7,
+    "AllergenType": "Contains"
+  },
+  {
+    "Id": 8,
+    "IngredientId": 7,
+    "AllergenId": 8,
+    "AllergenType": "Contains"
+  },
+  {
+    "Id": 9,
+    "IngredientId": 8,
+    "AllergenId": 9,
+    "AllergenType": "Contains"
+  },
+  {
+    "Id": 10,
+    "IngredientId": 9,
+    "AllergenId": 10,
+    "AllergenType": "Contains"
+  },
+  {
+    "Id": 11,
+    "IngredientId": 10,
+    "AllergenId": 3,
+    "AllergenType": "Contains"
+  },
+  {
+    "Id": 12,
+    "IngredientId": 11,
+    "AllergenId": 11,
+    "AllergenType": "Contains"
+  },
+  {
+    "Id": 13,
+    "IngredientId": 12,
+    "AllergenId": 12,
+    "AllergenType": "Contains"
+  },
+  {
+    "Id": 14,
+    "IngredientId": 13,
+    "AllergenId": 13,
+    "AllergenType": "Contains"
+  },
+  {
+    "Id": 15,
+    "IngredientId": 14,
+    "AllergenId": 14,
+    "AllergenType": "Contains"
+  },
+  {
+    "Id": 16,
+    "IngredientId": 15,
+    "AllergenId": 15,
+    "AllergenType": "Contains"
+  },
+  {
+    "Id": 17,
+    "IngredientId": 16,
+    "AllergenId": 1,
+    "AllergenType": "Contains"
+  },
+  {
+    "Id": 18,
+    "IngredientId": 17,
+    "AllergenId": 4,
+    "AllergenType": "Contains"
+  },
+  {
+    "Id": 19,
+    "IngredientId": 18,
+    "AllergenId": 8,
+    "AllergenType": "Contains"
+  }
+] 

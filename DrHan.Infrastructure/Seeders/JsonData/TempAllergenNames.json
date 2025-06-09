@@ -1,0 +1,182 @@
+[
+  {
+    "Id": 1,
+    "AllergenId": 1,
+    "Name": "Tôm",
+    "IsPrimary": true
+  },
+  {
+    "Id": 2,
+    "AllergenId": 1,
+    "Name": "Shrimp",
+    "IsPrimary": false
+  },
+  {
+    "Id": 3,
+    "AllergenId": 2,
+    "Name": "Nước mắm",
+    "IsPrimary": true
+  },
+  {
+    "Id": 4,
+    "AllergenId": 2,
+    "Name": "Fish Sauce",
+    "IsPrimary": false
+  },
+  {
+    "Id": 5,
+    "AllergenId": 3,
+    "Name": "Cua",
+    "IsPrimary": true
+  },
+  {
+    "Id": 6,
+    "AllergenId": 3,
+    "Name": "Crab",
+    "IsPrimary": false
+  },
+  {
+    "Id": 7,
+    "AllergenId": 4,
+    "Name": "Đậu phộng",
+    "IsPrimary": true
+  },
+  {
+    "Id": 8,
+    "AllergenId": 4,
+    "Name": "Peanut",
+    "IsPrimary": false
+  },
+  {
+    "Id": 9,
+    "AllergenId": 5,
+    "Name": "Thịt bò",
+    "IsPrimary": true
+  },
+  {
+    "Id": 10,
+    "AllergenId": 5,
+    "Name": "Beef",
+    "IsPrimary": false
+  },
+  {
+    "Id": 11,
+    "AllergenId": 6,
+    "Name": "Sữa",
+    "IsPrimary": true
+  },
+  {
+    "Id": 12,
+    "AllergenId": 6,
+    "Name": "Milk",
+    "IsPrimary": false
+  },
+  {
+    "Id": 13,
+    "AllergenId": 7,
+    "Name": "Trứng",
+    "IsPrimary": true
+  },
+  {
+    "Id": 14,
+    "AllergenId": 7,
+    "Name": "Egg",
+    "IsPrimary": false
+  },
+  {
+    "Id": 15,
+    "AllergenId": 8,
+    "Name": "Đậu nành",
+    "IsPrimary": true
+  },
+  {
+    "Id": 16,
+    "AllergenId": 8,
+    "Name": "Soy",
+    "IsPrimary": false
+  },
+  {
+    "Id": 17,
+    "AllergenId": 9,
+    "Name": "Lúa mì",
+    "IsPrimary": true
+  },
+  {
+    "Id": 18,
+    "AllergenId": 9,
+    "Name": "Wheat",
+    "IsPrimary": false
+  },
+  {
+    "Id": 19,
+    "AllergenId": 10,
+    "Name": "Mè",
+    "IsPrimary": true
+  },
+  {
+    "Id": 20,
+    "AllergenId": 10,
+    "Name": "Sesame",
+    "IsPrimary": false
+  },
+  {
+    "Id": 21,
+    "AllergenId": 11,
+    "Name": "Hạt điều",
+    "IsPrimary": true
+  },
+  {
+    "Id": 22,
+    "AllergenId": 11,
+    "Name": "Cashew",
+    "IsPrimary": false
+  },
+  {
+    "Id": 23,
+    "AllergenId": 12,
+    "Name": "Mực",
+    "IsPrimary": true
+  },
+  {
+    "Id": 24,
+    "AllergenId": 12,
+    "Name": "Squid",
+    "IsPrimary": false
+  },
+  {
+    "Id": 25,
+    "AllergenId": 13,
+    "Name": "Cải bẹ",
+    "IsPrimary": true
+  },
+  {
+    "Id": 26,
+    "AllergenId": 13,
+    "Name": "Mustard",
+    "IsPrimary": false
+  },
+  {
+    "Id": 27,
+    "AllergenId": 14,
+    "Name": "Thịt heo",
+    "IsPrimary": true
+  },
+  {
+    "Id": 28,
+    "AllergenId": 14,
+    "Name": "Pork",
+    "IsPrimary": false
+  },
+  {
+    "Id": 29,
+    "AllergenId": 15,
+    "Name": "Cá",
+    "IsPrimary": true
+  },
+  {
+    "Id": 30,
+    "AllergenId": 15,
+    "Name": "Fish",
+    "IsPrimary": false
+  }
+] 

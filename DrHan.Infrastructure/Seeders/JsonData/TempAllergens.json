@@ -1,0 +1,137 @@
+[
+  {
+    "Id": 1,
+    "Name": "Tôm",
+    "Category": "Hải sản",
+    "ScientificName": "Penaeus spp.",
+    "Description": "Chất gây dị ứng phổ biến trong các món như chả giò và phở.",
+    "IsFdaMajor": true,
+    "IsEuMajor": true
+  },
+  {
+    "Id": 2,
+    "Name": "Nước mắm",
+    "Category": "Hải sản",
+    "ScientificName": null,
+    "Description": "Gia vị chủ đạo trong ẩm thực Việt Nam, làm từ cá lên men, có thể gây dị ứng cá.",
+    "IsFdaMajor": true,
+    "IsEuMajor": true
+  },
+  {
+    "Id": 3,
+    "Name": "Cua",
+    "Category": "Hải sản",
+    "ScientificName": "Brachyura spp.",
+    "Description": "Chất gây dị ứng phổ biến trong các món như bún riêu cua.",
+    "IsFdaMajor": true,
+    "IsEuMajor": true
+  },
+  {
+    "Id": 4,
+    "Name": "Đậu phộng",
+    "Category": "Hạt",
+    "ScientificName": "Arachis hypogaea",
+    "Description": "Được sử dụng trong nước chấm và làm topping cho các món như gỏi cuốn.",
+    "IsFdaMajor": true,
+    "IsEuMajor": true
+  },
+  {
+    "Id": 5,
+    "Name": "Thịt bò",
+    "Category": "Thịt",
+    "ScientificName": "Bos taurus",
+    "Description": "Chất gây dị ứng đáng chú ý trong các món như phở bò và bún bò Huế.",
+    "IsFdaMajor": false,
+    "IsEuMajor": false
+  },
+  {
+    "Id": 6,
+    "Name": "Sữa",
+    "Category": "Sữa",
+    "ScientificName": null,
+    "Description": "Có trong bánh flan và một số món bánh mì, ít phổ biến trong món ăn truyền thống.",
+    "IsFdaMajor": true,
+    "IsEuMajor": true
+  },
+  {
+    "Id": 7,
+    "Name": "Trứng",
+    "Category": "Trứng",
+    "ScientificName": null,
+    "Description": "Có trong bánh flan, bột chiên, và bánh mì ốp la.",
+    "IsFdaMajor": true,
+    "IsEuMajor": true
+  },
+  {
+    "Id": 8,
+    "Name": "Đậu nành",
+    "Category": "Đậu",
+    "ScientificName": "Glycine max",
+    "Description": "Có trong nước tương, đậu hũ, và các món chay.",
+    "IsFdaMajor": true,
+    "IsEuMajor": true
+  },
+  {
+    "Id": 9,
+    "Name": "Lúa mì",
+    "Category": "Ngũ cốc",
+    "ScientificName": "Triticum spp.",
+    "Description": "Có trong bánh mì, mì vàng, và các sản phẩm chế biến như chả.",
+    "IsFdaMajor": true,
+    "IsEuMajor": true
+  },
+  {
+    "Id": 10,
+    "Name": "Mè",
+    "Category": "Hạt",
+    "ScientificName": "Sesamum indicum",
+    "Description": "Dùng trong bánh mì, xôi và làm gia vị rắc lên các món ăn.",
+    "IsFdaMajor": true,
+    "IsEuMajor": true
+  },
+  {
+    "Id": 11,
+    "Name": "Hạt điều",
+    "Category": "Hạt",
+    "ScientificName": "Anacardium occidentale",
+    "Description": "Phổ biến trong đồ ăn nhẹ và xuất khẩu, có thể gây dị ứng hạt cây.",
+    "IsFdaMajor": true,
+    "IsEuMajor": true
+  },
+  {
+    "Id": 12,
+    "Name": "Mực",
+    "Category": "Hải sản",
+    "ScientificName": "Loligo spp.",
+    "Description": "Chất gây dị ứng trong các món như mực nướng và chả mực.",
+    "IsFdaMajor": true,
+    "IsEuMajor": true
+  },
+  {
+    "Id": 13,
+    "Name": "Cải bẹ",
+    "Category": "Gia vị",
+    "ScientificName": "Brassica juncea",
+    "Description": "Có trong cải muối và nước chấm mù tạt, có thể gây dị ứng.",
+    "IsFdaMajor": true,
+    "IsEuMajor": true
+  },
+  {
+    "Id": 14,
+    "Name": "Thịt heo",
+    "Category": "Thịt",
+    "ScientificName": "Sus scrofa",
+    "Description": "Thành phần chính trong các món như thịt kho và bánh chưng, đôi khi gây dị ứng.",
+    "IsFdaMajor": false,
+    "IsEuMajor": false
+  },
+  {
+    "Id": 15,
+    "Name": "Cá",
+    "Category": "Hải sản",
+    "ScientificName": "Actinopterygii",
+    "Description": "Chất gây dị ứng phổ biến trong các món như chả cá và canh chua.",
+    "IsFdaMajor": true,
+    "IsEuMajor": true
+  }
+] 

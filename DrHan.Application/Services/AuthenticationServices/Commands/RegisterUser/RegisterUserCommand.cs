@@ -7,6 +7,7 @@ using MediatR;
 using FluentValidation;
 using DrHan.Application.DTOs.Authentication;
 using DrHan.Application.Commons;
+using DrHan.Domain.Constants;
 
 namespace DrHan.Application.Services.AuthenticationServices.Commands.RegisterUser
 {
@@ -15,7 +16,6 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.RegisterUse
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
         public string ConfirmPassword { get; set; } = string.Empty;
-        public string ConfirmEmail { get; set; } = string.Empty;
         public string FullName {  get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
         public string Gender {  get; set; } = string.Empty;
@@ -29,10 +29,7 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.RegisterUse
                 .NotEmpty().WithMessage("Email is required")
                 .EmailAddress().WithMessage("Invalid email format");
 
-            RuleFor(x => x.ConfirmEmail)
-                .NotEmpty().WithMessage("Confirm email is required")
-                .Equal(x => x.Email).WithMessage("Emails do not match");
-
+        
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Password is required")
                 .MinimumLength(6).WithMessage("Password must be at least 6 characters");

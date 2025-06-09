@@ -1,0 +1,32 @@
+﻿[
+  {
+    "Id": 1,
+    "Name": "Hải sản",
+    "Description": "Các chất gây dị ứng liên quan đến cá, động vật có vỏ và nhuyễn thể, phổ biến trong ẩm thực Việt Nam."
+  },
+  {
+    "Id": 2,
+    "Name": "Hạt",
+    "Description": "Các chất gây dị ứng liên quan đến các loại hạt và hạt có dầu, thường dùng trong món ăn và đồ ăn nhẹ."
+  },
+  {
+    "Id": 3,
+    "Name": "Sữa và Trứng",
+    "Description": "Các chất gây dị ứng từ sữa và trứng, xuất hiện trong các món tráng miệng và bánh mì."
+  },
+  {
+    "Id": 4,
+    "Name": "Đậu nành và Lúa mì",
+    "Description": "Các chất gây dị ứng từ đậu nành, lúa mì và các sản phẩm liên quan."
+  },
+  {
+    "Id": 5,
+    "Name": "Thịt",
+    "Description": "Các chất gây dị ứng từ thịt động vật, phổ biến trong các món ăn truyền thống Việt Nam."
+  },
+  {
+    "Id": 6,
+    "Name": "Cải bẹ và Gia vị",
+    "Description": "Các chất gây dị ứng từ cải bẹ và các gia vị liên quan, dùng trong nước chấm và món ăn."
+  }
+]

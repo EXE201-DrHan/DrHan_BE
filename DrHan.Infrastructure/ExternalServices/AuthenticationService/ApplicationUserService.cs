@@ -92,7 +92,9 @@ namespace DrHan.Infrastructure.ExternalServices.AuthenticationService
             var result = await _userManager.CreateAsync(user, password);
             if (!result.Succeeded)
             {
-                throw new CreateFailedException(user.Email!);
+                var errors = string.Join("; ", result.Errors.Select(e => $"{e.Code}: {e.Description}"));
+
+                throw new CreateFailedException($"Failed to create user {user.FullName}. Errors: {errors}");
             }
         }
 
@@ -209,6 +211,23 @@ namespace DrHan.Infrastructure.ExternalServices.AuthenticationService
         {
             var result = await _userManager.ConfirmEmailAsync(user, token);
             return result.Succeeded;
+        }
+
+        public async Task<string> GeneratePasswordResetTokenAsync(ApplicationUser user)
+        {
+            var result = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            return result;
+        }
+
+        public async Task<bool> ResetPasswordAsync(ApplicationUser user, string token, string newPassword)
+        {
+            var result =await _userManager.ResetPasswordAsync(user,token,newPassword);
+            return result.Succeeded;
+        }
+
+        public async Task<bool> IsEmailConfirmedAsync(ApplicationUser user)
+        {
+            return await _userManager.IsEmailConfirmedAsync(user);
         }
     }
 }

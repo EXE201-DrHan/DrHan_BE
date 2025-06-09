@@ -1,0 +1,77 @@
+﻿[
+  {
+    "Id": 1,
+    "AllergenId": 1,
+    "GroupId": 1
+  },
+  {
+    "Id": 2,
+    "AllergenId": 2,
+    "GroupId": 1
+  },
+  {
+    "Id": 3,
+    "AllergenId": 3,
+    "GroupId": 1
+  },
+  {
+    "Id": 4,
+    "AllergenId": 4,
+    "GroupId": 2
+  },
+  {
+    "Id": 5,
+    "AllergenId": 5,
+    "GroupId": 5
+  },
+  {
+    "Id": 6,
+    "AllergenId": 6,
+    "GroupId": 3
+  },
+  {
+    "Id": 7,
+    "AllergenId": 7,
+    "GroupId": 3
+  },
+  {
+    "Id": 8,
+    "AllergenId": 8,
+    "GroupId": 4
+  },
+  {
+    "Id": 9,
+    "AllergenId": 9,
+    "GroupId": 4
+  },
+  {
+    "Id": 10,
+    "AllergenId": 10,
+    "GroupId": 2
+  },
+  {
+    "Id": 11,
+    "AllergenId": 11,
+    "GroupId": 2
+  },
+  {
+    "Id": 12,
+    "AllergenId": 12,
+    "GroupId": 1
+  },
+  {
+    "Id": 13,
+    "AllergenId": 13,
+    "GroupId": 6
+  },
+  {
+    "Id": 14,
+    "AllergenId": 14,
+    "GroupId": 5
+  },
+  {
+    "Id": 15,
+    "AllergenId": 15,
+    "GroupId": 1
+  }
+]

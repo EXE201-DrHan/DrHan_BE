@@ -1,0 +1,874 @@
+﻿{
+  "CrossReactivityGroups": [
+    {
+      "Id": 1,
+      "Name": "Hải sản",
+      "Description": "Các chất gây dị ứng liên quan đến cá, động vật có vỏ và nhuyễn thể, phổ biến trong ẩm thực Việt Nam."
+    },
+    {
+      "Id": 2,
+      "Name": "Hạt",
+      "Description": "Các chất gây dị ứng liên quan đến các loại hạt và hạt có dầu, thường dùng trong món ăn và đồ ăn nhẹ."
+    },
+    {
+      "Id": 3,
+      "Name": "Sữa và Trứng",
+      "Description": "Các chất gây dị ứng từ sữa và trứng, xuất hiện trong các món tráng miệng và bánh mì."
+    },
+    {
+      "Id": 4,
+      "Name": "Đậu nành và Lúa mì",
+      "Description": "Các chất gây dị ứng từ đậu nành, lúa mì và các sản phẩm liên quan."
+    },
+    {
+      "Id": 5,
+      "Name": "Thịt",
+      "Description": "Các chất gây dị ứng từ thịt động vật, phổ biến trong các món ăn truyền thống Việt Nam."
+    },
+    {
+      "Id": 6,
+      "Name": "Cải bẹ và Gia vị",
+      "Description": "Các chất gây dị ứng từ cải bẹ và các gia vị liên quan, dùng trong nước chấm và món ăn."
+    }
+  ],
+  "Allergens": [
+    {
+      "Id": 1,
+      "Name": "Tôm",
+      "Category": "Hải sản",
+      "ScientificName": "Penaeus spp.",
+      "Description": "Chất gây dị ứng phổ biến trong các món như chả giò và phở.",
+      "IsFdaMajor": true,
+      "IsEuMajor": true
+    },
+    {
+      "Id": 2,
+      "Name": "Nước mắm",
+      "Category": "Hải sản",
+      "ScientificName": null,
+      "Description": "Gia vị chủ đạo trong ẩm thực Việt Nam, làm từ cá lên men, có thể gây dị ứng cá.",
+      "IsFdaMajor": true,
+      "IsEuMajor": true
+    },
+    {
+      "Id": 3,
+      "Name": "Cua",
+      "Category": "Hải sản",
+      "ScientificName": "Brachyura spp.",
+      "Description": "Chất gây dị ứng phổ biến trong các món như bún riêu cua.",
+      "IsFdaMajor": true,
+      "IsEuMajor": true
+    },
+    {
+      "Id": 4,
+      "Name": "Đậu phộng",
+      "Category": "Hạt",
+      "ScientificName": "Arachis hypogaea",
+      "Description": "Được sử dụng trong nước chấm và làm topping cho các món như gỏi cuốn.",
+      "IsFdaMajor": true,
+      "IsEuMajor": true
+    },
+    {
+      "Id": 5,
+      "Name": "Thịt bò",
+      "Category": "Thịt",
+      "ScientificName": "Bos taurus",
+      "Description": "Chất gây dị ứng đáng chú ý trong các món như phở bò và bún bò Huế.",
+      "IsFdaMajor": false,
+      "IsEuMajor": false
+    },
+    {
+      "Id": 6,
+      "Name": "Sữa",
+      "Category": "Sữa",
+      "ScientificName": null,
+      "Description": "Có trong bánh flan và một số món bánh mì, ít phổ biến trong món ăn truyền thống.",
+      "IsFdaMajor": true,
+      "IsEuMajor": true
+    },
+    {
+      "Id": 7,
+      "Name": "Trứng",
+      "Category": "Trứng",
+      "ScientificName": null,
+      "Description": "Có trong bánh flan, bột chiên, và bánh mì ốp la.",
+      "IsFdaMajor": true,
+      "IsEuMajor": true
+    },
+    {
+      "Id": 8,
+      "Name": "Đậu nành",
+      "Category": "Đậu",
+      "ScientificName": "Glycine max",
+      "Description": "Có trong nước tương, đậu hũ, và các món chay.",
+      "IsFdaMajor": true,
+      "IsEuMajor": true
+    },
+    {
+      "Id": 9,
+      "Name": "Lúa mì",
+      "Category": "Ngũ cốc",
+      "ScientificName": "Triticum spp.",
+      "Description": "Có trong bánh mì, mì vàng, và các sản phẩm chế biến như chả.",
+      "IsFdaMajor": true,
+      "IsEuMajor": true
+    },
+    {
+      "Id": 10,
+      "Name": "Mè",
+      "Category": "Hạt",
+      "ScientificName": "Sesamum indicum",
+      "Description": "Dùng trong bánh mì, xôi và làm gia vị rắc lên các món ăn.",
+      "IsFdaMajor": true,
+      "IsEuMajor": true
+    },
+    {
+      "Id": 11,
+      "Name": "Hạt điều",
+      "Category": "Hạt",
+      "ScientificName": "Anacardium occidentale",
+      "Description": "Phổ biến trong đồ ăn nhẹ và xuất khẩu, có thể gây dị ứng hạt cây.",
+      "IsFdaMajor": true,
+      "IsEuMajor": true
+    },
+    {
+      "Id": 12,
+      "Name": "Mực",
+      "Category": "Hải sản",
+      "ScientificName": "Loligo spp.",
+      "Description": "Chất gây dị ứng trong các món như mực nướng và chả mực.",
+      "IsFdaMajor": true,
+      "IsEuMajor": true
+    },
+    {
+      "Id": 13,
+      "Name": "Cải bẹ",
+      "Category": "Gia vị",
+      "ScientificName": "Brassica juncea",
+      "Description": "Có trong cải muối và nước chấm mù tạt, có thể gây dị ứng.",
+      "IsFdaMajor": true,
+      "IsEuMajor": true
+    },
+    {
+      "Id": 14,
+      "Name": "Thịt heo",
+      "Category": "Thịt",
+      "ScientificName": "Sus scrofa",
+      "Description": "Thành phần chính trong các món như thịt kho và bánh chưng, đôi khi gây dị ứng.",
+      "IsFdaMajor": false,
+      "IsEuMajor": false
+    },
+    {
+      "Id": 15,
+      "Name": "Cá",
+      "Category": "Hải sản",
+      "ScientificName": "Actinopterygii",
+      "Description": "Chất gây dị ứng phổ biến trong các món như chả cá và canh chua.",
+      "IsFdaMajor": true,
+      "IsEuMajor": true
+    }
+  ],
+  "AllergenNames": [
+    {
+      "Id": 1,
+      "AllergenId": 1,
+      "Name": "Tôm",
+      "IsPrimary": true
+    },
+    {
+      "Id": 2,
+      "AllergenId": 1,
+      "Name": "Shrimp",
+      "IsPrimary": false
+    },
+    {
+      "Id": 3,
+      "AllergenId": 2,
+      "Name": "Nước mắm",
+      "IsPrimary": true
+    },
+    {
+      "Id": 4,
+      "AllergenId": 2,
+      "Name": "Fish Sauce",
+      "IsPrimary": false
+    },
+    {
+      "Id": 5,
+      "AllergenId": 3,
+      "Name": "Cua",
+      "IsPrimary": true
+    },
+    {
+      "Id": 6,
+      "AllergenId": 3,
+      "Name": "Crab",
+      "IsPrimary": false
+    },
+    {
+      "Id": 7,
+      "AllergenId": 4,
+      "Name": "Đậu phộng",
+      "IsPrimary": true
+    },
+    {
+      "Id": 8,
+      "AllergenId": 4,
+      "Name": "Peanut",
+      "IsPrimary": false
+    },
+    {
+      "Id": 9,
+      "AllergenId": 5,
+      "Name": "Thịt bò",
+      "IsPrimary": true
+    },
+    {
+      "Id": 10,
+      "AllergenId": 5,
+      "Name": "Beef",
+      "IsPrimary": false
+    },
+    {
+      "Id": 11,
+      "AllergenId": 6,
+      "Name": "Sữa",
+      "IsPrimary": true
+    },
+    {
+      "Id": 12,
+      "AllergenId": 6,
+      "Name": "Milk",
+      "IsPrimary": false
+    },
+    {
+      "Id": 13,
+      "AllergenId": 7,
+      "Name": "Trứng",
+      "IsPrimary": true
+    },
+    {
+      "Id": 14,
+      "AllergenId": 7,
+      "Name": "Egg",
+      "IsPrimary": false
+    },
+    {
+      "Id": 15,
+      "AllergenId": 8,
+      "Name": "Đậu nành",
+      "IsPrimary": true
+    },
+    {
+      "Id": 16,
+      "AllergenId": 8,
+      "Name": "Soy",
+      "IsPrimary": false
+    },
+    {
+      "Id": 17,
+      "AllergenId": 9,
+      "Name": "Lúa mì",
+      "IsPrimary": true
+    },
+    {
+      "Id": 18,
+      "AllergenId": 9,
+      "Name": "Wheat",
+      "IsPrimary": false
+    },
+    {
+      "Id": 19,
+      "AllergenId": 10,
+      "Name": "Mè",
+      "IsPrimary": true
+    },
+    {
+      "Id": 20,
+      "AllergenId": 10,
+      "Name": "Sesame",
+      "IsPrimary": false
+    },
+    {
+      "Id": 21,
+      "AllergenId": 11,
+      "Name": "Hạt điều",
+      "IsPrimary": true
+    },
+    {
+      "Id": 22,
+      "AllergenId": 11,
+      "Name": "Cashew",
+      "IsPrimary": false
+    },
+    {
+      "Id": 23,
+      "AllergenId": 12,
+      "Name": "Mực",
+      "IsPrimary": true
+    },
+    {
+      "Id": 24,
+      "AllergenId": 12,
+      "Name": "Squid",
+      "IsPrimary": false
+    },
+    {
+      "Id": 25,
+      "AllergenId": 13,
+      "Name": "Cải bẹ",
+      "IsPrimary": true
+    },
+    {
+      "Id": 26,
+      "AllergenId": 13,
+      "Name": "Mustard",
+      "IsPrimary": false
+    },
+    {
+      "Id": 27,
+      "AllergenId": 14,
+      "Name": "Thịt heo",
+      "IsPrimary": true
+    },
+    {
+      "Id": 28,
+      "AllergenId": 14,
+      "Name": "Pork",
+      "IsPrimary": false
+    },
+    {
+      "Id": 29,
+      "AllergenId": 15,
+      "Name": "Cá",
+      "IsPrimary": true
+    },
+    {
+      "Id": 30,
+      "AllergenId": 15,
+      "Name": "Fish",
+      "IsPrimary": false
+    }
+  ],
+  "AllergenCrossReactivities": [
+    {
+      "Id": 1,
+      "AllergenId": 1,
+      "GroupId": 1
+    },
+    {
+      "Id": 2,
+      "AllergenId": 2,
+      "GroupId": 1
+    },
+    {
+      "Id": 3,
+      "AllergenId": 3,
+      "GroupId": 1
+    },
+    {
+      "Id": 4,
+      "AllergenId": 4,
+      "GroupId": 2
+    },
+    {
+      "Id": 5,
+      "AllergenId": 5,
+      "GroupId": 5
+    },
+    {
+      "Id": 6,
+      "AllergenId": 6,
+      "GroupId": 3
+    },
+    {
+      "Id": 7,
+      "AllergenId": 7,
+      "GroupId": 3
+    },
+    {
+      "Id": 8,
+      "AllergenId": 8,
+      "GroupId": 4
+    },
+    {
+      "Id": 9,
+      "AllergenId": 9,
+      "GroupId": 4
+    },
+    {
+      "Id": 10,
+      "AllergenId": 10,
+      "GroupId": 2
+    },
+    {
+      "Id": 11,
+      "AllergenId": 11,
+      "GroupId": 2
+    },
+    {
+      "Id": 12,
+      "AllergenId": 12,
+      "GroupId": 1
+    },
+    {
+      "Id": 13,
+      "AllergenId": 13,
+      "GroupId": 6
+    },
+    {
+      "Id": 14,
+      "AllergenId": 14,
+      "GroupId": 5
+    },
+    {
+      "Id": 15,
+      "AllergenId": 15,
+      "GroupId": 1
+    }
+  ],
+  "Ingredients": [
+    {
+      "Id": 1,
+      "Name": "Nước mắm",
+      "Category": "Gia vị",
+      "Description": "Nước chấm làm từ cá lên men, dùng trong hầu hết các món Việt Nam."
+    },
+    {
+      "Id": 2,
+      "Name": "Tôm tươi",
+      "Category": "Hải sản",
+      "Description": "Tôm tươi dùng trong chả giò, phở, hoặc gỏi cuốn."
+    },
+    {
+      "Id": 3,
+      "Name": "Đậu phộng rang",
+      "Category": "Hạt",
+      "Description": "Đậu phộng rang dùng làm topping hoặc nước chấm gỏi cuốn."
+    },
+    {
+      "Id": 4,
+      "Name": "Thịt bò",
+      "Category": "Thịt",
+      "Description": "Thịt bò thái lát mỏng dùng trong phở bò và bún bò Huế."
+    },
+    {
+      "Id": 5,
+      "Name": "Sữa đặc",
+      "Category": "Sữa",
+      "Description": "Sữa đặc dùng trong cà phê sữa và bánh flan."
+    },
+    {
+      "Id": 6,
+      "Name": "Trứng gà",
+      "Category": "Trứng",
+      "Description": "Trứng gà dùng trong bánh mì ốp la và bánh flan."
+    },
+    {
+      "Id": 7,
+      "Name": "Nước tương",
+      "Category": "Gia vị",
+      "Description": "Nước chấm làm từ đậu nành, dùng trong món chay và nước chấm."
+    },
+    {
+      "Id": 8,
+      "Name": "Bánh mì",
+      "Category": "Ngũ cốc",
+      "Description": "Bánh mì làm từ bột mì, chứa gluten."
+    },
+    {
+      "Id": 9,
+      "Name": "Mè rang",
+      "Category": "Hạt",
+      "Description": "Mè rang rắc lên xôi hoặc bánh mì."
+    },
+    {
+      "Id": 10,
+      "Name": "Cua tươi",
+      "Category": "Hải sản",
+      "Description": "Cua tươi dùng trong bún riêu cua và lẩu cua."
+    },
+    {
+      "Id": 11,
+      "Name": "Hạt điều rang",
+      "Category": "Hạt",
+      "Description": "Hạt điều rang dùng làm đồ ăn nhẹ hoặc trang trí món ăn."
+    },
+    {
+      "Id": 12,
+      "Name": "Mực tươi",
+      "Category": "Hải sản",
+      "Description": "Mực tươi dùng trong mực nướng và chả mực."
+    },
+    {
+      "Id": 13,
+      "Name": "Cải bẹ muối",
+      "Category": "Rau củ",
+      "Description": "Cải bẹ muối dùng trong canh hoặc ăn kèm."
+    },
+    {
+      "Id": 14,
+      "Name": "Thịt heo",
+      "Category": "Thịt",
+      "Description": "Thịt heo dùng trong thịt kho và bánh chưng."
+    },
+    {
+      "Id": 15,
+      "Name": "Cá tươi",
+      "Category": "Hải sản",
+      "Description": "Cá tươi dùng trong chả cá Lã Vọng và canh chua."
+    },
+    {
+      "Id": 16,
+      "Name": "Mắm tôm",
+      "Category": "Gia vị",
+      "Description": "Mắm tôm làm từ tôm lên men, dùng trong bún đậu mắm tôm."
+    },
+    {
+      "Id": 17,
+      "Name": "Dầu đậu phộng",
+      "Category": "Dầu",
+      "Description": "Dầu đậu phộng dùng để chiên hoặc làm nước chấm."
+    },
+    {
+      "Id": 18,
+      "Name": "Đậu hũ",
+      "Category": "Đậu",
+      "Description": "Đậu hũ dùng trong các món chay và lẩu."
+    }
+  ],
+  "IngredientNames": [
+    {
+      "Id": 1,
+      "IngredientId": 1,
+      "Name": "Nước mắm",
+      "IsPrimary": true
+    },
+    {
+      "Id": 2,
+      "IngredientId": 1,
+      "Name": "Fish Sauce",
+      "IsPrimary": false
+    },
+    {
+      "Id": 3,
+      "IngredientId": 2,
+      "Name": "Tôm tươi",
+      "IsPrimary": true
+    },
+    {
+      "Id": 4,
+      "IngredientId": 2,
+      "Name": "Fresh Shrimp",
+      "IsPrimary": false
+    },
+    {
+      "Id": 5,
+      "IngredientId": 3,
+      "Name": "Đậu phộng rang",
+      "IsPrimary": true
+    },
+    {
+      "Id": 6,
+      "IngredientId": 3,
+      "Name": "Roasted Peanut",
+      "IsPrimary": false
+    },
+    {
+      "Id": 7,
+      "IngredientId": 4,
+      "Name": "Thịt bò",
+      "IsPrimary": true
+    },
+    {
+      "Id": 8,
+      "IngredientId": 4,
+      "Name": "Beef",
+      "IsPrimary": false
+    },
+    {
+      "Id": 9,
+      "IngredientId": 5,
+      "Name": "Sữa đặc",
+      "IsPrimary": true
+    },
+    {
+      "Id": 10,
+      "IngredientId": 5,
+      "Name": "Condensed Milk",
+      "IsPrimary": false
+    },
+    {
+      "Id": 11,
+      "IngredientId": 6,
+      "Name": "Trứng gà",
+      "IsPrimary": true
+    },
+    {
+      "Id": 12,
+      "IngredientId": 6,
+      "Name": "Chicken Egg",
+      "IsPrimary": false
+    },
+    {
+      "Id": 13,
+      "IngredientId": 7,
+      "Name": "Nước tương",
+      "IsPrimary": true
+    },
+    {
+      "Id": 14,
+      "IngredientId": 7,
+      "Name": "Soy Sauce",
+      "IsPrimary": false
+    },
+    {
+      "Id": 15,
+      "IngredientId": 8,
+      "Name": "Bánh mì",
+      "IsPrimary": true
+    },
+    {
+      "Id": 16,
+      "IngredientId": 8,
+      "Name": "Baguette",
+      "IsPrimary": false
+    },
+    {
+      "Id": 17,
+      "IngredientId": 9,
+      "Name": "Mè rang",
+      "IsPrimary": true
+    },
+    {
+      "Id": 18,
+      "IngredientId": 9,
+      "Name": "Roasted Sesame",
+      "IsPrimary": false
+    },
+    {
+      "Id": 19,
+      "IngredientId": 10,
+      "Name": "Cua tươi",
+      "IsPrimary": true
+    },
+    {
+      "Id": 20,
+      "IngredientId": 10,
+      "Name": "Fresh Crab",
+      "IsPrimary": false
+    },
+    {
+      "Id": 21,
+      "IngredientId": 11,
+      "Name": "Hạt điều rang",
+      "IsPrimary": true
+    },
+    {
+      "Id": 22,
+      "IngredientId": 11,
+      "Name": "Roasted Cashew",
+      "IsPrimary": false
+    },
+    {
+      "Id": 23,
+      "IngredientId": 12,
+      "Name": "Mực tươi",
+      "IsPrimary": true
+    },
+    {
+      "Id": 24,
+      "IngredientId": 12,
+      "Name": "Fresh Squid",
+      "IsPrimary": false
+    },
+    {
+      "Id": 25,
+      "IngredientId": 13,
+      "Name": "Cải bẹ muối",
+      "IsPrimary": true
+    },
+    {
+      "Id": 26,
+      "IngredientId": 13,
+      "Name": "Pickled Mustard Greens",
+      "IsPrimary": false
+    },
+    {
+      "Id": 27,
+      "IngredientId": 14,
+      "Name": "Thịt heo",
+      "IsPrimary": true
+    },
+    {
+      "Id": 28,
+      "IngredientId": 14,
+      "Name": "Pork",
+      "IsPrimary": false
+    },
+    {
+      "Id": 29,
+      "IngredientId": 15,
+      "Name": "Cá tươi",
+      "IsPrimary": true
+    },
+    {
+      "Id": 30,
+      "IngredientId": 15,
+      "Name": "Fresh Fish",
+      "IsPrimary": false
+    },
+    {
+      "Id": 31,
+      "IngredientId": 16,
+      "Name": "Mắm tôm",
+      "IsPrimary": true
+    },
+    {
+      "Id": 32,
+      "IngredientId": 16,
+      "Name": "Shrimp Paste",
+      "IsPrimary": false
+    },
+    {
+      "Id": 33,
+      "IngredientId": 17,
+      "Name": "Dầu đậu phộng",
+      "IsPrimary": true
+    },
+    {
+      "Id": 34,
+      "IngredientId": 17,
+      "Name": "Peanut Oil",
+      "IsPrimary": false
+    },
+    {
+      "Id": 35,
+      "IngredientId": 18,
+      "Name": "Đậu hũ",
+      "IsPrimary": true
+    },
+    {
+      "Id": 36,
+      "IngredientId": 18,
+      "Name": "Tofu",
+      "IsPrimary": false
+    }
+  ],
+  "IngredientAllergens": [
+    {
+      "Id": 1,
+      "IngredientId": 1,
+      "AllergenId": 2,
+      "AllergenType": "Contains"
+    },
+    {
+      "Id": 2,
+      "IngredientId": 1,
+      "AllergenId": 15,
+      "AllergenType": "Contains"
+    },
+    {
+      "Id": 3,
+      "IngredientId": 2,
+      "AllergenId": 1,
+      "AllergenType": "Contains"
+    },
+    {
+      "Id": 4,
+      "IngredientId": 3,
+      "AllergenId": 4,
+      "AllergenType": "Contains"
+    },
+    {
+      "Id": 5,
+      "IngredientId": 4,
+      "AllergenId": 5,
+      "AllergenType": "Contains"
+    },
+    {
+      "Id": 6,
+      "IngredientId": 5,
+      "AllergenId": 6,
+      "AllergenType": "Contains"
+    },
+    {
+      "Id": 7,
+      "IngredientId": 6,
+      "AllergenId": 7,
+      "AllergenType": "Contains"
+    },
+    {
+      "Id": 8,
+      "IngredientId": 7,
+      "AllergenId": 8,
+      "AllergenType": "Contains"
+    },
+    {
+      "Id": 9,
+      "IngredientId": 8,
+      "AllergenId": 9,
+      "AllergenType": "Contains"
+    },
+    {
+      "Id": 10,
+      "IngredientId": 9,
+      "AllergenId": 10,
+      "AllergenType": "Contains"
+    },
+    {
+      "Id": 11,
+      "IngredientId": 10,
+      "AllergenId": 3,
+      "AllergenType": "Contains"
+    },
+    {
+      "Id": 12,
+      "IngredientId": 11,
+      "AllergenId": 11,
+      "AllergenType": "Contains"
+    },
+    {
+      "Id": 13,
+      "IngredientId": 12,
+      "AllergenId": 12,
+      "AllergenType": "Contains"
+    },
+    {
+      "Id": 14,
+      "IngredientId": 13,
+      "AllergenId": 13,
+      "AllergenType": "Contains"
+    },
+    {
+      "Id": 15,
+      "IngredientId": 14,
+      "AllergenId": 14,
+      "AllergenType": "Contains"
+    },
+    {
+      "Id": 16,
+      "IngredientId": 15,
+      "AllergenId": 15,
+      "AllergenType": "Contains"
+    },
+    {
+      "Id": 17,
+      "IngredientId": 16,
+      "AllergenId": 1,
+      "AllergenType": "Contains"
+    },
+    {
+      "Id": 18,
+      "IngredientId": 17,
+      "AllergenId": 4,
+      "AllergenType": "Contains"
+    },
+    {
+      "Id": 19,
+      "IngredientId": 18,
+      "AllergenId": 8,
+      "AllergenType": "Contains"
+    }
+  ]
+}

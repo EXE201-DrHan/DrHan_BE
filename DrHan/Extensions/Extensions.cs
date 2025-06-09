@@ -13,22 +13,44 @@ namespace DrHan.API.Extensions
         {
 
             // Add Controllers with Endpoints
-            builder.Services.AddControllers();
+            builder.Services.AddControllers().AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
+            }); ;
             var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-            var secretKey = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);
+            var secretKeyString = jwtSettings["SecretKey"];
+            
+            // Validate JWT configuration
+            if (string.IsNullOrEmpty(secretKeyString))
+            {
+                throw new InvalidOperationException("JWT SecretKey is not configured");
+            }
+            
+            if (secretKeyString.Length < 32)
+            {
+                throw new InvalidOperationException("JWT SecretKey must be at least 32 characters long");
+            }
+            
+            var secretKey = Encoding.UTF8.GetBytes(secretKeyString);
 
             // Add Authentication
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
+                    ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(secretKey),
+                    ValidateIssuer = true,
                     ValidIssuer = jwtSettings["Issuer"],
+                    ValidateAudience = true,
                     ValidAudience = jwtSettings["Audience"],
-                    ClockSkew = TimeSpan.FromSeconds(3) //Validator will still consider the token validate if it has expired 3 seconds ago, this is to prevent in case the request takes some time to reach to the api
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.FromSeconds(3), //Validator will still consider the token validate if it has expired 3 seconds ago, this is to prevent in case the request takes some time to reach to the api
+                    RequireExpirationTime = true
                 };
             });
 

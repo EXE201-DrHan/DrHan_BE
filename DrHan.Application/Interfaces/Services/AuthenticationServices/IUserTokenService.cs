@@ -10,14 +10,6 @@ namespace DrHan.Application.Interfaces.Services.AuthenticationServices
     public interface IUserTokenService
     {
         /// <summary>
-        /// Creates an ID token for the specified user with their role.
-        /// </summary>
-        /// <param name="user">The application user.</param>
-        /// <param name="role">The user's role.</param>
-        /// <returns>A string representing the ID token.</returns>
-        string CreateIdToken(ApplicationUser user, string role);
-
-        /// <summary>
         /// Creates an access token for the specified user with their role.
         /// </summary>
         /// <param name="user">The application user.</param>

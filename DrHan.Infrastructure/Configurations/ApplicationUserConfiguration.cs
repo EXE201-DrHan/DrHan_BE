@@ -1,3 +1,4 @@
+using DrHan.Domain.Constants;
 using DrHan.Domain.Constants.Status;
 using DrHan.Domain.Entities.Users;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,11 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
             convertToProviderExpression: v => v.ToString(),
             convertFromProviderExpression: v => (UserStatus)Enum.Parse(typeof(UserStatus), v))
             .HasDefaultValue(UserStatus.Enabled);
+        builder.Property(u => u.Gender)
+            .HasConversion(
+            convertToProviderExpression: v => v.ToString(),
+            convertFromProviderExpression: v => (Gender)Enum.Parse(typeof(Gender), v))
+            .HasDefaultValue(Gender.Other);
         // Properties
         builder.Property(u => u.CreatedAt).ValueGeneratedOnAdd().HasDefaultValueSql("getdate()");
         builder.Property(u => u.UpdatedAt).ValueGeneratedOnAddOrUpdate().HasDefaultValueSql("getdate()");
