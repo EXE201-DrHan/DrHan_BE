@@ -1,6 +1,8 @@
 using DrHan.Infrastructure.Seeders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using DrHan.Application.Commons;
+using DrHan.Application.DTOs.DataManagement;
 
 namespace DrHan.Controllers
 {
@@ -24,17 +26,28 @@ namespace DrHan.Controllers
         /// Seeds all data (allergens, ingredients, and relationships)
         /// </summary>
         [HttpPost("seed/all")]
-        public async Task<IActionResult> SeedAllData()
+        public async Task<ActionResult<AppResponse<SeedDataResponse>>> SeedAllData()
         {
             try
             {
                 await _dataManagementService.SeedAllDataAsync();
-                return Ok(new { Message = "All data seeded successfully", Timestamp = DateTime.UtcNow });
+                var response = new AppResponse<SeedDataResponse>()
+                    .SetSuccessResponse(new SeedDataResponse
+                    {
+                        Message = "All data seeded successfully",
+                        Operation = "SeedAll",
+                        RecordsAffected = 0, // TODO: Return actual count from service
+                        Timestamp = DateTime.UtcNow
+                    });
+                return Ok(response);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to seed all data");
-                return StatusCode(500, new { Error = "Failed to seed data", Details = ex.Message });
+                var errorResponse = new AppResponse<SeedDataResponse>()
+                    .SetErrorResponse("SeedOperation", "Failed to seed all data")
+                    .SetErrorResponse("Details", ex.Message);
+                return StatusCode(500, errorResponse);
             }
         }
 
@@ -78,22 +91,29 @@ namespace DrHan.Controllers
         /// Seeds users and roles
         /// </summary>
         [HttpPost("seed/users")]
-        public async Task<IActionResult> SeedUsersAndRoles()
+        public async Task<ActionResult<AppResponse<SeedUsersResponse>>> SeedUsersAndRoles()
         {
             try
             {
                 await _dataManagementService.SeedUsersAndRolesAsync();
                 var userStats = await _dataManagementService.GetUserStatisticsAsync();
-                return Ok(new { 
-                    Message = "Users and roles seeded successfully", 
-                    UserStatistics = userStats,
-                    Timestamp = DateTime.UtcNow 
-                });
+                
+                var response = new AppResponse<SeedUsersResponse>()
+                    .SetSuccessResponse(new SeedUsersResponse
+                    {
+                        Message = "Users and roles seeded successfully",
+                        UserStatistics = ConvertToUserStatisticsDto(userStats),
+                        Timestamp = DateTime.UtcNow
+                    });
+                return Ok(response);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to seed users and roles");
-                return StatusCode(500, new { Error = "Failed to seed users and roles", Details = ex.Message });
+                var errorResponse = new AppResponse<SeedUsersResponse>()
+                    .SetErrorResponse("SeedOperation", "Failed to seed users and roles")
+                    .SetErrorResponse("Details", ex.Message);
+                return StatusCode(500, errorResponse);
             }
         }
 
@@ -232,17 +252,22 @@ namespace DrHan.Controllers
         /// Gets current database statistics
         /// </summary>
         [HttpGet("statistics")]
-        public async Task<IActionResult> GetStatistics()
+        public async Task<ActionResult<AppResponse<StatisticsResponse>>> GetStatistics()
         {
             try
             {
                 var stats = await _dataManagementService.GetDataStatisticsAsync();
-                return Ok(stats);
+                var response = new AppResponse<StatisticsResponse>()
+                    .SetSuccessResponse(ConvertToStatisticsDto(stats));
+                return Ok(response);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to get statistics");
-                return StatusCode(500, new { Error = "Failed to get statistics", Details = ex.Message });
+                var errorResponse = new AppResponse<StatisticsResponse>()
+                    .SetErrorResponse("Statistics", "Failed to retrieve database statistics")
+                    .SetErrorResponse("Details", ex.Message);
+                return StatusCode(500, errorResponse);
             }
         }
 
@@ -268,17 +293,22 @@ namespace DrHan.Controllers
         /// Performs a health check on the data system
         /// </summary>
         [HttpGet("health")]
-        public async Task<IActionResult> HealthCheck()
+        public async Task<ActionResult<AppResponse<HealthCheckResponse>>> HealthCheck()
         {
             try
             {
                 var health = await _dataManagementService.PerformHealthCheckAsync();
-                return Ok(health);
+                var response = new AppResponse<HealthCheckResponse>()
+                    .SetSuccessResponse(ConvertToHealthCheckDto(health));
+                return Ok(response);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Health check failed");
-                return StatusCode(500, new { Error = "Health check failed", Details = ex.Message });
+                var errorResponse = new AppResponse<HealthCheckResponse>()
+                    .SetErrorResponse("HealthCheck", "Health check operation failed")
+                    .SetErrorResponse("Details", ex.Message);
+                return StatusCode(500, errorResponse);
             }
         }
 
@@ -286,17 +316,22 @@ namespace DrHan.Controllers
         /// Validates JSON data files
         /// </summary>
         [HttpGet("validate")]
-        public async Task<IActionResult> ValidateJsonData()
+        public async Task<ActionResult<AppResponse<ValidationResponse>>> ValidateJsonData()
         {
             try
             {
                 var validation = await _dataManagementService.ValidateJsonDataAsync();
-                return Ok(validation);
+                var response = new AppResponse<ValidationResponse>()
+                    .SetSuccessResponse(ConvertToValidationDto(validation));
+                return Ok(response);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "JSON validation failed");
-                return StatusCode(500, new { Error = "JSON validation failed", Details = ex.Message });
+                var errorResponse = new AppResponse<ValidationResponse>()
+                    .SetErrorResponse("Validation", "JSON validation operation failed")
+                    .SetErrorResponse("Details", ex.Message);
+                return StatusCode(500, errorResponse);
             }
         }
 
@@ -322,5 +357,69 @@ namespace DrHan.Controllers
                 return StatusCode(500, new { Error = "Failed to ensure data", Details = ex.Message });
             }
         }
+
+        #region Helper Methods
+
+        private UserStatistics ConvertToUserStatisticsDto(DrHan.Infrastructure.Seeders.UserStatsService.UserStatistics stats)
+        {
+            return new UserStatistics
+            {
+                TotalUsers = stats.TotalUsers,
+                AdminUsers = stats.AdminUsers,
+                CustomerUsers = stats.CustomerUsers,
+                EnabledUsers = stats.EnabledUsers,
+                DisabledUsers = stats.DisabledUsers,
+                ConfirmedEmails = stats.ConfirmedEmails,
+                UnconfirmedEmails = stats.UnconfirmedEmails,
+                Timestamp = DateTime.UtcNow
+            };
+        }
+
+        private StatisticsResponse ConvertToStatisticsDto(DrHan.Infrastructure.Seeders.DataCleaner.DataStatistics stats)
+        {
+            return new StatisticsResponse
+            {
+                CrossReactivityGroupsCount = stats.CrossReactivityGroupsCount,
+                AllergensCount = stats.AllergensCount,
+                AllergenNamesCount = stats.AllergenNamesCount,
+                IngredientsCount = stats.IngredientsCount,
+                IngredientNamesCount = stats.IngredientNamesCount,
+                AllergenIngredientRelationsCount = stats.AllergenIngredientRelationsCount,
+                TotalRecords = stats.TotalRecords,
+                Timestamp = DateTime.UtcNow
+            };
+        }
+
+        private HealthCheckResponse ConvertToHealthCheckDto(DrHan.Infrastructure.Seeders.DataManagementService.HealthCheckResult health)
+        {
+            return new HealthCheckResponse
+            {
+                IsHealthy = health.IsHealthy,
+                CanConnectToDatabase = health.CanConnectToDatabase,
+                HasData = health.HasData,
+                HasCompleteData = health.HasCompleteData,
+                Statistics = health.Statistics != null ? ConvertToStatisticsDto(health.Statistics) : null,
+                JsonValidation = health.JsonValidation != null ? ConvertToValidationDto(health.JsonValidation) : null,
+                Error = health.Error,
+                CheckedAt = health.CheckedAt
+            };
+        }
+
+        private ValidationResponse ConvertToValidationDto(DrHan.Infrastructure.Seeders.DataValidationHelper.ValidationResult validation)
+        {
+            return new ValidationResponse
+            {
+                IsValid = validation.IsValid,
+                Errors = validation.Errors?.ToArray() ?? Array.Empty<string>(),
+                Warnings = validation.Warnings?.ToArray() ?? Array.Empty<string>(),
+                FilesChecked = validation.FilesChecked,
+                ValidFiles = validation.ValidFiles,
+                InvalidFiles = validation.InvalidFiles,
+                Details = validation.Details ?? new Dictionary<string, string>(),
+                Timestamp = DateTime.UtcNow
+            };
+        }
+
+        #endregion
     }
 } 

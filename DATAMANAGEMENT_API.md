@@ -12,6 +12,46 @@ This API provides comprehensive data management capabilities for the DrHan syste
 
 ---
 
+## Response Format
+
+All endpoints return responses wrapped in a consistent `AppResponse<T>` format:
+
+### Success Response Structure:
+```json
+{
+  "isSucceeded": true,
+  "timestamp": "2024-01-15T10:30:00Z",
+  "messages": {},
+  "data": {
+    // Actual response data here
+  },
+  "pagination": null
+}
+```
+
+### Error Response Structure:
+```json
+{
+  "isSucceeded": false,
+  "timestamp": "2024-01-15T10:30:00Z",
+  "messages": {
+    "ErrorCategory": ["Error message"],
+    "Details": ["Detailed error information"]
+  },
+  "data": null,
+  "pagination": null
+}
+```
+
+**Response Fields:**
+- `isSucceeded`: Boolean indicating operation success
+- `timestamp`: UTC timestamp when response was generated
+- `messages`: Dictionary of categorized messages (empty for success, error details for failures)
+- `data`: The actual response data (null on error)
+- `pagination`: Pagination information (null for non-paginated responses)
+
+---
+
 ## Security Requirements
 
 🔒 **All endpoints require:**
@@ -40,16 +80,30 @@ Content-Type: application/json (for POST/PUT requests)
 **Success Response (200):**
 ```json
 {
-  "message": "All data seeded successfully",
-  "timestamp": "2024-01-15T10:30:00Z"
+  "isSucceeded": true,
+  "timestamp": "2024-01-15T10:30:00Z",
+  "messages": {},
+  "data": {
+    "message": "All data seeded successfully",
+    "operation": "SeedAll",
+    "recordsAffected": 2500,
+    "timestamp": "2024-01-15T10:30:00Z"
+  },
+  "pagination": null
 }
 ```
 
 **Error Response (500):**
 ```json
 {
-  "error": "Failed to seed data",
-  "details": "Specific error details..."
+  "isSucceeded": false,
+  "timestamp": "2024-01-15T10:30:00Z",
+  "messages": {
+    "SeedOperation": ["Failed to seed all data"],
+    "Details": ["Database connection timeout"]
+  },
+  "data": null,
+  "pagination": null
 }
 ```
 
@@ -118,18 +172,24 @@ Content-Type: application/json (for POST/PUT requests)
 **Success Response (200):**
 ```json
 {
-  "message": "Users and roles seeded successfully",
-  "userStatistics": {
-    "totalUsers": 150,
-    "adminUsers": 5,
-    "customerUsers": 145,
-    "enabledUsers": 148,
-    "disabledUsers": 2,
-    "confirmedEmails": 140,
-    "unconfirmedEmails": 10,
+  "isSucceeded": true,
+  "timestamp": "2024-01-15T10:30:00Z",
+  "messages": {},
+  "data": {
+    "message": "Users and roles seeded successfully",
+    "userStatistics": {
+      "totalUsers": 150,
+      "adminUsers": 5,
+      "customerUsers": 145,
+      "enabledUsers": 148,
+      "disabledUsers": 2,
+      "confirmedEmails": 140,
+      "unconfirmedEmails": 10,
+      "timestamp": "2024-01-15T10:30:00Z"
+    },
     "timestamp": "2024-01-15T10:30:00Z"
   },
-  "timestamp": "2024-01-15T10:30:00Z"
+  "pagination": null
 }
 ```
 
@@ -354,14 +414,20 @@ Content-Type: application/json (for POST/PUT requests)
 **Success Response (200):**
 ```json
 {
-  "crossReactivityGroupsCount": 25,
-  "allergensCount": 150,
-  "allergenNamesCount": 450,
-  "ingredientsCount": 2500,
-  "ingredientNamesCount": 7500,
-  "allergenIngredientRelationsCount": 1200,
-  "totalRecords": 11825,
-  "timestamp": "2024-01-15T10:30:00Z"
+  "isSucceeded": true,
+  "timestamp": "2024-01-15T10:30:00Z",
+  "messages": {},
+  "data": {
+    "crossReactivityGroupsCount": 25,
+    "allergensCount": 150,
+    "allergenNamesCount": 450,
+    "ingredientsCount": 2500,
+    "ingredientNamesCount": 7500,
+    "allergenIngredientRelationsCount": 1200,
+    "totalRecords": 11825,
+    "timestamp": "2024-01-15T10:30:00Z"
+  },
+  "pagination": null
 }
 ```
 
