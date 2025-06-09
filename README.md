@@ -145,6 +145,7 @@ POST /api/authentication/debug-login
 Comprehensive API documentation is available:
 
 - **[Authentication API Documentation](./AUTHENTICATION_API.md)** - Complete authentication endpoints
+- **[Data Management API Documentation](./DATAMANAGEMENT_API.md)** - Data seeding, cleaning, and monitoring endpoints
 - **Swagger UI** - Interactive API explorer at `/swagger` when running locally
 - **OpenAPI Specification** - Available at `/swagger/v1/swagger.json`
 
@@ -347,7 +348,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-- **Documentation**: [Authentication API Docs](./AUTHENTICATION_API.md)
+- **Documentation**: 
+  - [Authentication API Docs](./AUTHENTICATION_API.md)
+  - [Data Management API Docs](./DATAMANAGEMENT_API.md)
 - **Issues**: [GitHub Issues](https://github.com/your-username/DrHan/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/your-username/DrHan/discussions)
 
