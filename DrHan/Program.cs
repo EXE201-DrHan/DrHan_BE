@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddPresentation(builder.Configuration);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplications(builder.Configuration);
-
+builder.Services.AddRedisServices(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 //builder.Logging.ClearProviders();

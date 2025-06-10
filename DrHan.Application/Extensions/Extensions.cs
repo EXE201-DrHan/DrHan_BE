@@ -1,7 +1,9 @@
-﻿using FluentValidation;
+﻿using DrHan.Application.Interfaces.Services.CacheService;
+using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +20,8 @@ namespace DrHan.Application.Extensions
             // Application assembly
             var applicationAssembly = typeof(ServiceCollectionExtensions).Assembly;
 
+            // Add memory cache as fallback
+            services.AddMemoryCache();
             // CQRS MediaR
             services.AddMediatR(mtr => mtr.RegisterServicesFromAssembly(applicationAssembly));
 
