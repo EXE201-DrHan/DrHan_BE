@@ -193,31 +193,5 @@ namespace DrHan.API.Controllers
                 Timestamp = DateTime.UtcNow 
             });
         }
-
-        /// <summary>
-        /// Debug endpoint to test login flow without email confirmation requirement
-        /// </summary>
-        /// <param name="email">User email</param>
-        /// <param name="password">User password</param>
-        /// <returns>Login response with tokens (bypasses email confirmation)</returns>
-        [HttpPost("debug-login")]
-        public async Task<ActionResult<AppResponse<LoginUserResponse>>> DebugLogin([FromBody] dynamic request)
-        {
-            // This is a debug version that bypasses email confirmation for testing
-            // Remove this in production!
-            
-            var debugCommand = new DrHan.Application.Services.AuthenticationServices.Commands.LoginUser.DebugLoginUserCommand
-            {
-                Email = request.email?.ToString() ?? "",
-                Password = request.password?.ToString() ?? ""
-            };
-            
-            var response = await _mediator.Send(debugCommand);
-            
-            if (!response.IsSucceeded)
-                return BadRequest(response);
-            
-            return Ok(response);
-        }
     }
 } 

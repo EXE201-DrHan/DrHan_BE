@@ -7,8 +7,34 @@ namespace DrHan.Infrastructure.Seeders
 {
     public static class SeederConfiguration
     {
-        private static string JsonDataBasePath =>
-    Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DrHan.Infrastructure", "Seeders", "JsonData");
+        private static string JsonDataBasePath
+        {
+            get
+            {
+                // Try to find the JsonData directory relative to the current assembly location
+                var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+                var assemblyDirectory = Path.GetDirectoryName(assemblyLocation);
+                
+                // Navigate up to find the solution root, then to the JsonData directory
+                var currentDir = assemblyDirectory;
+                while (currentDir != null && !Directory.Exists(Path.Combine(currentDir, "DrHan.Infrastructure")))
+                {
+                    currentDir = Directory.GetParent(currentDir)?.FullName;
+                }
+                
+                if (currentDir != null)
+                {
+                    var jsonDataPath = Path.Combine(currentDir, "DrHan.Infrastructure", "Seeders", "JsonData");
+                    if (Directory.Exists(jsonDataPath))
+                    {
+                        return jsonDataPath;
+                    }
+                }
+                
+                // Fallback to the original logic if the directory structure search fails
+                return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DrHan.Infrastructure", "Seeders", "JsonData");
+            }
+        }
 
         public static class FilePaths
         {

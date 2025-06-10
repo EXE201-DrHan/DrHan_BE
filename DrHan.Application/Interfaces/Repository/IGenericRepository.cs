@@ -25,10 +25,10 @@ namespace DrHan.Application.Interfaces.Repository
         Task<bool> DeleteRangeAsync(Expression<Func<T, bool>> predicate);
         
         Task<int> SaveChangesAsync();
-        Task<IReadOnlyList<T>> ListAsync(
-            Expression<Func<T, bool>>? filter = null,
-            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null
-        );
+        //Task<IReadOnlyList<T>> ListAsync(
+        //    Expression<Func<T, bool>>? filter = null,
+        //    Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null
+        //);
         Task<IReadOnlyList<T>> ListAsync(
            Expression<Func<T, bool>>? filter = null,
            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,

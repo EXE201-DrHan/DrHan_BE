@@ -53,11 +53,10 @@ namespace DrHan.Application.DTOs.DataManagement
     {
         public int TotalUsers { get; set; }
         public int AdminUsers { get; set; }
+        public int StaffUsers { get; set; }
+        public int NutritionistUsers { get; set; }
         public int CustomerUsers { get; set; }
-        public int EnabledUsers { get; set; }
-        public int DisabledUsers { get; set; }
-        public int ConfirmedEmails { get; set; }
-        public int UnconfirmedEmails { get; set; }
+        public int TotalRoles { get; set; }
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     }
 

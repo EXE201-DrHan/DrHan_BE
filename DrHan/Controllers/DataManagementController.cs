@@ -8,7 +8,7 @@ namespace DrHan.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")] // Only admins can access data management operations
+    [Authorize(Roles = "Admin")] 
     public class DataManagementController : ControllerBase
     {
         private readonly DataManagementService _dataManagementService;
@@ -360,17 +360,16 @@ namespace DrHan.Controllers
 
         #region Helper Methods
 
-        private UserStatistics ConvertToUserStatisticsDto(DrHan.Infrastructure.Seeders.UserStatsService.UserStatistics stats)
+        private UserStatistics ConvertToUserStatisticsDto(DrHan.Infrastructure.Seeders.DataManagementService.UserStatistics stats)
         {
             return new UserStatistics
             {
                 TotalUsers = stats.TotalUsers,
                 AdminUsers = stats.AdminUsers,
+                StaffUsers = stats.StaffUsers,
+                NutritionistUsers = stats.NutritionistUsers,
                 CustomerUsers = stats.CustomerUsers,
-                EnabledUsers = stats.EnabledUsers,
-                DisabledUsers = stats.DisabledUsers,
-                ConfirmedEmails = stats.ConfirmedEmails,
-                UnconfirmedEmails = stats.UnconfirmedEmails,
+                TotalRoles = stats.TotalRoles,
                 Timestamp = DateTime.UtcNow
             };
         }
@@ -384,7 +383,6 @@ namespace DrHan.Controllers
                 AllergenNamesCount = stats.AllergenNamesCount,
                 IngredientsCount = stats.IngredientsCount,
                 IngredientNamesCount = stats.IngredientNamesCount,
-                AllergenIngredientRelationsCount = stats.AllergenIngredientRelationsCount,
                 TotalRecords = stats.TotalRecords,
                 Timestamp = DateTime.UtcNow
             };
@@ -410,12 +408,21 @@ namespace DrHan.Controllers
             return new ValidationResponse
             {
                 IsValid = validation.IsValid,
-                Errors = validation.Errors?.ToArray() ?? Array.Empty<string>(),
-                Warnings = validation.Warnings?.ToArray() ?? Array.Empty<string>(),
-                FilesChecked = validation.FilesChecked,
-                ValidFiles = validation.ValidFiles,
-                InvalidFiles = validation.InvalidFiles,
-                Details = validation.Details ?? new Dictionary<string, string>(),
+                Errors = validation.ValidationErrors.ToArray(),
+                Warnings = Array.Empty<string>(), // Not available in current ValidationResult
+                FilesChecked = 7, // Fixed number based on JSON files checked
+                ValidFiles = validation.IsValid ? 7 : 0,
+                InvalidFiles = validation.IsValid ? 0 : 7,
+                Details = new Dictionary<string, string>
+                {
+                    ["CrossReactivityGroups"] = validation.CrossReactivityGroupsCount.ToString(),
+                    ["Allergens"] = validation.AllergensCount.ToString(),
+                    ["AllergenNames"] = validation.AllergenNamesCount.ToString(),
+                    ["AllergenCrossReactivities"] = validation.AllergenCrossReactivitiesCount.ToString(),
+                    ["Ingredients"] = validation.IngredientsCount.ToString(),
+                    ["IngredientNames"] = validation.IngredientNamesCount.ToString(),
+                    ["IngredientAllergens"] = validation.IngredientAllergensCount.ToString()
+                },
                 Timestamp = DateTime.UtcNow
             };
         }

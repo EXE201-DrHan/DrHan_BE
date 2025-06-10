@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+
 namespace DrHan.Application.Extensions
 {
     public static partial class ServiceCollectionExtensions
@@ -26,6 +27,8 @@ namespace DrHan.Application.Extensions
             // Add Fluent Validation
             services.AddValidatorsFromAssembly(applicationAssembly)
                 .AddFluentValidationAutoValidation();
+
+            // Services are automatically registered by MediatR through assembly scanning
         }
     }
 }

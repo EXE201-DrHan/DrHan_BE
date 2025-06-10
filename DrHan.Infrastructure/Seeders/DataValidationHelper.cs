@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text.Json;
 
 namespace DrHan.Infrastructure.Seeders
@@ -7,7 +8,9 @@ namespace DrHan.Infrastructure.Seeders
         public static async Task<ValidationResult> ValidateAllJsonDataAsync()
         {
             var result = new ValidationResult();
-            var jsonDataPath = Path.Combine(Directory.GetCurrentDirectory().ToString(), "..", "..", "..DrHan.Infrastructure", "Seeders", "JsonData");
+            
+            // Use the same logic as SeederConfiguration to find the JsonData directory
+            var jsonDataPath = FindJsonDataPath();
 
             try
             {
@@ -42,6 +45,32 @@ namespace DrHan.Infrastructure.Seeders
             }
 
             return result;
+        }
+
+        private static string FindJsonDataPath()
+        {
+            // Try to find the JsonData directory relative to the current assembly location
+            var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+            var assemblyDirectory = Path.GetDirectoryName(assemblyLocation);
+            
+            // Navigate up to find the solution root, then to the JsonData directory
+            var currentDir = assemblyDirectory;
+            while (currentDir != null && !Directory.Exists(Path.Combine(currentDir, "DrHan.Infrastructure")))
+            {
+                currentDir = Directory.GetParent(currentDir)?.FullName;
+            }
+            
+            if (currentDir != null)
+            {
+                var jsonDataPath = Path.Combine(currentDir, "DrHan.Infrastructure", "Seeders", "JsonData");
+                if (Directory.Exists(jsonDataPath))
+                {
+                    return jsonDataPath;
+                }
+            }
+            
+            // Fallback to the relative path approach
+            return Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "DrHan.Infrastructure", "Seeders", "JsonData");
         }
 
         private static async Task<T?> LoadJsonAsync<T>(string filePath)
