@@ -99,7 +99,11 @@ namespace DrHan.Infrastructure.Seeders
                 {
                     context.Set<T>().RemoveRange(entities);
                     await context.SaveChangesAsync();
-                    logger?.LogInformation($"Successfully cleaned {entities.Count} {entityName} records.");
+
+                    // Reset identity value to 1
+                    await ResetIdentityAsync<T>(context, logger);
+
+                    logger?.LogInformation($"Successfully cleaned {entities.Count} {entityName} records and reset identity.");
                 }
                 else
                 {
@@ -112,6 +116,31 @@ namespace DrHan.Infrastructure.Seeders
                 throw;
             }
         }
+
+        public static async Task ResetIdentityAsync<T>(ApplicationDbContext context, ILogger? logger = null) where T : class
+        {
+            try
+            {
+                var entityType = context.Model.FindEntityType(typeof(T));
+                var tableName = entityType?.GetTableName();
+                var schema = entityType?.GetSchema() ?? "dbo";
+
+                if (!string.IsNullOrEmpty(tableName))
+                {
+                    // For SQL Server - adjust the SQL for your database provider
+                    var sql = $"DBCC CHECKIDENT('[{schema}].[{tableName}]', RESEED, 0)";
+                    await context.Database.ExecuteSqlRawAsync(sql);
+
+                    logger?.LogDebug($"Reset identity for table {schema}.{tableName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log but don't throw - identity reset failure shouldn't break the cleaning process
+                logger?.LogWarning(ex, $"Failed to reset identity for {typeof(T).Name}");
+            }
+        }
+
 
         public static async Task ResetAndReseedAsync(ApplicationDbContext context, ILogger? logger = null)
         {

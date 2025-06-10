@@ -1,108 +1,90 @@
 [
   {
-    "Id": 1,
     "Name": "Nước mắm",
     "Category": "Gia vị",
     "Description": "Nước chấm làm từ cá lên men, dùng trong hầu hết các món Việt Nam."
   },
   {
-    "Id": 2,
     "Name": "Tôm tươi",
     "Category": "Hải sản",
     "Description": "Tôm tươi dùng trong chả giò, phở, hoặc gỏi cuốn."
   },
   {
-    "Id": 3,
     "Name": "Đậu phộng rang",
     "Category": "Hạt",
     "Description": "Đậu phộng rang dùng làm topping hoặc nước chấm gỏi cuốn."
   },
   {
-    "Id": 4,
     "Name": "Thịt bò",
     "Category": "Thịt",
     "Description": "Thịt bò thái lát mỏng dùng trong phở bò và bún bò Huế."
   },
   {
-    "Id": 5,
     "Name": "Sữa đặc",
     "Category": "Sữa",
     "Description": "Sữa đặc dùng trong cà phê sữa và bánh flan."
   },
   {
-    "Id": 6,
     "Name": "Trứng gà",
     "Category": "Trứng",
     "Description": "Trứng gà dùng trong bánh mì ốp la và bánh flan."
   },
   {
-    "Id": 7,
     "Name": "Nước tương",
     "Category": "Gia vị",
     "Description": "Nước chấm làm từ đậu nành, dùng trong món chay và nước chấm."
   },
   {
-    "Id": 8,
     "Name": "Bánh mì",
     "Category": "Ngũ cốc",
     "Description": "Bánh mì làm từ bột mì, chứa gluten."
   },
   {
-    "Id": 9,
     "Name": "Mè rang",
     "Category": "Hạt",
     "Description": "Mè rang rắc lên xôi hoặc bánh mì."
   },
   {
-    "Id": 10,
     "Name": "Cua tươi",
     "Category": "Hải sản",
     "Description": "Cua tươi dùng trong bún riêu cua và lẩu cua."
   },
   {
-    "Id": 11,
     "Name": "Hạt điều rang",
     "Category": "Hạt",
     "Description": "Hạt điều rang dùng làm đồ ăn nhẹ hoặc trang trí món ăn."
   },
   {
-    "Id": 12,
     "Name": "Mực tươi",
     "Category": "Hải sản",
     "Description": "Mực tươi dùng trong mực nướng và chả mực."
   },
   {
-    "Id": 13,
     "Name": "Cải bẹ muối",
     "Category": "Rau củ",
     "Description": "Cải bẹ muối dùng trong canh hoặc ăn kèm."
   },
   {
-    "Id": 14,
     "Name": "Thịt heo",
     "Category": "Thịt",
     "Description": "Thịt heo dùng trong thịt kho và bánh chưng."
   },
   {
-    "Id": 15,
     "Name": "Cá tươi",
     "Category": "Hải sản",
     "Description": "Cá tươi dùng trong chả cá Lã Vọng và canh chua."
   },
   {
-    "Id": 16,
     "Name": "Mắm tôm",
     "Category": "Gia vị",
     "Description": "Mắm tôm làm từ tôm lên men, dùng trong bún đậu mắm tôm."
   },
   {
-    "Id": 17,
     "Name": "Dầu đậu phộng",
     "Category": "Dầu",
     "Description": "Dầu đậu phộng dùng để chiên hoặc làm nước chấm."
   },
   {
-    "Id": 18,
     "Name": "Đậu hũ",
     "Category": "Đậu",
     "Description": "Đậu hũ dùng trong các món chay và lẩu."

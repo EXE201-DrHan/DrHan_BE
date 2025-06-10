@@ -28,13 +28,19 @@ public class GetAllergensByCategoryQueryHandler : IRequestHandler<GetAllergensBy
     {
         try
         {
-            var allergens = await _unitOfWork.Repository<Allergen>()
-                .ListAsync(filter: a => a.Category.ToLower() == request.Category.ToLower());
+            if (string.IsNullOrWhiteSpace(request.Category))
+            {
+                return new AppResponse<IEnumerable<AllergenDto>>()
+                    .SetErrorResponse("Category", "Category parameter is required");
+            }
 
-            var allergensDto = _mapper.Map<IEnumerable<AllergenDto>>(allergens);
+            var allergens = await _unitOfWork.Repository<Allergen>()
+                .ListAsync(a => a.Category.ToLower() == request.Category.ToLower());
+
+            var allergenDtos = _mapper.Map<IEnumerable<AllergenDto>>(allergens);
 
             return new AppResponse<IEnumerable<AllergenDto>>()
-                .SetSuccessResponse(allergensDto);
+                .SetSuccessResponse(allergenDtos);
         }
         catch (Exception ex)
         {

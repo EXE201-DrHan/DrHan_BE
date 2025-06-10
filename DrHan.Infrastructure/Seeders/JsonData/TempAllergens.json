@@ -1,6 +1,5 @@
 [
   {
-    "Id": 1,
     "Name": "Tôm",
     "Category": "Hải sản",
     "ScientificName": "Penaeus spp.",
@@ -9,7 +8,6 @@
     "IsEuMajor": true
   },
   {
-    "Id": 2,
     "Name": "Nước mắm",
     "Category": "Hải sản",
     "ScientificName": null,
@@ -18,7 +16,6 @@
     "IsEuMajor": true
   },
   {
-    "Id": 3,
     "Name": "Cua",
     "Category": "Hải sản",
     "ScientificName": "Brachyura spp.",
@@ -27,7 +24,6 @@
     "IsEuMajor": true
   },
   {
-    "Id": 4,
     "Name": "Đậu phộng",
     "Category": "Hạt",
     "ScientificName": "Arachis hypogaea",
@@ -36,7 +32,6 @@
     "IsEuMajor": true
   },
   {
-    "Id": 5,
     "Name": "Thịt bò",
     "Category": "Thịt",
     "ScientificName": "Bos taurus",
@@ -45,7 +40,6 @@
     "IsEuMajor": false
   },
   {
-    "Id": 6,
     "Name": "Sữa",
     "Category": "Sữa",
     "ScientificName": null,
@@ -54,7 +48,6 @@
     "IsEuMajor": true
   },
   {
-    "Id": 7,
     "Name": "Trứng",
     "Category": "Trứng",
     "ScientificName": null,
@@ -63,7 +56,6 @@
     "IsEuMajor": true
   },
   {
-    "Id": 8,
     "Name": "Đậu nành",
     "Category": "Đậu",
     "ScientificName": "Glycine max",
@@ -72,7 +64,6 @@
     "IsEuMajor": true
   },
   {
-    "Id": 9,
     "Name": "Lúa mì",
     "Category": "Ngũ cốc",
     "ScientificName": "Triticum spp.",
@@ -81,7 +72,6 @@
     "IsEuMajor": true
   },
   {
-    "Id": 10,
     "Name": "Mè",
     "Category": "Hạt",
     "ScientificName": "Sesamum indicum",
@@ -90,7 +80,6 @@
     "IsEuMajor": true
   },
   {
-    "Id": 11,
     "Name": "Hạt điều",
     "Category": "Hạt",
     "ScientificName": "Anacardium occidentale",
@@ -99,7 +88,6 @@
     "IsEuMajor": true
   },
   {
-    "Id": 12,
     "Name": "Mực",
     "Category": "Hải sản",
     "ScientificName": "Loligo spp.",
@@ -108,7 +96,6 @@
     "IsEuMajor": true
   },
   {
-    "Id": 13,
     "Name": "Cải bẹ",
     "Category": "Gia vị",
     "ScientificName": "Brassica juncea",
@@ -117,7 +104,6 @@
     "IsEuMajor": true
   },
   {
-    "Id": 14,
     "Name": "Thịt heo",
     "Category": "Thịt",
     "ScientificName": "Sus scrofa",
@@ -126,7 +112,6 @@
     "IsEuMajor": false
   },
   {
-    "Id": 15,
     "Name": "Cá",
     "Category": "Hải sản",
     "ScientificName": "Actinopterygii",

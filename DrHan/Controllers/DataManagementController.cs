@@ -8,7 +8,7 @@ namespace DrHan.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Admin")] 
+    //[Authorize(Roles = "Admin")] 
     public class DataManagementController : ControllerBase
     {
         private readonly DataManagementService _dataManagementService;

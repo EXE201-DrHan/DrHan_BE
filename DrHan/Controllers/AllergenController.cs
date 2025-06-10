@@ -7,15 +7,13 @@ using DrHan.Application.Services.AllergenServices.Commands.DeleteAllergen;
 using DrHan.Application.Services.AllergenServices.Queries.GetAllAllergens;
 using DrHan.Application.Services.AllergenServices.Queries.GetAllergenById;
 using DrHan.Application.Services.AllergenServices.Queries.SearchAllergens;
-using DrHan.Application.Services.AllergenServices.Queries.GetAllergensByCategory;
 using DrHan.Application.Services.AllergenServices.Queries.GetAllergenCategories;
-using DrHan.Application.Services.AllergenServices.Queries.GetMajorAllergens;
+using DrHan.Application.Services.AllergenServices.Queries.GetAllergensByCategory;
 
 namespace DrHan.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class AllergenController : ControllerBase
 {
     private readonly IMediator _mediator;
@@ -177,29 +175,6 @@ public class AllergenController : ControllerBase
     }
 
     /// <summary>
-    /// Get allergens by category
-    /// </summary>
-    [HttpGet("category/{category}")]
-    public async Task<IActionResult> GetAllergensByCategory(string category)
-    {
-        try
-        {
-            var query = new GetAllergensByCategoryQuery { Category = category };
-            var response = await _mediator.Send(query);
-            
-            if (!response.IsSucceeded)
-                return BadRequest(response);
-                
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving allergens for category {Category}", category);
-            return StatusCode(500, "An error occurred while retrieving allergens by category");
-        }
-    }
-
-    /// <summary>
     /// Get all allergen categories
     /// </summary>
     [HttpGet("categories")]
@@ -223,18 +198,17 @@ public class AllergenController : ControllerBase
     }
 
     /// <summary>
-    /// Get major allergens (FDA and/or EU)
+    /// Get allergens by category
     /// </summary>
-    [HttpGet("major")]
-    public async Task<IActionResult> GetMajorAllergens([FromQuery] bool? isFdaMajor, [FromQuery] bool? isEuMajor)
+    [HttpGet("category/{category}")]
+    public async Task<IActionResult> GetAllergensByCategory(string category)
     {
         try
         {
-            var query = new GetMajorAllergensQuery 
-            { 
-                IsFdaMajor = isFdaMajor,
-                IsEuMajor = isEuMajor
-            };
+            if (string.IsNullOrWhiteSpace(category))
+                return BadRequest("Category parameter cannot be empty");
+
+            var query = new GetAllergensByCategoryQuery { Category = category };
             var response = await _mediator.Send(query);
             
             if (!response.IsSucceeded)
@@ -244,8 +218,8 @@ public class AllergenController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving major allergens");
-            return StatusCode(500, "An error occurred while retrieving major allergens");
+            _logger.LogError(ex, "Error retrieving allergens for category {Category}", category);
+            return StatusCode(500, "An error occurred while retrieving allergens by category");
         }
     }
 } 

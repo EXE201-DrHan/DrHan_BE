@@ -24,7 +24,6 @@ public class GetAllergenCategoriesQueryHandler : IRequestHandler<GetAllergenCate
         try
         {
             var allergens = await _unitOfWork.Repository<Allergen>().ListAllAsync();
-            
             var categories = allergens
                 .Where(a => !string.IsNullOrWhiteSpace(a.Category))
                 .Select(a => a.Category)
