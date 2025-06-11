@@ -31,14 +31,23 @@ namespace DrHan.Infrastructure.ExternalServices.AuthenticationService
 
         public int? GetCurrentUserId()
         {
-            var user = httpContextAccessor?.HttpContext.User ?? throw new InvalidOperationException("User context is not present");
+            var user = httpContextAccessor?.HttpContext.User
+                       ?? throw new InvalidOperationException("User context is not present");
 
             if (!user.Identities.Any() || !user.Identity.IsAuthenticated)
             {
                 return null;
             }
-            int.TryParse(user.FindFirst(c => c.Type == ClaimTypes.NameIdentifier).Value, out int intUserId);
-            return intUserId;
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int intUserId))
+            {
+                return intUserId;
+            }
+
+            return null;
         }
+
     }
 }

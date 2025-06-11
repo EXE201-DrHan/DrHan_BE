@@ -13,7 +13,7 @@ using DrHan.Application.DTOs.Authentication;
 using DrHan.Application.Commons;
 using System.Security.Claims;
 
-namespace DrHan.API.Controllers
+namespace DrHan.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]

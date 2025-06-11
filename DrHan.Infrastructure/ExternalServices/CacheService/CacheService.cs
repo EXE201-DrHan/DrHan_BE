@@ -1,4 +1,5 @@
 ﻿using DrHan.Application.Interfaces.Services.CacheService;
+using Hangfire;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -20,19 +21,22 @@ namespace DrHan.Infrastructure.ExternalServices.CacheService
         private readonly IConnectionMultiplexer _redis;
         private readonly CacheSettings _cacheSettings;
         private readonly ILogger<CacheService> _logger;
+        private readonly IBackgroundJobClient _backgroundJobClient;
 
         public CacheService(
             IDistributedCache distributedCache,
             IMemoryCache memoryCache,
             IConnectionMultiplexer redis,
             IOptions<CacheSettings> cacheSettings,
-            ILogger<CacheService> logger)
+            ILogger<CacheService> logger,
+            IBackgroundJobClient backgroundJobClient)
         {
             _distributedCache = distributedCache;
             _memoryCache = memoryCache;
             _redis = redis;
             _cacheSettings = cacheSettings.Value;
             _logger = logger;
+            _backgroundJobClient = backgroundJobClient;
         }
 
         public async Task<T> GetAsync<T>(string key) where T : class
@@ -42,11 +46,14 @@ namespace DrHan.Infrastructure.ExternalServices.CacheService
                 // Try memory cache first (faster)
                 if (_memoryCache.TryGetValue(key, out T memoryCached))
                 {
+                    _logger.LogInformation(memoryCached.ToString());
+
                     return memoryCached;
                 }
 
                 // Try Redis
                 var json = await _distributedCache.GetStringAsync(key);
+                _logger.LogInformation(json);
                 if (json != null)
                 {
                     var result = JsonSerializer.Deserialize<T>(json);
@@ -76,6 +83,7 @@ namespace DrHan.Infrastructure.ExternalServices.CacheService
             var result = await factory();
             if (result != null)
             {
+                //BackgroundJob.Enqueue(() =>  SetAsync(key, result, expiration));
                 await SetAsync(key, result, expiration);
             }
 

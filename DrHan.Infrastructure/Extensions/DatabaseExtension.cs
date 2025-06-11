@@ -53,6 +53,9 @@ public static class DatabaseExtension
         
         // Register data management service
         services.AddScoped<DrHan.Infrastructure.Seeders.DataManagementService>();
+        
+        // Register external services
+        services.AddInfrastructureServices(configuration);
     }
     
 }

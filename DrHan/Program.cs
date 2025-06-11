@@ -5,20 +5,26 @@ using DrHan.API.Middlewares;
 using DrHan.Infrastructure.Persistence;
 using DrHan.Infrastructure.Seeders;
 using Microsoft.EntityFrameworkCore;
-
 var builder = WebApplication.CreateBuilder(args);
-
 // Add services to the container.
-builder.AddPresentation(builder.Configuration);
 builder.Services.AddInfrastructure(builder.Configuration);
+
+builder.AddPresentation(builder.Configuration);
 builder.Services.AddApplications(builder.Configuration);
 builder.Services.AddRedisServices(builder.Configuration);
+builder.Services.AddHangfireWithFallback(
+    builder.Configuration,
+    builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>()
+);
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 //builder.Logging.ClearProviders();
 //builder.Logging.AddConsole();
 builder.Services.AddSwaggerGen();
 var app = builder.Build();
+var scope = app.Services.CreateScope();
+var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
 
 if (app.Environment.IsDevelopment())
 {
@@ -29,7 +35,7 @@ if (app.Environment.IsDevelopment())
 // Configure middlewares
 app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseMiddleware<TimeLoggingMiddleware>();
-
+app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 app.UseAuthentication();  
 app.UseAuthorization();

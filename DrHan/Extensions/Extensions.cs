@@ -38,6 +38,7 @@ namespace DrHan.API.Extensions
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             }).AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters
@@ -73,17 +74,17 @@ namespace DrHan.API.Extensions
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Title = "jwtToken_Auth",
+                    Title = "DrHan",
                     Version = "v1"
                 });
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    Name = "Authorization: Bearer",
+                    Name = "Authorization",
                     Type = SecuritySchemeType.ApiKey,
                     Scheme = "Bearer",
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
-                    Description = "JWT here"
+                    Description = "Enter 'Bearer' [space] and then your token"
                 });
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
@@ -106,24 +107,9 @@ namespace DrHan.API.Extensions
             {
                 options.AddPolicy("AllowFrontend", policy =>
                 {
-                    policy.WithOrigins(
-                        "http://localhost:3000",
-                        "http://localhost:3001",
-                        "http://localhost:5021",
-                        "http://localhost:5174",
-                        "http://localhost:5173",
-                        "https://localhost:5021",
-                        "https://localhost:3000",
-                        "http://localhost:8081",
-                        "http://192.168.1.2:19000",
-                        "https://usefully-electric-termite.ngrok-free.app",
-                        "https://seemingly-expert-macaque.ngrok-free.app",
-                        "https://pleased-asp-kindly.ngrok-free.app"
-                    )
-
+                    policy.AllowAnyOrigin()
                     .AllowAnyHeader()
                     .AllowAnyMethod()
-                    .AllowCredentials()
                     .WithExposedHeaders("Location");
                 });
 

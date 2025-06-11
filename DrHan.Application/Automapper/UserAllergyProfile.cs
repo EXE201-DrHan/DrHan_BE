@@ -2,6 +2,7 @@ using AutoMapper;
 using DrHan.Application.DTOs.Users;
 using DrHan.Domain.Entities.Users;
 using DrHan.Application.Services.UserAllergyServices.Commands.AddUserAllergy;
+using DrHan.Application.Services.UserAllergyServices.Commands.UpdateUserAllergy;
 
 namespace DrHan.Application.Automapper;
 
@@ -20,5 +21,7 @@ public class UserAllergyProfile : Profile
         
         // CQRS Command mappings
         CreateMap<AddUserAllergyCommand, UserAllergy>();
+        CreateMap<UpdateUserAllergyCommand, UserAllergy>()
+            .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
     }
 } 

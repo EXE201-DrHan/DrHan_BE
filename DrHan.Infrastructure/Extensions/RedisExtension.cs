@@ -44,6 +44,7 @@ namespace DrHan.Infrastructure.Extensions
                 options.InstanceName = redisOptions.InstanceName;
                 options.ConfigurationOptions = new ConfigurationOptions
                 {
+                    EndPoints = {redisOptions.ConnectionString},
                     AbortOnConnectFail = redisOptions.AbortOnConnectFail,
                     ConnectTimeout = redisOptions.ConnectTimeout,
                     SyncTimeout = redisOptions.SyncTimeout,
