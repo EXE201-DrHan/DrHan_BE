@@ -15,7 +15,6 @@ public class GeminiRecipeService : IGeminiRecipeService
     private readonly IConfiguration _configuration;
     private readonly ILogger<GeminiRecipeService> _logger;
 
-    private const string GeminiApiBaseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
     private const int MaxRetryAttempts = 3;
     private const int BaseDelayMs = 1000;
 
@@ -81,48 +80,31 @@ public class GeminiRecipeService : IGeminiRecipeService
     private async Task<List<GeminiRecipeResponseDto>> ExecuteWithRetry(
         Func<Task<List<GeminiRecipeResponseDto>>> operation)
     {
-        var lastException = new Exception();
+        var attempt = 0;
+        var delay = BaseDelayMs;
 
-        for (int attempt = 1; attempt <= MaxRetryAttempts; attempt++)
+        while (attempt < MaxRetryAttempts)
         {
             try
             {
                 return await operation();
             }
-            catch (HttpRequestException ex) when (IsRetryableError(ex))
+            catch (HttpRequestException ex) when (ex.Message.Contains("Rate limited") && attempt < MaxRetryAttempts - 1)
             {
-                lastException = ex;
-
-                if (attempt == MaxRetryAttempts)
-                {
-                    _logger.LogError(ex, "Final retry attempt failed after {Attempts} attempts", MaxRetryAttempts);
-                    break;
-                }
-
-                var delay = TimeSpan.FromMilliseconds(BaseDelayMs * Math.Pow(2, attempt - 1));
-                _logger.LogWarning("Attempt {Attempt} failed, retrying in {Delay}ms. Error: {Error}",
-                    attempt, delay.TotalMilliseconds, ex.Message);
-
+                attempt++;
+                _logger.LogWarning(ex, "Rate limited by Gemini API, attempt {Attempt} of {MaxAttempts}. Retrying in {Delay}ms",
+                    attempt, MaxRetryAttempts, delay);
                 await Task.Delay(delay);
+                delay *= 2; // Exponential backoff
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Non-retryable error occurred on attempt {Attempt}", attempt);
+                _logger.LogError(ex, "Error executing Gemini API request");
                 throw;
             }
         }
 
-        _logger.LogError(lastException, "All retry attempts failed");
         return new List<GeminiRecipeResponseDto>();
-    }
-
-    private static bool IsRetryableError(HttpRequestException ex)
-    {
-        return ex.Message.Contains("timeout", StringComparison.OrdinalIgnoreCase) ||
-               ex.Message.Contains("network", StringComparison.OrdinalIgnoreCase) ||
-               ex.Message.Contains("502") || // Bad Gateway
-               ex.Message.Contains("503") || // Service Unavailable
-               ex.Message.Contains("504");   // Gateway Timeout
     }
 
     private async Task<List<GeminiRecipeResponseDto>> CallGeminiApiAsync(
@@ -137,7 +119,8 @@ public class GeminiRecipeService : IGeminiRecipeService
             Encoding.UTF8,
             "application/json");
 
-        var requestUri = $"{GeminiApiBaseUrl}?key={apiKey}";
+        var apiEndpoint = _configuration["Gemini:ApiEndpoint"] ?? "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+        var requestUri = $"{apiEndpoint}?key={apiKey}";
 
         _logger.LogDebug("Sending request to Gemini API for query: {Query}", request.SearchQuery);
 
@@ -210,77 +193,87 @@ public class GeminiRecipeService : IGeminiRecipeService
 
     private string BuildPrompt(GeminiRecipeRequestDto request)
     {
-        var promptBuilder = new StringBuilder();
-
-        promptBuilder.AppendLine($"Vui lòng cung cấp {Math.Max(1, Math.Min(request.Count, 10))} công thức nấu ăn chi tiết dựa trên các tiêu chí sau:");
-        promptBuilder.AppendLine($"- Từ khóa tìm kiếm: {request.SearchQuery}");
-
-        AppendOptionalCriteria(promptBuilder, "Loại ẩm thực", request.CuisineType);
-        AppendOptionalCriteria(promptBuilder, "Loại bữa ăn", request.MealType);
-        AppendOptionalCriteria(promptBuilder, "Mức độ khó", request.DifficultyLevel);
-
-        if (request.MaxPrepTime.HasValue)
-            promptBuilder.AppendLine($"- Thời gian chuẩn bị tối đa: {request.MaxPrepTime} phút");
-
-        if (request.MaxCookTime.HasValue)
-            promptBuilder.AppendLine($"- Thời gian nấu tối đa: {request.MaxCookTime} phút");
-
-        if (request.Servings.HasValue)
-            promptBuilder.AppendLine($"- Số khẩu phần: {request.Servings}");
-
-        if (request.ExcludeAllergens?.Any() == true)
-            promptBuilder.AppendLine($"- Loại trừ chất gây dị ứng: {string.Join(", ", request.ExcludeAllergens)}");
-
-        promptBuilder.AppendLine();
-        promptBuilder.AppendLine("QUAN TRỌNG: Trả lời chỉ bằng một mảng JSON hợp lệ. Không sử dụng comment, không có text giải thích.");
-        promptBuilder.AppendLine("Không sử dụng ký tự '/' trong bất kỳ giá trị string nào trừ khi được escape đúng cách.");
-        promptBuilder.AppendLine("Tất cả strings phải được wrap trong dấu ngoặc kép và escape các ký tự đặc biệt.");
-        promptBuilder.AppendLine("Đảm bảo JSON format hoàn toàn hợp lệ theo chuẩn RFC 7159.");
-        promptBuilder.AppendLine();
-        promptBuilder.AppendLine(GetJsonTemplate());
-
-        return promptBuilder.ToString();
-    }
-
-    private static void AppendOptionalCriteria(StringBuilder builder, string label, string? value)
-    {
-        if (!string.IsNullOrWhiteSpace(value))
+        var prompt = new StringBuilder();
+        prompt.AppendLine("Generate a list of recipes in JSON format. Each recipe should include:");
+        prompt.AppendLine("- Name");
+        prompt.AppendLine("- Description");
+        prompt.AppendLine("- Cuisine type");
+        prompt.AppendLine("- Meal type");
+        prompt.AppendLine("- Prep time in minutes");
+        prompt.AppendLine("- Cook time in minutes");
+        prompt.AppendLine("- Number of servings");
+        prompt.AppendLine("- Difficulty level (Easy, Medium, Hard)");
+        prompt.AppendLine("- List of ingredients with quantities and units");
+        prompt.AppendLine("- Step-by-step instructions with estimated time");
+        prompt.AppendLine("- List of allergens (if any)");
+        prompt.AppendLine("- List of allergen-free claims (if any)");
+        if (request.IncludeImage)
         {
-            builder.AppendLine($"- {label}: {value}");
+            prompt.AppendLine("- Image URL (a short, clean URL to a realistic food photo - maximum 200 characters)");
         }
-    }
 
-    private static string GetJsonTemplate()
-    {
-        return @"[
-  {
-    ""name"": ""Tên món ăn"",
-    ""description"": ""Mô tả ngắn gọn"",
-    ""cuisineType"": ""Việt Nam"",
-    ""mealType"": ""Trưa"",
-    ""prepTimeMinutes"": 15,
-    ""cookTimeMinutes"": 30,
+        prompt.AppendLine("\nSearch criteria:");
+        prompt.AppendLine($"- Query: {request.SearchQuery}");
+        if (!string.IsNullOrEmpty(request.CuisineType))
+            prompt.AppendLine($"- Cuisine: {request.CuisineType}");
+        if (!string.IsNullOrEmpty(request.MealType))
+            prompt.AppendLine($"- Meal type: {request.MealType}");
+        if (!string.IsNullOrEmpty(request.DifficultyLevel))
+            prompt.AppendLine($"- Difficulty: {request.DifficultyLevel}");
+        if (request.MaxPrepTime.HasValue)
+            prompt.AppendLine($"- Max prep time: {request.MaxPrepTime} minutes");
+        if (request.MaxCookTime.HasValue)
+            prompt.AppendLine($"- Max cook time: {request.MaxCookTime} minutes");
+        if (request.Servings.HasValue)
+            prompt.AppendLine($"- Servings: {request.Servings}");
+        if (request.ExcludeAllergens?.Any() == true)
+            prompt.AppendLine($"- Exclude allergens: {string.Join(", ", request.ExcludeAllergens)}");
+
+        prompt.AppendLine($"\nGenerate {request.Count} recipes in the following JSON format:");
+        prompt.AppendLine(@"[{
+    ""name"": ""Recipe Name"",
+    ""description"": ""Recipe description"",
+    ""cuisineType"": ""Cuisine type"",
+    ""mealType"": ""Meal type"",
+    ""prepTimeMinutes"": 30,
+    ""cookTimeMinutes"": 45,
     ""servings"": 4,
-    ""difficultyLevel"": ""Dễ"",
+    ""difficultyLevel"": ""Easy"",
     ""ingredients"": [
-      {
-        ""name"": ""Tên nguyên liệu"",
-        ""quantity"": 1.5,
-        ""unit"": ""chén"",
-        ""notes"": ""ghi chú""
-      }
+        {
+            ""name"": ""Ingredient name"",
+            ""quantity"": 1.5,
+            ""unit"": ""cup"",
+            ""notes"": ""Optional preparation notes""
+        }
     ],
     ""instructions"": [
-      {
-        ""stepNumber"": 1,
-        ""instruction"": ""Mô tả bước thực hiện"",
-        ""estimatedTimeMinutes"": 5
-      }
+        {
+            ""stepNumber"": 1,
+            ""instruction"": ""Step description"",
+            ""estimatedTimeMinutes"": 10
+        }
     ],
-    ""allergens"": [""Gluten""],
-    ""allergenFreeClaims"": [""Không chứa sữa""]
-  }
-]";
+    ""allergens"": [""Allergen1"", ""Allergen2""],
+    ""allergenFreeClaims"": [""Claim1"", ""Claim2""]");
+        if (request.IncludeImage)
+        {
+            prompt.AppendLine(@",
+    ""imageUrl"": ""https://example.com/recipe-image.jpg""");
+        }
+        prompt.AppendLine("}]");
+
+        prompt.AppendLine("\nIMPORTANT NOTES:");
+        prompt.AppendLine("- Return ONLY valid JSON, no additional text or explanations");
+        prompt.AppendLine("- All strings must be properly escaped");
+        if (request.IncludeImage)
+        {
+            prompt.AppendLine("- Image URLs must be short (under 200 characters) and point to actual food photos");
+            prompt.AppendLine("- Use common image hosting domains like unsplash.com, pexels.com, or food blog URLs");
+            prompt.AppendLine("- Avoid extremely long URLs with repeated parameters");
+        }
+
+        return prompt.ToString();
     }
 
     private async Task<List<GeminiRecipeResponseDto>> ParseGeminiResponse(string responseContent)

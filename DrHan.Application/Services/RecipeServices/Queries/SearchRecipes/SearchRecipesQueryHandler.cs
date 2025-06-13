@@ -44,14 +44,13 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
             // Step 1: Search existing recipes in database
             var dbRecipes = await GetRecipesFromDatabase(searchDto, cancellationToken);
 
-            // Step 2: Check if we have enough results
-            var hasEnoughResults = dbRecipes.Items.Count >= searchDto.PageSize;
-            var isFirstPage = searchDto.Page == 1;
+            // Step 2: Check if we need AI recipes (only on first page with no results)
+            var shouldUseAI = searchDto.Page == 1 && dbRecipes.Items.Count == 0;
 
-            // Step 3: If not enough results on first page, try getting more from AI
-            if (!hasEnoughResults && isFirstPage)
+            // Step 3: If first page has no results, get exactly 5 from AI
+            if (shouldUseAI)
             {
-                var aiRecipes = await TryGetRecipesFromAI(searchDto, dbRecipes.Items.Count, cancellationToken);
+                var aiRecipes = await TryGetRecipesFromAI(searchDto, 5, cancellationToken); // Fixed count to 5
                 if (aiRecipes.Any())
                 {
                     return CreateSuccessResponse(dbRecipes, aiRecipes, searchDto, "Results include AI-generated recipes");
@@ -87,19 +86,18 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
     }
 
     /// <summary>
-    /// Try to get additional recipes from AI if database doesn't have enough
+    /// Try to get recipes from AI - only when first page has no results
     /// </summary>
     private async Task<List<Recipe>> TryGetRecipesFromAI(
         RecipeSearchDto searchDto,
-        int existingCount,
+        int count,
         CancellationToken cancellationToken)
     {
         try
         {
-            _logger.LogInformation("Only found {Count} recipes in database, trying AI for more results", existingCount);
+            _logger.LogInformation("No recipes found in database for first page, requesting {Count} AI recipes", count);
 
-            var recipesNeeded = searchDto.PageSize - existingCount;
-            var geminiRequest = CreateGeminiRequest(searchDto, recipesNeeded);
+            var geminiRequest = CreateGeminiRequest(searchDto, count);
             var geminiRecipes = await _geminiService.SearchRecipesAsync(geminiRequest);
 
             if (geminiRecipes.Any())
@@ -152,7 +150,7 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
             SearchQuery = searchDto.SearchTerm ?? "popular recipes",
             CuisineType = searchDto.CuisineType,
             MealType = searchDto.MealType,
-            Servings = 1, // No serving size requirement
+            Servings = 1,
             ExcludeAllergens = searchDto.ExcludeAllergens,
             Count = count
         };
@@ -176,7 +174,7 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                     continue;
 
                 // Convert AI recipe to database recipe
-                var recipe = await CreateRecipeFromGeminiDataAsync(geminiRecipe);
+                var recipe = await CreateRecipeFromGeminiDataAsync(geminiRecipe, cancellationToken);
                 newRecipes.Add(recipe);
             }
             catch (Exception ex)
@@ -185,7 +183,7 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
             }
         }
 
-        // Save all new recipes to database
+        // Save all new recipes to database in one transaction
         if (newRecipes.Any())
         {
             await _unitOfWork.Repository<Recipe>().AddRangeAsync(newRecipes);
@@ -209,7 +207,7 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
     /// <summary>
     /// Create a complete Recipe entity from Gemini AI data
     /// </summary>
-    private async Task<Recipe> CreateRecipeFromGeminiDataAsync(GeminiRecipeResponseDto geminiRecipe)
+    private async Task<Recipe> CreateRecipeFromGeminiDataAsync(GeminiRecipeResponseDto geminiRecipe, CancellationToken cancellationToken)
     {
         var recipe = new Recipe
         {
@@ -231,7 +229,7 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
         };
 
         // Add all the recipe details
-        await AddIngredientsToRecipe(recipe, geminiRecipe.Ingredients);
+        await AddIngredientsToRecipe(recipe, geminiRecipe.Ingredients, cancellationToken);
         AddInstructionsToRecipe(recipe, geminiRecipe.Instructions);
         AddAllergensToRecipe(recipe, geminiRecipe.Allergens);
         AddAllergenFreeClaimsToRecipe(recipe, geminiRecipe.AllergenFreeClaims);
@@ -239,21 +237,27 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
         return recipe;
     }
 
-    private async Task AddIngredientsToRecipe(Recipe recipe, List<GeminiIngredientDto> ingredients)
+    private async Task AddIngredientsToRecipe(Recipe recipe, List<GeminiIngredientDto> ingredients, CancellationToken cancellationToken)
     {
         if (ingredients == null || !ingredients.Any())
             return;
+
+        // Batch process ingredients to avoid multiple database round trips
+        var ingredientNames = ingredients.Select(i => i.Name.ToLower()).ToList();
+        var existingIngredients = await _unitOfWork.Repository<Ingredient>()
+            .ListAsync(i => ingredientNames.Contains(i.Name.ToLower()));
+
+        var existingIngredientDict = existingIngredients.ToDictionary(i => i.Name.ToLower(), i => i);
+        var newIngredients = new List<Ingredient>();
 
         foreach (var ingredient in ingredients)
         {
             try
             {
-                // Try to find existing ingredient by name
-                var existingIngredient = (await _unitOfWork.Repository<Ingredient>()
-                    .ListAsync(i => i.Name.ToLower() == ingredient.Name.ToLower()))
-                    .FirstOrDefault();
+                var lowerName = ingredient.Name.ToLower();
+                Ingredient existingIngredient;
 
-                if (existingIngredient == null)
+                if (!existingIngredientDict.TryGetValue(lowerName, out existingIngredient))
                 {
                     // Create new ingredient if it doesn't exist
                     existingIngredient = new Ingredient
@@ -264,15 +268,15 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                         CreateAt = DateTime.UtcNow,
                         UpdateAt = DateTime.UtcNow
                     };
-                    await _unitOfWork.Repository<Ingredient>().AddAsync(existingIngredient);
-                    await _unitOfWork.CompleteAsync();
+                    newIngredients.Add(existingIngredient);
+                    existingIngredientDict[lowerName] = existingIngredient; // Add to dict for future reference
                 }
 
                 recipe.RecipeIngredients.Add(new RecipeIngredient
                 {
                     BusinessId = Guid.NewGuid(),
                     Recipe = recipe,
-                    IngredientId = existingIngredient.Id,
+                    Ingredient = existingIngredient, // Use navigation property instead of ID
                     IngredientName = ingredient.Name,
                     Quantity = ingredient.Quantity,
                     Unit = ingredient.Unit,
@@ -284,9 +288,15 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error adding ingredient {IngredientName} to recipe {RecipeName}", 
+                _logger.LogError(ex, "Error adding ingredient {IngredientName} to recipe {RecipeName}",
                     ingredient.Name, recipe.Name);
             }
+        }
+
+        // Add all new ingredients at once
+        if (newIngredients.Any())
+        {
+            await _unitOfWork.Repository<Ingredient>().AddRangeAsync(newIngredients);
         }
     }
 
@@ -344,160 +354,5 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                 UpdateAt = DateTime.UtcNow
             });
         }
-    }
-
-    /// <summary>
-    /// Try to find existing ingredient by name, create if not found
-    /// </summary>
-    private async Task<Ingredient?> FindOrCreateIngredient(string ingredientName, IUnitOfWork unitOfWork)
-    {
-        try
-        {
-            // Try to find existing ingredient by exact name match
-            var ingredients = await unitOfWork.Repository<Ingredient>().ListAsync(
-                filter: i => i.Name.ToLower() == ingredientName.ToLower()
-            );
-
-            if (ingredients.Any())
-            {
-                return ingredients.First();
-            }
-
-            // Try to find by similar name (using contains)
-            var similarIngredients = await unitOfWork.Repository<Ingredient>().ListAsync(
-                filter: i => i.Name.ToLower().Contains(ingredientName.ToLower()) || 
-                           ingredientName.ToLower().Contains(i.Name.ToLower())
-            );
-
-            if (similarIngredients.Any())
-            {
-                _logger.LogDebug("Found similar ingredient '{ExistingName}' for '{NewName}'", 
-                    similarIngredients.First().Name, ingredientName);
-                return similarIngredients.First();
-            }
-
-            // Auto-create missing ingredient with smart category matching
-            var category = await FindOrCreateIngredientCategory(ingredientName, unitOfWork);
-            
-            var newIngredient = new Ingredient
-            {
-                BusinessId = Guid.NewGuid(),
-                Name = ingredientName,
-                Category = category,
-                Description = $"Auto-generated ingredient from AI recipe",
-                CreateAt = DateTime.UtcNow,
-                UpdateAt = DateTime.UtcNow
-            };
-
-            await unitOfWork.Repository<Ingredient>().AddAsync(newIngredient);
-            _logger.LogInformation("Created new ingredient: '{IngredientName}' in category '{Category}'", 
-                ingredientName, category);
-            return newIngredient;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Error finding/creating ingredient: {IngredientName}", ingredientName);
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// Find appropriate category for ingredient or create new one
-    /// </summary>
-    private async Task<string> FindOrCreateIngredientCategory(string ingredientName, IUnitOfWork unitOfWork)
-    {
-        try
-        {
-            // Get all existing categories
-            var existingIngredients = await unitOfWork.Repository<Ingredient>().ListAsync();
-            var existingCategories = existingIngredients
-                .Where(i => !string.IsNullOrEmpty(i.Category))
-                .Select(i => i.Category)
-                .Distinct()
-                .ToList();
-
-            if (!existingCategories.Any())
-            {
-                return "AI Generated"; // Fallback if no categories exist
-            }
-
-            // Smart category matching based on ingredient name
-            var lowerName = ingredientName.ToLower();
-            
-            // Vietnamese/Asian ingredient patterns
-            if (ContainsAny(lowerName, new[] { "nước mắm", "tương", "miso", "sake", "mirin", "kimchi" }))
-                return FindBestCategoryMatch(existingCategories, new[] { "gia vị", "sauce", "condiment", "seasoning" });
-            
-            if (ContainsAny(lowerName, new[] { "thịt", "gà", "vịt", "heo", "bò", "chicken", "beef", "pork", "meat" }))
-                return FindBestCategoryMatch(existingCategories, new[] { "thịt", "meat", "protein" });
-            
-            if (ContainsAny(lowerName, new[] { "cá", "tôm", "cua", "mực", "fish", "shrimp", "seafood" }))
-                return FindBestCategoryMatch(existingCategories, new[] { "hải sản", "seafood", "fish" });
-            
-            if (ContainsAny(lowerName, new[] { "rau", "cải", "salad", "vegetable", "lettuce", "spinach" }))
-                return FindBestCategoryMatch(existingCategories, new[] { "rau", "vegetable", "greens" });
-            
-            if (ContainsAny(lowerName, new[] { "trái", "quả", "fruit", "apple", "banana", "orange" }))
-                return FindBestCategoryMatch(existingCategories, new[] { "trái cây", "fruit" });
-            
-            if (ContainsAny(lowerName, new[] { "gạo", "bánh", "bột", "rice", "flour", "bread", "grain" }))
-                return FindBestCategoryMatch(existingCategories, new[] { "tinh bột", "grain", "carbohydrate" });
-            
-            if (ContainsAny(lowerName, new[] { "sữa", "phô mai", "yogurt", "milk", "cheese", "dairy" }))
-                return FindBestCategoryMatch(existingCategories, new[] { "sữa", "dairy" });
-            
-            if (ContainsAny(lowerName, new[] { "dầu", "mỡ", "oil", "butter", "fat" }))
-                return FindBestCategoryMatch(existingCategories, new[] { "dầu mỡ", "oil", "fat" });
-            
-            if (ContainsAny(lowerName, new[] { "gia vị", "tiêu", "muối", "spice", "pepper", "salt", "herb" }))
-                return FindBestCategoryMatch(existingCategories, new[] { "gia vị", "spice", "seasoning" });
-
-            // If no pattern matches, try to find a generic category
-            var genericCategory = FindBestCategoryMatch(existingCategories, new[] { "other", "khác", "general", "ai generated" });
-            if (!string.IsNullOrEmpty(genericCategory))
-                return genericCategory;
-
-            // Create new category based on ingredient type
-            return CreateNewCategoryName(ingredientName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Error determining category for ingredient: {IngredientName}", ingredientName);
-            return "AI Generated";
-        }
-    }
-
-    private bool ContainsAny(string text, string[] keywords)
-    {
-        return keywords.Any(keyword => text.Contains(keyword));
-    }
-
-    private string FindBestCategoryMatch(List<string> existingCategories, string[] preferredCategories)
-    {
-        foreach (var preferred in preferredCategories)
-        {
-            var match = existingCategories.FirstOrDefault(cat => 
-                cat.ToLower().Contains(preferred.ToLower()) || preferred.ToLower().Contains(cat.ToLower()));
-            if (!string.IsNullOrEmpty(match))
-                return match;
-        }
-        return string.Empty;
-    }
-
-    private string CreateNewCategoryName(string ingredientName)
-    {
-        var lowerName = ingredientName.ToLower();
-        
-        // Create meaningful category names for Vietnamese ingredients
-        if (ContainsAny(lowerName, new[] { "lá", "leaf" }))
-            return "Lá gia vị"; // Herb leaves
-        
-        if (ContainsAny(lowerName, new[] { "hạt", "seed", "nut" }))
-            return "Hạt & Đậu"; // Seeds & Nuts
-        
-        if (ContainsAny(lowerName, new[] { "nước", "liquid", "broth" }))
-            return "Nước dùng"; // Liquids/Broths
-        
-        return "AI Generated"; // Default fallback
     }
 }

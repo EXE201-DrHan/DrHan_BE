@@ -14,6 +14,7 @@ public class GeminiRecipeResponseDto
     public List<GeminiInstructionDto> Instructions { get; set; } = new();
     public List<string> Allergens { get; set; } = new();
     public List<string> AllergenFreeClaims { get; set; } = new();
+    public string? ImageUrl { get; set; } // URL of the recipe image
 }
 
 public class GeminiIngredientDto
