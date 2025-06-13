@@ -30,31 +30,24 @@ namespace DrHan.Controllers
         /// </summary>
         /// <returns>Number of recipes added to the cache</returns>
         [HttpPost("populate")]
-        public async Task<ActionResult<AppResponse<RecipeCacheResponse>>> PopulateRecipeCache()
+        public async Task<IActionResult> PopulateRecipeCache()
         {
             try
             {
-                _logger.LogInformation("Manual recipe cache population triggered");
-                
-                var recipesAdded = await _recipeCacheService.PrePopulatePopularRecipesAsync();
-                
-                var response = new AppResponse<RecipeCacheResponse>()
-                    .SetSuccessResponse(new RecipeCacheResponse
-                    {
-                        Message = $"Recipe cache population completed successfully",
-                        RecipesAdded = recipesAdded,
-                        Timestamp = DateTime.UtcNow
-                    });
+                var request = new GeminiRecipeRequestDto
+                {
+                    SearchQuery = "popular recipes",
+                    Count = 10,
+                    IncludeImage = true
+                };
 
-                return Ok(response);
+                var result = await _recipeCacheService.PrePopulatePopularRecipesAsync(request);
+                return Ok(new { Message = "Recipe cache population completed", RecipesAdded = result });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to populate recipe cache");
-                var errorResponse = new AppResponse<RecipeCacheResponse>()
-                    .SetErrorResponse("PopulateOperation", "Failed to populate recipe cache")
-                    .SetErrorResponse("Details", ex.Message);
-                return StatusCode(500, errorResponse);
+                _logger.LogError(ex, "Error populating recipe cache");
+                return StatusCode(500, new { Error = "Failed to populate recipe cache" });
             }
         }
 
