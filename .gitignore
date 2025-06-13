@@ -5,8 +5,8 @@
 
 # dotenv files
 .env
-DrHan.API/appsettings.json
-DrHan.API/appsettings.Development.json
+DrHan/appsettings.json
+DrHan/appsettings.Development.json
 DrHan.Infrastructure/Migrations
 # User-specific files
 *.rsuser
