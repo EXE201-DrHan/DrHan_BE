@@ -5,6 +5,7 @@ using DrHan.API.Middlewares;
 using DrHan.Infrastructure.Persistence;
 using DrHan.Infrastructure.Seeders;
 using Microsoft.EntityFrameworkCore;
+using Hangfire;
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddInfrastructure(builder.Configuration);

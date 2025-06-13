@@ -62,7 +62,7 @@ namespace DrHan.Infrastructure.Extensions
                 options.WorkerCount = Environment.ProcessorCount * 2;
                 options.Queues = new[] { "critical", "default", "background" };
             });
-
+            
             return services;
         }
     }

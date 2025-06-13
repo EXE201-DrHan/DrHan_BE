@@ -1,5 +1,6 @@
 using DrHan.Domain.Entities.Allergens;
 using DrHan.Domain.Entities.Ingredients;
+using DrHan.Domain.Entities.Recipes;
 using DrHan.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -41,6 +42,33 @@ namespace DrHan.Infrastructure.Seeders
             catch (Exception ex)
             {
                 logger?.LogError(ex, "Error occurred during data cleaning");
+                throw;
+            }
+        }
+
+        public static async Task CleanRecipeDataAsync(ApplicationDbContext context, ILogger? logger = null)
+        {
+            try
+            {
+                logger?.LogInformation("Starting recipe data cleaning...");
+
+                // Clean recipe-related data in reverse dependency order
+                // Child entities first, then parent
+                await CleanEntityAsync<RecipeAllergenFreeClaim>(context, logger);
+                await CleanEntityAsync<RecipeAllergen>(context, logger);
+                await CleanEntityAsync<RecipeImage>(context, logger);
+                await CleanEntityAsync<RecipeNutrition>(context, logger);
+                await CleanEntityAsync<RecipeInstruction>(context, logger);
+                await CleanEntityAsync<RecipeIngredient>(context, logger);
+                
+                // Recipe table last (parent entity)
+                await CleanEntityAsync<Recipe>(context, logger);
+
+                logger?.LogInformation("Recipe data cleaning completed!");
+            }
+            catch (Exception ex)
+            {
+                logger?.LogError(ex, "Error occurred during recipe data cleaning");
                 throw;
             }
         }
@@ -173,7 +201,14 @@ namespace DrHan.Infrastructure.Seeders
                 AllergenCrossReactivitiesCount = await context.AllergenCrossReactivities.CountAsync(),
                 IngredientsCount = await context.Ingredients.CountAsync(),
                 IngredientNamesCount = await context.IngredientNames.CountAsync(),
-                IngredientAllergensCount = await context.IngredientAllergens.CountAsync()
+                IngredientAllergensCount = await context.IngredientAllergens.CountAsync(),
+                RecipesCount = await context.Recipes.CountAsync(),
+                RecipeIngredientsCount = await context.RecipeIngredients.CountAsync(),
+                RecipeInstructionsCount = await context.RecipeInstructions.CountAsync(),
+                RecipeAllergensCount = await context.RecipeAllergens.CountAsync(),
+                RecipeAllergenFreeClaimsCount = await context.RecipeAllergenFreeClaims.CountAsync(),
+                RecipeImagesCount = await context.RecipeImages.CountAsync(),
+                RecipeNutritionsCount = await context.RecipeNutritions.CountAsync()
             };
         }
 
@@ -186,10 +221,19 @@ namespace DrHan.Infrastructure.Seeders
             public int IngredientsCount { get; set; }
             public int IngredientNamesCount { get; set; }
             public int IngredientAllergensCount { get; set; }
+            public int RecipesCount { get; set; }
+            public int RecipeIngredientsCount { get; set; }
+            public int RecipeInstructionsCount { get; set; }
+            public int RecipeAllergensCount { get; set; }
+            public int RecipeAllergenFreeClaimsCount { get; set; }
+            public int RecipeImagesCount { get; set; }
+            public int RecipeNutritionsCount { get; set; }
 
             public int TotalRecords => CrossReactivityGroupsCount + AllergensCount + AllergenNamesCount + 
                                      AllergenCrossReactivitiesCount + IngredientsCount + IngredientNamesCount + 
-                                     IngredientAllergensCount;
+                                     IngredientAllergensCount + RecipesCount + RecipeIngredientsCount + 
+                                     RecipeInstructionsCount + RecipeAllergensCount + RecipeAllergenFreeClaimsCount + 
+                                     RecipeImagesCount + RecipeNutritionsCount;
 
             public override string ToString()
             {
@@ -202,6 +246,13 @@ AllergenCrossReactivities: {AllergenCrossReactivitiesCount}
 Ingredients: {IngredientsCount}
 IngredientNames: {IngredientNamesCount}
 IngredientAllergens: {IngredientAllergensCount}
+Recipes: {RecipesCount}
+RecipeIngredients: {RecipeIngredientsCount}
+RecipeInstructions: {RecipeInstructionsCount}
+RecipeAllergens: {RecipeAllergensCount}
+RecipeAllergenFreeClaims: {RecipeAllergenFreeClaimsCount}
+RecipeImages: {RecipeImagesCount}
+RecipeNutritions: {RecipeNutritionsCount}
 ────────────────────────────
 Total Records: {TotalRecords}";
             }

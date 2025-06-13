@@ -110,6 +110,22 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         ApplyBaseEntityToDerivedClass(modelBuilder);
     }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        
+        // Only configure if not already configured (don't override DI configuration)
+        if (!optionsBuilder.IsConfigured)
+        {
+            // Configure query splitting to improve performance when loading multiple related collections
+            optionsBuilder.UseSqlServer(o => 
+            {
+                o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+                o.CommandTimeout(60); // Increase timeout to 60 seconds for complex queries
+            });
+        }
+    }
+
     /// <summary>
     /// Configuring the base entity
     /// </summary>

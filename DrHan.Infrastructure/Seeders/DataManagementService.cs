@@ -156,6 +156,15 @@ namespace DrHan.Infrastructure.Seeders
             await DataCleaner.CleanIngredientDataAsync(_context, _logger);
         }
 
+        /// <summary>
+        /// Cleans only recipe-related data
+        /// </summary>
+        public async Task CleanRecipeDataAsync()
+        {
+            _logger.LogInformation("Starting recipe data cleaning...");
+            await DataCleaner.CleanRecipeDataAsync(_context, _logger);
+        }
+
         #endregion
 
         #region Combined Operations
@@ -208,6 +217,16 @@ namespace DrHan.Infrastructure.Seeders
             _logger.LogInformation("Starting ingredient data reset...");
             await CleanIngredientDataAsync();
             await SeedIngredientDataAsync();
+        }
+
+        /// <summary>
+        /// Resets recipe data only
+        /// </summary>
+        public async Task ResetRecipeDataAsync()
+        {
+            _logger.LogInformation("Starting recipe data reset...");
+            await CleanRecipeDataAsync();
+            // Note: No seeding method for recipes as they are generated via API
         }
 
         #endregion

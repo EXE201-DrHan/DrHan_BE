@@ -45,6 +45,13 @@ namespace DrHan.Application.DTOs.DataManagement
         public int IngredientsCount { get; set; }
         public int IngredientNamesCount { get; set; }
         public int AllergenIngredientRelationsCount { get; set; }
+        public int RecipesCount { get; set; }
+        public int RecipeIngredientsCount { get; set; }
+        public int RecipeInstructionsCount { get; set; }
+        public int RecipeAllergensCount { get; set; }
+        public int RecipeAllergenFreeClaimsCount { get; set; }
+        public int RecipeImagesCount { get; set; }
+        public int RecipeNutritionsCount { get; set; }
         public int TotalRecords { get; set; }
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     }

@@ -2,7 +2,7 @@ using DrHan.Application.Interfaces.Services;
 using DrHan.Infrastructure.ExternalServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
+using DrHan.Infrastructure.Services;
 namespace DrHan.Infrastructure.Extensions;
 
 public static class ServiceCollectionExtensions
@@ -15,11 +15,9 @@ public static class ServiceCollectionExtensions
             client.Timeout = TimeSpan.FromMinutes(2); // Set timeout for Gemini API calls
             client.DefaultRequestHeaders.Add("User-Agent", "DrHan-Recipe-App/1.0");
         });
-
-        // External Services
-        services.AddScoped<IGeminiRecipeService, GeminiRecipeService>();
         
-        // Background Services
+        // Recipe Cache Service (both as scoped service and hosted service)
+        services.AddScoped<IRecipeCacheService, Infrastructure.Services.RecipeCacheService>();
         services.AddHostedService<Infrastructure.Services.RecipeCacheService>();
     }
 } 

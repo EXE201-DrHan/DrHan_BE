@@ -190,6 +190,24 @@ namespace DrHan.Controllers
         }
 
         /// <summary>
+        /// Cleans all recipe data
+        /// </summary>
+        [HttpDelete("clean/recipes")]
+        public async Task<IActionResult> CleanRecipeData()
+        {
+            try
+            {
+                await _dataManagementService.CleanRecipeDataAsync();
+                return Ok(new { Message = "Recipe data cleaned successfully", Timestamp = DateTime.UtcNow });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to clean recipe data");
+                return StatusCode(500, new { Error = "Failed to clean recipe data", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Resets all data (clean + reseed including users)
         /// </summary>
         [HttpPost("reset/all")]
@@ -245,6 +263,29 @@ namespace DrHan.Controllers
             {
                 _logger.LogError(ex, "Failed to reset users and roles");
                 return StatusCode(500, new { Error = "Failed to reset users and roles", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Resets recipe data (cleans all recipes)
+        /// </summary>
+        [HttpPost("reset/recipes")]
+        public async Task<IActionResult> ResetRecipeData()
+        {
+            try
+            {
+                await _dataManagementService.ResetRecipeDataAsync();
+                var stats = await _dataManagementService.GetDataStatisticsAsync();
+                return Ok(new { 
+                    Message = "Recipe data reset successfully",
+                    Statistics = stats,
+                    Timestamp = DateTime.UtcNow 
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to reset recipe data");
+                return StatusCode(500, new { Error = "Failed to reset recipe data", Details = ex.Message });
             }
         }
 
@@ -383,6 +424,14 @@ namespace DrHan.Controllers
                 AllergenNamesCount = stats.AllergenNamesCount,
                 IngredientsCount = stats.IngredientsCount,
                 IngredientNamesCount = stats.IngredientNamesCount,
+                AllergenIngredientRelationsCount = stats.IngredientAllergensCount,
+                RecipesCount = stats.RecipesCount,
+                RecipeIngredientsCount = stats.RecipeIngredientsCount,
+                RecipeInstructionsCount = stats.RecipeInstructionsCount,
+                RecipeAllergensCount = stats.RecipeAllergensCount,
+                RecipeAllergenFreeClaimsCount = stats.RecipeAllergenFreeClaimsCount,
+                RecipeImagesCount = stats.RecipeImagesCount,
+                RecipeNutritionsCount = stats.RecipeNutritionsCount,
                 TotalRecords = stats.TotalRecords,
                 Timestamp = DateTime.UtcNow
             };

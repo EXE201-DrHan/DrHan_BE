@@ -1,9 +1,13 @@
 using DrHan.Application.Commons;
 using DrHan.Application.DTOs.Recipes;
+using DrHan.Application.Interfaces.Repository;
 using DrHan.Application.Services.RecipeServices.Queries.GetRecipeById;
 using DrHan.Application.Services.RecipeServices.Queries.SearchRecipes;
+using DrHan.Domain.Entities.Ingredients;
+using DrHan.Domain.Entities.Recipes;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DrHan.Controllers;
 
@@ -13,11 +17,13 @@ public class RecipesController : ControllerBase
 {
     private readonly IMediator _mediator;
     private readonly ILogger<RecipesController> _logger;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public RecipesController(IMediator mediator, ILogger<RecipesController> logger)
+    public RecipesController(IMediator mediator, ILogger<RecipesController> logger, IUnitOfWork unitOfWork)
     {
         _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
     }
 
     /// <summary>
@@ -121,27 +127,80 @@ public class RecipesController : ControllerBase
     {
         try
         {
-            // This would typically be implemented as a separate query/handler
-            // For now, returning static options based on common recipe categories
+            // Get dynamic filter options from database
+            var recipes = await _unitOfWork.Repository<Recipe>().ListAsync(
+                includeProperties: query => query
+                    .Include(r => r.RecipeAllergens)
+                    .Include(r => r.RecipeAllergenFreeClaims)
+                    .Include(r => r.RecipeIngredients)
+                        .ThenInclude(ri => ri.Ingredient)
+            );
+
+            // Get all ingredients from the database for comprehensive filtering
+            var allIngredients = await _unitOfWork.Repository<Ingredient>().ListAsync();
+            
             var filterOptions = new RecipeFilterOptionsDto
             {
-                CuisineTypes = new List<string>
-                {
-                    "Italian", "Chinese", "Mexican", "Indian", "French", "Thai", "Japanese", 
-                    "Mediterranean", "American", "Greek", "Korean", "Vietnamese", "Spanish"
-                },
-                MealTypes = new List<string>
-                {
-                    "Breakfast", "Lunch", "Dinner", "Snack", "Dessert", "Appetizer", "Beverage"
-                },
-                DifficultyLevels = new List<string>
-                {
-                    "Easy", "Medium", "Hard"
-                },
+                CuisineTypes = recipes
+                    .Where(r => !string.IsNullOrEmpty(r.CuisineType))
+                    .Select(r => r.CuisineType)
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToList(),
+                    
+                MealTypes = recipes
+                    .Where(r => !string.IsNullOrEmpty(r.MealType))
+                    .Select(r => r.MealType)
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToList(),
+                    
+                DifficultyLevels = recipes
+                    .Where(r => !string.IsNullOrEmpty(r.DifficultyLevel))
+                    .Select(r => r.DifficultyLevel)
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToList(),
+                    
                 SortOptions = new List<string>
                 {
-                    "Name", "Rating", "PrepTime", "CookTime", "Likes"
-                }
+                    "Name", "Rating", "PrepTime", "Likes"
+                },
+                
+                // Add available allergens from recipes
+                AvailableAllergens = recipes
+                    .SelectMany(r => r.RecipeAllergens)
+                    .Where(ra => !string.IsNullOrEmpty(ra.AllergenType))
+                    .Select(ra => ra.AllergenType)
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToList(),
+                    
+                // Add available allergen-free claims
+                AvailableAllergenFreeClaims = recipes
+                    .SelectMany(r => r.RecipeAllergenFreeClaims)
+                    .Where(rc => !string.IsNullOrEmpty(rc.Claim))
+                    .Select(rc => rc.Claim)
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToList(),
+
+                // Add available ingredients from recipes
+                AvailableIngredients = recipes
+                    .SelectMany(r => r.RecipeIngredients)
+                    .Where(ri => !string.IsNullOrEmpty(ri.IngredientName))
+                    .Select(ri => ri.IngredientName)
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToList(),
+
+                // Add ingredient categories
+                IngredientCategories = allIngredients
+                    .Where(i => !string.IsNullOrEmpty(i.Category))
+                    .Select(i => i.Category!)
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToList()
             };
 
             var response = new AppResponse<RecipeFilterOptionsDto>()
@@ -165,4 +224,8 @@ public class RecipeFilterOptionsDto
     public List<string> MealTypes { get; set; } = new();
     public List<string> DifficultyLevels { get; set; } = new();
     public List<string> SortOptions { get; set; } = new();
+    public List<string> AvailableAllergens { get; set; } = new();
+    public List<string> AvailableAllergenFreeClaims { get; set; } = new();
+    public List<string> AvailableIngredients { get; set; } = new();
+    public List<string> IngredientCategories { get; set; } = new();
 } 
