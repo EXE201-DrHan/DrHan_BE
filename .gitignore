@@ -6,6 +6,7 @@
 # dotenv files
 .env
 DrHan/appsettings.json
+DrHan/appsetting.json
 DrHan/appsettings.Development.json
 DrHan.Infrastructure/Migrations
 # User-specific files
