@@ -11,6 +11,8 @@ using DrHan.Application.DTOs.Authentication;
 using Microsoft.Extensions.Logging;
 using DrHan.Domain.Constants;
 using DrHan.Domain.Constants.Roles;
+using DrHan.Application.Interfaces.Services;
+using DrHan.Domain.Enums;
 
 namespace DrHan.Application.Services.AuthenticationServices.Commands.RegisterUser
 {
@@ -20,17 +22,20 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.RegisterUse
         private readonly IEmailService _emailService;
         private readonly IUserTokenService _tokenService;
         private readonly ILogger<RegisterUserCommandHandler> _logger;
+        private readonly IOtpService _otpService;
 
         public RegisterUserCommandHandler(
             IApplicationUserService<ApplicationUser> userService,
             IEmailService emailService,
             IUserTokenService tokenService,
-            ILogger<RegisterUserCommandHandler> logger)
+            ILogger<RegisterUserCommandHandler> logger,
+            IOtpService otpService)
         {
             _userService = userService;
             _emailService = emailService;
             _tokenService = tokenService;
             _logger = logger;
+            _otpService = otpService;
         }
 
         public async Task<AppResponse<RegisterUserResponse>> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
@@ -63,14 +68,8 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.RegisterUse
                 await _userService.InsertAsync(user, request.Password);
                 await _userService.AssignRoleAsync(user, UserRoles.Customer.ToString());
 
-                var token = await _userService.GenerateEmailConfirmationTokenAsync(user);
-                var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-                var confirmationLink = $"https://yourdomain.com/confirm-email?userId={user.Id}&token={encodedToken}";
-
-                await _emailService.SendEmailConfirmationAsync(
-                    user.Email!,
-                    "Confirm your email",
-                    $"Please confirm your email by clicking <a href='{confirmationLink}'>here</a>");
+                // Generate and send OTP via push notification instead of email link
+                var otpCode = await _otpService.GenerateOtpAsync(user.Id, OtpType.EmailVerification);
 
                 var role = await _userService.GetUserRoleAsync(user);
                 var accessToken = _tokenService.CreateAccessToken(user, role);

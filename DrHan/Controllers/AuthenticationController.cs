@@ -9,9 +9,12 @@ using DrHan.Application.Services.AuthenticationServices.Commands.ConfirmEmail;
 using DrHan.Application.Services.AuthenticationServices.Commands.SendPasswordReset;
 using DrHan.Application.Services.AuthenticationServices.Commands.ResetPassword;
 using DrHan.Application.Services.AuthenticationServices.Commands.RevokeUser;
+using DrHan.Application.Services.AuthenticationServices.Commands.SendOtp;
+using DrHan.Application.Services.AuthenticationServices.Commands.VerifyOtp;
 using DrHan.Application.DTOs.Authentication;
 using DrHan.Application.Commons;
 using System.Security.Claims;
+using DrHan.Application.Interfaces.Services;
 
 namespace DrHan.Controllers
 {
@@ -20,10 +23,12 @@ namespace DrHan.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly IMediator _mediator;
+        private readonly IPushNotificationService _pushNotificationService;
 
-        public AuthenticationController(IMediator mediator)
+        public AuthenticationController(IMediator mediator, IPushNotificationService pushNotificationService)
         {
             _mediator = mediator;
+            _pushNotificationService = pushNotificationService;
         }
 
         /// <summary>
@@ -193,5 +198,65 @@ namespace DrHan.Controllers
                 Timestamp = DateTime.UtcNow 
             });
         }
+
+        /// <summary>
+        /// Send OTP to user via push notification
+        /// </summary>
+        /// <param name="command">OTP sending details</param>
+        /// <returns>OTP sending response</returns>
+        [HttpPost("send-otp")]
+        public async Task<ActionResult<AppResponse<SendOtpResponse>>> SendOtp([FromBody] SendOtpCommand command)
+        {
+            var response = await _mediator.Send(command);
+            
+            if (!response.IsSucceeded)
+                return BadRequest(response);
+            
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// Verify OTP code
+        /// </summary>
+        /// <param name="command">OTP verification details</param>
+        /// <returns>OTP verification response</returns>
+        [HttpPost("verify-otp")]
+        public async Task<ActionResult<AppResponse<VerifyOtpResponse>>> VerifyOtp([FromBody] VerifyOtpCommand command)
+        {
+            var response = await _mediator.Send(command);
+            
+            if (!response.IsSucceeded)
+                return BadRequest(response);
+            
+            return Ok(response);
+        }
+        
+        /// <summary>
+        /// Register device token for push notifications
+        /// </summary>
+        /// <param name="deviceToken">Device token from FCM</param>
+        /// <param name="platform">Platform (iOS, Android, Web)</param>
+        /// <returns>Registration response</returns>
+        [HttpPost("register-device")]
+        [Authorize]
+        public async Task<ActionResult> RegisterDevice([FromBody] RegisterDeviceRequest request)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var userIdInt))
+                return Unauthorized();
+
+            var success = await _pushNotificationService.RegisterDeviceTokenAsync(userIdInt, request.DeviceToken, request.Platform);
+            
+            if (success)
+                return Ok(new { Message = "Device registered successfully" });
+            else
+                return BadRequest(new { Message = "Failed to register device" });
+        }
     }
+}
+
+public class RegisterDeviceRequest
+{
+    public string DeviceToken { get; set; } = string.Empty;
+    public string Platform { get; set; } = string.Empty;
 } 

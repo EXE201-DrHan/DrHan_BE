@@ -19,5 +19,13 @@ public static class ServiceCollectionExtensions
         // Recipe Cache Service (both as scoped service and hosted service)
         services.AddScoped<IRecipeCacheService, Infrastructure.Services.RecipeCacheService>();
         services.AddHostedService<Infrastructure.Services.RecipeCacheService>();
+        
+        // OTP and Push Notification Services
+        services.AddScoped<IOtpService, OtpService>();
+        services.AddScoped<IPushNotificationService, PushNotificationService>();
+        services.AddHostedService<OtpCleanupService>();
+        
+        // Ingredient Service
+        services.AddScoped<IIngredientService, IngredientService>();
     }
 } 

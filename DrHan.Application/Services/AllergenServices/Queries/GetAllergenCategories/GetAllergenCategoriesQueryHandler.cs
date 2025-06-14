@@ -29,6 +29,18 @@ public class GetAllergenCategoriesQueryHandler : IRequestHandler<GetAllergenCate
     {
         try
         {
+            var cacheKey = _cacheKeyService.Custom("allergen", "categories");
+            
+            // Try to get categories from cache first
+            var cachedCategories = await _cacheService.GetAsync<IEnumerable<string>>(cacheKey);
+            if (cachedCategories != null)
+            {
+                _logger.LogInformation("Retrieved allergen categories from cache");
+                return new AppResponse<IEnumerable<string>>()
+                    .SetSuccessResponse(cachedCategories);
+            }
+
+            // If not in cache, fetch from database
             var allergens = await _unitOfWork.Repository<Allergen>().ListAllAsync();
             var categories = allergens
                 .Where(a => !string.IsNullOrWhiteSpace(a.Category))
@@ -36,6 +48,10 @@ public class GetAllergenCategoriesQueryHandler : IRequestHandler<GetAllergenCate
                 .Distinct()
                 .OrderBy(c => c)
                 .ToList();
+
+            // Cache the result for future requests
+            await _cacheService.SetAsync(cacheKey, categories, TimeSpan.FromHours(24));
+            _logger.LogInformation("Cached allergen categories for 24 hours");
 
             return new AppResponse<IEnumerable<string>>()
                 .SetSuccessResponse(categories);
