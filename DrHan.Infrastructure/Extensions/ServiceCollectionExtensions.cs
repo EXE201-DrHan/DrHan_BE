@@ -26,6 +26,5 @@ public static class ServiceCollectionExtensions
         services.AddHostedService<OtpCleanupService>();
         
         // Ingredient Service
-        services.AddScoped<IIngredientService, IngredientService>();
     }
 } 

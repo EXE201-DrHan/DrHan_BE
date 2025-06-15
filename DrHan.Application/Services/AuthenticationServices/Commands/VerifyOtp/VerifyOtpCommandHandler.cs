@@ -43,7 +43,7 @@ public class VerifyOtpCommandHandler : IRequestHandler<VerifyOtpCommand, AppResp
                     IsVerified = false,
                     Message = "Invalid or expired OTP code",
                     RemainingAttempts = Math.Max(0, remainingAttempts)
-                }, "OTP verification failed");
+                },"Error", "OTP verification failed");
         }
 
         // If it's email verification, confirm the user's email
@@ -63,6 +63,6 @@ public class VerifyOtpCommandHandler : IRequestHandler<VerifyOtpCommand, AppResp
         };
 
         return new AppResponse<VerifyOtpResponse>()
-            .SetSuccessResponse(response, "OTP verified successfully");
+            .SetSuccessResponse(response,"Success", "OTP verified successfully");
     }
 } 
