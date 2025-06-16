@@ -8,6 +8,9 @@
 
     <ItemGroup>
       <Content Include="Seeders\JsonData\CrossReactivityGroups.json" />
+      <Content Include="EmailTemplates\**\*">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
     <ItemGroup>

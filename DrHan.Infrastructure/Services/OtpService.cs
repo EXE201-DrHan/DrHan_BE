@@ -95,7 +95,7 @@ public class OtpService : IOtpService
             .Where(o => o.UserId == userId && 
                        o.Type == type && 
                        !o.IsUsed && 
-                       !o.IsBlocked &&
+                       o.AttemptsCount < o.MaxAttempts &&
                        o.ExpiresAt > DateTime.UtcNow)
             .OrderByDescending(o => o.CreateAt)
             .FirstOrDefaultAsync();
@@ -131,6 +131,17 @@ public class OtpService : IOtpService
 
         _context.UserOtps.RemoveRange(expiredOtps);
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<bool> HasVerifiedOtpAsync(int userId, OtpType type)
+    {
+        // Check if user has any successfully used (verified) OTP of the specified type
+        var hasVerifiedOtp = await _context.UserOtps
+            .AnyAsync(o => o.UserId == userId && 
+                          o.Type == type && 
+                          o.IsUsed);
+        
+        return hasVerifiedOtp;
     }
 
     private static string GenerateRandomOtp()

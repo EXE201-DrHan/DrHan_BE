@@ -15,6 +15,7 @@ using DrHan.Application.DTOs.Authentication;
 using DrHan.Application.Commons;
 using System.Security.Claims;
 using DrHan.Application.Interfaces.Services;
+using DrHan.Domain.Enums;
 
 namespace DrHan.Controllers
 {
@@ -24,11 +25,12 @@ namespace DrHan.Controllers
     {
         private readonly IMediator _mediator;
         private readonly IPushNotificationService _pushNotificationService;
-
-        public AuthenticationController(IMediator mediator, IPushNotificationService pushNotificationService)
+        private readonly ILogger<AuthenticationController> _logger;
+        public AuthenticationController(IMediator mediator, IPushNotificationService pushNotificationService, ILogger<AuthenticationController> logger)
         {
             _mediator = mediator;
             _pushNotificationService = pushNotificationService;
+            _logger = logger;
         }
 
         /// <summary>
@@ -223,8 +225,9 @@ namespace DrHan.Controllers
         [HttpPost("verify-otp")]
         public async Task<ActionResult<AppResponse<VerifyOtpResponse>>> VerifyOtp([FromBody] VerifyOtpCommand command)
         {
+            command.Type = OtpType.EmailVerification;
             var response = await _mediator.Send(command);
-            
+            _logger.LogInformation(response.Messages.Keys.ToString());
             if (!response.IsSucceeded)
                 return BadRequest(response);
             

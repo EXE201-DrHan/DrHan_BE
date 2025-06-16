@@ -11,12 +11,10 @@ public static class RecipeSearchQuery
     public static Expression<Func<Recipe, bool>>? BuildFilter(RecipeSearchDto searchDto)
     {
         return recipe =>
-            // Basic recipe properties search (most efficient first)
             (string.IsNullOrEmpty(searchDto.SearchTerm) ||
             recipe.Name.Contains(searchDto.SearchTerm) ||
             recipe.Description.Contains(searchDto.SearchTerm)) &&
 
-            // Filter by cuisine type (indexed field)
             (string.IsNullOrEmpty(searchDto.CuisineType) ||
             recipe.CuisineType == searchDto.CuisineType) &&
 
@@ -50,7 +48,6 @@ public static class RecipeSearchQuery
                 searchDto.ExcludeIngredients.Any(ingredient => 
                     ri.IngredientName.ToLower().Contains(ingredient.ToLower())))) &&
 
-            // Ingredient category filter (requires linked ingredients)
             (string.IsNullOrEmpty(searchDto.IngredientCategory) ||
             recipe.RecipeIngredients.Any(ri => 
                 ri.IngredientId.HasValue && ri.Ingredient != null && 

@@ -4,5 +4,6 @@ namespace DrHan.Application.Interfaces
     {
         Task SendEmailConfirmationAsync(string email, string subject, string message);
         Task SendPasswordResetAsync(string email, string subject, string message);
+        Task SendOtpAsync(string email, string fullName, string otpCode);
     }
 } 

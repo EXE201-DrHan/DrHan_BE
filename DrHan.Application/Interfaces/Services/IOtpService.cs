@@ -12,4 +12,5 @@ public interface IOtpService
     Task MarkOtpAsUsedAsync(int otpId);
     Task IncrementAttemptsAsync(int otpId);
     Task CleanupExpiredOtpsAsync();
+    Task<bool> HasVerifiedOtpAsync(int userId, OtpType type);
 } 

@@ -112,7 +112,6 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
 
             try
             {
-                // Check if we already have recipes for this search term
                 var existingCount = await CheckExistingRecipesCount(unitOfWork, searchTerm);
                 if (existingCount >= 5) // Increased from 3 to 5 to match search logic
                 {
@@ -539,10 +538,8 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
                 return "AI Generated"; // Fallback if no categories exist
             }
 
-            // Smart category matching based on ingredient name
             var lowerName = ingredientName.ToLower();
             
-            // Vietnamese/Asian ingredient patterns
             if (ContainsAny(lowerName, new[] { "nước mắm", "tương", "miso", "sake", "mirin", "kimchi", "dầu hào", "dầu mè", "dầu điều" }))
                 return FindBestCategoryMatch(existingCategories, new[] { "gia vị", "sauce", "condiment", "seasoning" });
             

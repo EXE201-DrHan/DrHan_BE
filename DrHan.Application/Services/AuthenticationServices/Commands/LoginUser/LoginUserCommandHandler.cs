@@ -4,6 +4,8 @@ using DrHan.Application.Interfaces.Services.AuthenticationServices;
 using DrHan.Application.Commons;
 using DrHan.Domain.Entities.Users;
 using DrHan.Application.DTOs.Authentication;
+using DrHan.Application.Interfaces.Services;
+using DrHan.Domain.Enums;
 
 namespace DrHan.Application.Services.AuthenticationServices.Commands.LoginUser
 {
@@ -11,13 +13,16 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.LoginUser
     {
         private readonly IApplicationUserService<ApplicationUser> _userService;
         private readonly IUserTokenService _tokenService;
+        private readonly IOtpService _otpService;
 
         public LoginUserCommandHandler(
             IApplicationUserService<ApplicationUser> userService,
-            IUserTokenService tokenService)
+            IUserTokenService tokenService,
+            IOtpService otpService)
         {
             _userService = userService;
             _tokenService = tokenService;
+            _otpService = otpService;
         }
 
         public async Task<AppResponse<LoginUserResponse>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
@@ -42,12 +47,12 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.LoginUser
                     .SetErrorResponse("Credentials", "Invalid email or password");
             }
 
-            // Check if email is confirmed (optional security feature)
-            var isEmailConfirmed = await _userService.IsEmailConfirmedAsync(user);
-            if (!isEmailConfirmed)
+            // Check if user has verified their email OTP
+            var hasVerifiedEmailOtp = await _otpService.HasVerifiedOtpAsync(user.Id, OtpType.EmailVerification);
+            if (!hasVerifiedEmailOtp)
             {
                 return new AppResponse<LoginUserResponse>()
-                    .SetErrorResponse("Email", "Please confirm your email address before logging in");
+                    .SetErrorResponse("EmailVerification", "Please verify your email address with the OTP code before logging in");
             }
 
             // Check if account is locked out

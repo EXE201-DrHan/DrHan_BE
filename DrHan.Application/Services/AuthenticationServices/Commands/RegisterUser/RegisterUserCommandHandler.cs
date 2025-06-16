@@ -68,9 +68,11 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.RegisterUse
                 await _userService.InsertAsync(user, request.Password);
                 await _userService.AssignRoleAsync(user, UserRoles.Customer.ToString());
 
-                // Generate and send OTP via push notification instead of email link
+                // Generate and send OTP via email
                 var otpCode = await _otpService.GenerateOtpAsync(user.Id, OtpType.EmailVerification);
-
+                
+                await _emailService.SendOtpAsync(user.Email, user.FullName, otpCode);
+                
                 var role = await _userService.GetUserRoleAsync(user);
                 var accessToken = _tokenService.CreateAccessToken(user, role);
                 var refreshToken = _tokenService.CreateRefreshToken(user);

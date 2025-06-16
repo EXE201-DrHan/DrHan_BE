@@ -5,6 +5,7 @@
 
 # dotenv files
 .env
+DrHan/firebase_service.json
 DrHan/appsettings.json
 DrHan/appsetting.json
 DrHan/appsettings.Development.json
