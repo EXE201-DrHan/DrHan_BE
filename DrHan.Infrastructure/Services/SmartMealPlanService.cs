@@ -4,6 +4,7 @@ using DrHan.Application.DTOs.MealPlans;
 using DrHan.Application.DTOs.Recipes;
 using DrHan.Application.Interfaces.Repository;
 using DrHan.Application.Interfaces.Services;
+using DrHan.Application.Interfaces.Services.CacheService;
 using DrHan.Application.StaticQuery;
 using DrHan.Domain.Entities.MealPlans;
 using DrHan.Domain.Entities.Recipes;
@@ -18,6 +19,8 @@ public class SmartMealPlanService : ISmartMealPlanService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly ILogger<SmartMealPlanService> _logger;
+    private readonly ICacheService _cacheService;
+    private readonly ICacheKeyService _cacheKeyService;
 
     // Meal type distribution weights for smart planning
     private readonly Dictionary<string, double> _mealTypeWeights = new()
@@ -28,14 +31,23 @@ public class SmartMealPlanService : ISmartMealPlanService
         { "Snack", 0.10 }      // Light, healthy options
     };
 
+    // Cache expiration settings
+    private static readonly TimeSpan UserAllergiesCacheExpiration = TimeSpan.FromHours(2);
+    private static readonly TimeSpan RecipeFilterCacheExpiration = TimeSpan.FromMinutes(30);
+    private static readonly TimeSpan TemplatesCacheExpiration = TimeSpan.FromHours(6);
+
     public SmartMealPlanService(
         IUnitOfWork unitOfWork,
         IMapper mapper,
-        ILogger<SmartMealPlanService> logger)
+        ILogger<SmartMealPlanService> logger,
+        ICacheService cacheService,
+        ICacheKeyService cacheKeyService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _logger = logger;
+        _cacheService = cacheService;
+        _cacheKeyService = cacheKeyService;
     }
 
     public async Task<AppResponse<MealPlanDto>> GenerateSmartMealPlanAsync(GenerateMealPlanDto request, int userId)
@@ -166,6 +178,9 @@ public class SmartMealPlanService : ISmartMealPlanService
             }
             await _unitOfWork.CompleteAsync();
 
+            // Invalidate meal plan cache after bulk operations
+            await InvalidateMealPlanCacheAsync(request.MealPlanId, userId);
+
             _logger.LogInformation("Bulk filled {Count} meals for meal plan {MealPlanId}", 
                 mealEntries.Count, request.MealPlanId);
 
@@ -180,46 +195,67 @@ public class SmartMealPlanService : ISmartMealPlanService
 
     public async Task<AppResponse<List<MealPlanTemplateDto>>> GetAvailableTemplatesAsync()
     {
-        // Return predefined templates - could be stored in database later
-        var templates = new List<MealPlanTemplateDto>
+        var cacheKey = _cacheKeyService.Custom("mealplan", "templates");
+        
+        var templates = await _cacheService.GetAsync<List<MealPlanTemplateDto>>(cacheKey, async () =>
         {
-            new MealPlanTemplateDto
+            // Return predefined templates - could be stored in database later
+            return new List<MealPlanTemplateDto>
             {
-                Id = 1,
-                Name = "Busy Professional Week",
-                Description = "Quick 15-minute meals for busy weekdays",
-                Category = "Quick & Easy",
-                Duration = 7
-            },
-            new MealPlanTemplateDto
-            {
-                Id = 2,
-                Name = "Mediterranean Week",
-                Description = "Healthy Mediterranean-style meals",
-                Category = "Healthy",
-                Duration = 7
-            },
-            new MealPlanTemplateDto
-            {
-                Id = 3,
-                Name = "Family Comfort Food",
-                Description = "Kid-friendly family meals",
-                Category = "Family",
-                Duration = 7
-            }
-        };
-
+                new MealPlanTemplateDto
+                {
+                    Id = 1,
+                    Name = "Busy Professional Week",
+                    Description = "Quick 15-minute meals for busy weekdays",
+                    Category = "Quick & Easy",
+                    Duration = 7
+                },
+                new MealPlanTemplateDto
+                {
+                    Id = 2,
+                    Name = "Mediterranean Week",
+                    Description = "Healthy Mediterranean-style meals",
+                    Category = "Healthy",
+                    Duration = 7
+                },
+                new MealPlanTemplateDto
+                {
+                    Id = 3,
+                    Name = "Family Friendly Month",
+                    Description = "Kid-approved meals for the whole family",
+                    Category = "Family",
+                    Duration = 30
+                }
+            };
+        }, TemplatesCacheExpiration);
+        
         var response = new AppResponse<List<MealPlanTemplateDto>>();
         return response.SetSuccessResponse(templates, "Success", "Templates retrieved successfully");
     }
 
-    // Private helper methods
+    // PRIVATE METHODS WITH CACHING
+
     private async Task<List<int>> GetUserAllergiesAsync(int userId)
     {
-        var userAllergies = await _unitOfWork.Repository<UserAllergy>()
-            .ListAsync(filter: ua => ua.UserId == userId);
-
-        return userAllergies.Where(ua => ua.AllergenId.HasValue).Select(ua => ua.AllergenId.Value).ToList();
+        var cacheKey = _cacheKeyService.Custom("user", userId, "allergies");
+        
+        return await _cacheService.GetAsync<List<int>>(cacheKey, async () =>
+        {
+            try
+            {
+                var userAllergies = await _unitOfWork.Repository<UserAllergy>()
+                    .ListAsync(filter: ua => ua.UserId == userId);
+                return userAllergies
+                    .Where(ua => ua.AllergenId.HasValue)
+                    .Select(ua => ua.AllergenId.Value)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving allergies for user {UserId}", userId);
+                return new List<int>();
+            }
+        }, UserAllergiesCacheExpiration);
     }
 
     private async Task<List<MealPlanEntry>> GenerateDailyMealsAsync(int mealPlanId, DateOnly date, MealPlanPreferencesDto preferences, List<int> userAllergies)
@@ -253,50 +289,62 @@ public class SmartMealPlanService : ISmartMealPlanService
 
     private async Task<List<Recipe>> FilterRecipesByPreferencesAsync(MealPlanPreferencesDto preferences, List<int> userAllergies, string mealType)
     {
-        try
-        {
-            // Build filter using static query
-            var filter = MealPlanRecipeQuery.BuildMealPlanFilter(preferences, userAllergies, mealType);
-            var orderBy = MealPlanRecipeQuery.BuildMealPlanOrderBy(mealType);
-            var includes = MealPlanRecipeQuery.BuildMealPlanIncludes();
-            var recipeCount = MealPlanRecipeQuery.GetRecommendedRecipeCount(mealType, preferences);
+        // Create cache key based on preferences and allergies
+        var preferencesHash = GeneratePreferencesHash(preferences, userAllergies, mealType);
+        var cacheKey = _cacheKeyService.Custom("recipes", "filtered", mealType, preferencesHash);
 
-            // Execute query using repository with optimizations
-            var recipes = await _unitOfWork.Repository<Recipe>()
-                .ListAsync(
-                    filter: filter,
-                    orderBy: orderBy,
-                    includeProperties: includes
-                );
-
-            // Take recommended count for performance
-            return recipes.Take(recipeCount).ToList();
-        }
-        catch (Exception ex)
+        return await _cacheService.GetAsync(cacheKey, async () =>
         {
-            _logger.LogError(ex, "Error filtering recipes for meal type {MealType}", mealType);
-            
-            // Fallback to simple query if complex filtering fails
-            return await GetFallbackRecipes(mealType);
-        }
+            try
+            {
+                // Build filter using static query
+                var filter = MealPlanRecipeQuery.BuildMealPlanFilter(preferences, userAllergies, mealType);
+                var orderBy = MealPlanRecipeQuery.BuildMealPlanOrderBy(mealType);
+                var includes = MealPlanRecipeQuery.BuildMealPlanIncludes();
+                var recipeCount = MealPlanRecipeQuery.GetRecommendedRecipeCount(mealType, preferences);
+
+                // Execute query using repository with optimizations
+                var recipes = await _unitOfWork.Repository<Recipe>()
+                    .ListAsync(
+                        filter: filter,
+                        orderBy: orderBy,
+                        includeProperties: includes
+                    );
+
+                // Take recommended count for performance
+                return recipes.Take(recipeCount).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error filtering recipes for meal type {MealType}", mealType);
+                
+                // Fallback to simple query if complex filtering fails
+                return await GetFallbackRecipes(mealType);
+            }
+        }, RecipeFilterCacheExpiration);
     }
 
     private async Task<List<Recipe>> GetFallbackRecipes(string mealType)
     {
-        try
+        var cacheKey = _cacheKeyService.Custom("recipes", "fallback", mealType);
+        
+        return await _cacheService.GetAsync(cacheKey, async () =>
         {
-            var recipes = await _unitOfWork.Repository<Recipe>()
-                .ListAsync(
-                    orderBy: q => q.OrderByDescending(r => r.RatingAverage)
-                );
+            try
+            {
+                var recipes = await _unitOfWork.Repository<Recipe>()
+                    .ListAsync(
+                        orderBy: q => q.OrderByDescending(r => r.RatingAverage)
+                    );
 
-            return recipes.Take(20).ToList();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error in fallback recipe query for meal type {MealType}", mealType);
-            return new List<Recipe>();
-        }
+                return recipes.Take(20).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in fallback recipe query for meal type {MealType}", mealType);
+                return new List<Recipe>();
+            }
+        }, RecipeFilterCacheExpiration);
     }
 
     private Recipe SelectRandomRecipe(List<Recipe> recipes)
@@ -340,5 +388,34 @@ public class SmartMealPlanService : ISmartMealPlanService
             "same" => recipeIds.First(),
             _ => recipeIds.First()
         };
+    }
+
+    private string GeneratePreferencesHash(MealPlanPreferencesDto preferences, List<int> userAllergies, string mealType)
+    {
+        // Create a simple hash based on key preference values
+        var cuisineTypes = preferences?.CuisineTypes != null ? string.Join(",", preferences.CuisineTypes.OrderBy(x => x)) : "";
+        var dietaryGoals = preferences?.DietaryGoals != null ? string.Join(",", preferences.DietaryGoals.OrderBy(x => x)) : "";
+        var hashSource = $"{mealType}_{cuisineTypes}_{dietaryGoals}_{preferences?.MaxCookingTime}_{preferences?.BudgetRange}_{string.Join(",", userAllergies.OrderBy(x => x))}";
+        return hashSource.GetHashCode().ToString();
+    }
+
+    private async Task InvalidateMealPlanCacheAsync(int mealPlanId, int userId)
+    {
+        try
+        {
+            // Invalidate specific meal plan cache
+            var mealPlanCacheKey = _cacheKeyService.Entity<MealPlan>(mealPlanId);
+            await _cacheService.RemoveAsync(mealPlanCacheKey);
+
+            // Invalidate user's meal plan list cache pattern
+            var userMealPlansPattern = _cacheKeyService.Custom("user", userId, "mealplans", "*");
+            await _cacheService.RemoveByPatternAsync(userMealPlansPattern);
+
+            _logger.LogInformation("Invalidated meal plan cache for meal plan {MealPlanId} and user {UserId}", mealPlanId, userId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to invalidate meal plan cache for meal plan {MealPlanId}", mealPlanId);
+        }
     }
 }

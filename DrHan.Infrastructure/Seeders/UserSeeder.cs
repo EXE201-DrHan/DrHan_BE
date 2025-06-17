@@ -64,7 +64,9 @@ namespace DrHan.Infrastructure.Seeders
                         Status = UserStatus.Enabled,
                         CreatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 30)),
                         UpdatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 7)),
-                        LastLoginAt = DateTime.UtcNow.AddHours(-Random.Shared.Next(1, 72))
+                        LastLoginAt = DateTime.UtcNow.AddHours(-Random.Shared.Next(1, 72)),
+                        
+                        
                     };
 
                     var password = "123123";

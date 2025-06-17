@@ -3,6 +3,7 @@ using DrHan.Application.Commons;
 using DrHan.Application.DTOs.MealPlans;
 using DrHan.Application.Interfaces.Repository;
 using DrHan.Application.Interfaces.Services.AuthenticationServices;
+using DrHan.Application.Interfaces.Services.CacheService;
 using DrHan.Domain.Entities.MealPlans;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -16,17 +17,26 @@ public class GetMealPlanByIdQueryHandler : IRequestHandler<GetMealPlanByIdQuery,
     private readonly IMapper _mapper;
     private readonly IUserContext _userContext;
     private readonly ILogger<GetMealPlanByIdQueryHandler> _logger;
+    private readonly ICacheService _cacheService;
+    private readonly ICacheKeyService _cacheKeyService;
+
+    // Cache expiration for individual meal plans
+    private static readonly TimeSpan MealPlanCacheExpiration = TimeSpan.FromMinutes(15);
 
     public GetMealPlanByIdQueryHandler(
         IUnitOfWork unitOfWork,
         IMapper mapper,
         IUserContext userContext,
-        ILogger<GetMealPlanByIdQueryHandler> logger)
+        ILogger<GetMealPlanByIdQueryHandler> logger,
+        ICacheService cacheService,
+        ICacheKeyService cacheKeyService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _userContext = userContext;
         _logger = logger;
+        _cacheService = cacheService;
+        _cacheKeyService = cacheKeyService;
     }
 
     public async Task<AppResponse<MealPlanDto>> Handle(GetMealPlanByIdQuery request, CancellationToken cancellationToken)
@@ -36,25 +46,29 @@ public class GetMealPlanByIdQueryHandler : IRequestHandler<GetMealPlanByIdQuery,
         try
         {
             var userId = _userContext.GetCurrentUserId().GetValueOrDefault();
+            var cacheKey = _cacheKeyService.Custom("user", userId, "mealplan", request.Id);
             
-            var mealPlans = await _unitOfWork.Repository<MealPlan>()
-                .ListAsync(
-                    filter: mp => mp.Id == request.Id && mp.UserId == userId,
-                    includeProperties: query => query
-                        .Include(mp => mp.MealPlanEntries)
-                        .ThenInclude(mpe => mpe.Recipe)
-                        .Include(mp => mp.MealPlanEntries)
-                        .ThenInclude(mpe => mpe.Product)
-                );
-            
-            var mealPlan = mealPlans.FirstOrDefault();
+            var mealPlanDto = await _cacheService.GetAsync<MealPlanDto>(cacheKey, async () =>
+            {
+                var mealPlans = await _unitOfWork.Repository<MealPlan>()
+                    .ListAsync(
+                        filter: mp => mp.Id == request.Id && mp.UserId == userId,
+                        includeProperties: query => query
+                            .Include(mp => mp.MealPlanEntries)
+                            .ThenInclude(mpe => mpe.Recipe)
+                            .Include(mp => mp.MealPlanEntries)
+                            .ThenInclude(mpe => mpe.Product)
+                    );
+                
+                var mealPlan = mealPlans.FirstOrDefault();
+                return mealPlan != null ? _mapper.Map<MealPlanDto>(mealPlan) : null;
+            }, MealPlanCacheExpiration);
 
-            if (mealPlan == null)
+            if (mealPlanDto == null)
             {
                 return response.SetErrorResponse("NotFound", "Meal plan not found");
             }
 
-            var mealPlanDto = _mapper.Map<MealPlanDto>(mealPlan);
             return response.SetSuccessResponse(mealPlanDto, "Success", "Meal plan retrieved successfully");
         }
         catch (Exception ex)

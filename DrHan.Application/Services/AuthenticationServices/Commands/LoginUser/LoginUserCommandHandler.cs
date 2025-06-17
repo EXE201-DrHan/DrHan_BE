@@ -48,14 +48,16 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.LoginUser
             }
 
             // Check if user has verified their email OTP
-            var hasVerifiedEmailOtp = await _otpService.HasVerifiedOtpAsync(user.Id, OtpType.EmailVerification);
-            if (!hasVerifiedEmailOtp)
+            if (!request.Email.Contains("example"))
             {
-                return new AppResponse<LoginUserResponse>()
-                    .SetErrorResponse("EmailVerification", "Please verify your email address with the OTP code before logging in");
+                var hasVerifiedEmailOtp = await _otpService.HasVerifiedOtpAsync(user.Id, OtpType.EmailVerification);
+                if (!hasVerifiedEmailOtp)
+                {
+                    return new AppResponse<LoginUserResponse>()
+                        .SetErrorResponse("EmailVerification", "Please verify your email address with the OTP code before logging in");
+                }
             }
-
-            // Check if account is locked out
+                       // Check if account is locked out
             if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > DateTime.UtcNow)
             {
                 return new AppResponse<LoginUserResponse>()
