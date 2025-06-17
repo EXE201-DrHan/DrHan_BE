@@ -12,8 +12,6 @@ public class UserSubscription : BaseEntity
 
     public UserSubscriptionStatus Status { get; set; }
 
-    public int UsageCount { get; set; }
-
     public DateTime CreatedAt { get; set; }
     public virtual SubscriptionPlan Plan { get; set; }
 

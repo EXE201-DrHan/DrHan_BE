@@ -89,7 +89,7 @@ namespace DrHan.Infrastructure.Repositories
             return await _context.Set<T>().SingleOrDefaultAsync(match);
         }
 
-        public async Task<T?> GetEntityByIdAsync(Guid id)
+        public async Task<T?> GetEntityByIdAsync(int id)
         {
             return await _context.Set<T>().FindAsync(id);
         }

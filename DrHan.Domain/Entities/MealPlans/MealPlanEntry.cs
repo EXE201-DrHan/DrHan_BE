@@ -17,6 +17,7 @@ public class MealPlanEntry : BaseEntity
     public decimal? Servings { get; set; }
 
     public string Notes { get; set; }
+    public bool IsCompleted { get; set; } = false;
     public virtual MealPlan MealPlan { get; set; }
 
     public virtual FoodProduct Product { get; set; }

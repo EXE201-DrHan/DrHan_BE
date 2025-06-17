@@ -102,6 +102,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public virtual DbSet<Payment> Payments { get; set; }
     public virtual DbSet<UserOtp> UserOtps { get; set; }
     public virtual DbSet<UserDeviceToken> UserDeviceTokens { get; set; }
+    public virtual DbSet<SubscriptionUsage> SubscriptionUsages { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
