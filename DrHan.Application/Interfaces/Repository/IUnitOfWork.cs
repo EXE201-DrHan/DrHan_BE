@@ -13,6 +13,7 @@ namespace DrHan.Application.Interfaces.Repository
         Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> operation, CancellationToken cancellationToken = default);
         bool HasChanges();
         void RejectChanges();
+        void DetachAllEntities();
         IGenericRepository<TEntity> Repository<TEntity>() where TEntity : BaseEntity;
         Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
     }

@@ -49,6 +49,37 @@ public class CreateMealPlanCommandHandler : IRequestHandler<CreateMealPlanComman
                 return response.SetErrorResponse("Dates", "End date must be after start date");
             }
 
+            // Validate meal plan type and FamilyId relationship
+            if (request.MealPlan.PlanType?.ToLower() == "personal")
+            {
+                if (request.MealPlan.FamilyId.HasValue)
+                {
+                    _logger.LogWarning("Personal meal plan cannot have FamilyId. UserId: {UserId}", userId);
+                    return response.SetErrorResponse("PlanType", "Personal meal plans cannot be associated with a family");
+                }
+            }
+            else if (request.MealPlan.PlanType?.ToLower() == "family")
+            {
+                if (!request.MealPlan.FamilyId.HasValue)
+                {
+                    _logger.LogWarning("Family meal plan must have FamilyId. UserId: {UserId}", userId);
+                    return response.SetErrorResponse("PlanType", "Family meal plans must be associated with a family");
+                }
+            }
+
+            // Validate FamilyId if provided
+            if (request.MealPlan.FamilyId.HasValue)
+            {
+                var familyExists = await _unitOfWork.Repository<DrHan.Domain.Entities.Families.Family>()
+                    .ExistsAsync(f => f.Id == request.MealPlan.FamilyId.Value);
+                
+                if (!familyExists)
+                {
+                    _logger.LogWarning("Attempted to create meal plan with non-existent FamilyId: {FamilyId}", request.MealPlan.FamilyId.Value);
+                    return response.SetErrorResponse("Family", "The specified family does not exist");
+                }
+            }
+
             var mealPlan = new MealPlan
             {
                 UserId = userId,

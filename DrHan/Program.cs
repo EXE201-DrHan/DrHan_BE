@@ -6,7 +6,27 @@ using DrHan.Infrastructure.Persistence;
 using DrHan.Infrastructure.Seeders;
 using Microsoft.EntityFrameworkCore;
 using Hangfire;
+using Serilog;
+using Serilog.Events;
+using System.Text;
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("Hangfire", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .Enrich.WithEnvironmentName()
+    .Enrich.WithThreadId()
+    .WriteTo.Console(
+        outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
+    .WriteTo.File(
+        path: "logs/drhan-.log",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,
+        encoding: Encoding.UTF8,
+        outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog();
 // Add services to the container.
 builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -26,7 +46,15 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 var scope = app.Services.CreateScope();
 var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-
+app.UseSerilogRequestLogging(options =>
+{
+    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+    options.GetLevel = (httpContext, elapsed, ex) => ex != null
+        ? LogEventLevel.Error
+        : httpContext.Response.StatusCode > 499
+            ? LogEventLevel.Error
+            : LogEventLevel.Information;
+});
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -35,7 +63,7 @@ if (app.Environment.IsDevelopment())
 
 // Configure middlewares
 app.UseMiddleware<ErrorHandlingMiddleware>();
-app.UseMiddleware<TimeLoggingMiddleware>();
+//app.UseMiddleware<TimeLoggingMiddleware>();
 app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 app.UseAuthentication();  

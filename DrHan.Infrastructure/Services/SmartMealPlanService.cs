@@ -56,6 +56,34 @@ public class SmartMealPlanService : ISmartMealPlanService
 
         try
         {
+            // Validate meal plan type and FamilyId relationship
+            if (request.PlanType?.ToLower() == "personal")
+            {
+                if (request.FamilyId.HasValue)
+                {
+                    return response.SetErrorResponse("PlanType", "Personal meal plans cannot be associated with a family");
+                }
+            }
+            else if (request.PlanType?.ToLower() == "family")
+            {
+                if (!request.FamilyId.HasValue)
+                {
+                    return response.SetErrorResponse("PlanType", "Family meal plans must be associated with a family");
+                }
+            }
+
+            // Validate FamilyId if provided
+            if (request.FamilyId.HasValue)
+            {
+                var familyExists = await _unitOfWork.Repository<DrHan.Domain.Entities.Families.Family>()
+                    .ExistsAsync(f => f.Id == request.FamilyId.Value);
+                
+                if (!familyExists)
+                {
+                    return response.SetErrorResponse("Family", "The specified family does not exist");
+                }
+            }
+
             // 1. Create the meal plan
             var mealPlan = new MealPlan
             {

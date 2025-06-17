@@ -207,6 +207,21 @@ namespace DrHan.Infrastructure.Repositories.HCP.Repository.GenericRepository
             _logger?.LogDebug("All changes rejected and change tracker reset");
         }
 
+        /// <summary>
+        /// Detaches all entities from the change tracker to clear any pending changes
+        /// </summary>
+        public void DetachAllEntities()
+        {
+            ThrowIfDisposed();
+
+            foreach (var entry in _context.ChangeTracker.Entries().ToList())
+            {
+                entry.State = EntityState.Detached;
+            }
+
+            _logger?.LogDebug("All entities detached from change tracker");
+        }
+
         private void ThrowIfDisposed()
         {
             ObjectDisposedException.ThrowIf(_disposed, this); // Modern .NET approach

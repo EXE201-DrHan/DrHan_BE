@@ -194,68 +194,76 @@ public class GeminiRecipeService : IGeminiRecipeService
     private string BuildPrompt(GeminiRecipeRequestDto request)
     {
         var prompt = new StringBuilder();
-        prompt.AppendLine("Generate a list of recipes in JSON format. Each recipe should include:");
-        prompt.AppendLine("- Name");
-        prompt.AppendLine("- Description");
-        prompt.AppendLine("- Cuisine type");
-        prompt.AppendLine("- Meal type");
-        prompt.AppendLine("- Prep time in minutes");
-        prompt.AppendLine("- Cook time in minutes");
-        prompt.AppendLine("- Number of servings");
-        prompt.AppendLine("- Difficulty level (Easy, Medium, Hard)");
-        prompt.AppendLine("- List of ingredients with quantities and units");
-        prompt.AppendLine("- Step-by-step instructions with estimated time");
-        prompt.AppendLine("- List of allergens (if any)");
-        prompt.AppendLine("- List of allergen-free claims (if any)");
+        prompt.AppendLine("Tạo danh sách công thức nấu ăn bằng tiếng Việt theo định dạng JSON. Mỗi công thức phải bao gồm:");
+        prompt.AppendLine("- Tên món ăn");
+        prompt.AppendLine("- Mô tả món ăn");
+        prompt.AppendLine("- Loại ẩm thực");
+        prompt.AppendLine("- Loại bữa ăn");
+        prompt.AppendLine("- Thời gian chuẩn bị (phút)");
+        prompt.AppendLine("- Thời gian nấu (phút)");
+        prompt.AppendLine("- Số phần ăn");
+        prompt.AppendLine("- Độ khó (Dễ, Trung bình, Khó)");
+        prompt.AppendLine("- Danh sách nguyên liệu với số lượng và đơn vị");
+        prompt.AppendLine("- Hướng dẫn từng bước với thời gian ước tính");
+        prompt.AppendLine("- Danh sách chất gây dị ứng (nếu có)");
+        prompt.AppendLine("- Danh sách tuyên bố không gây dị ứng (nếu có)");
         if (request.IncludeImage)
         {
-            prompt.AppendLine("- Image URL (a short, clean URL to a realistic food photo - maximum 200 characters)");
+            prompt.AppendLine("- URL hình ảnh (URL ngắn, sạch đến ảnh thức ăn thực tế - tối đa 200 ký tự)");
         }
 
-        prompt.AppendLine("\nSearch criteria:");
-        prompt.AppendLine($"- Query: {request.SearchQuery}");
+        prompt.AppendLine("\nTiêu chí tìm kiếm:");
+        prompt.AppendLine($"- Từ khóa: {request.SearchQuery}");
         if (!string.IsNullOrEmpty(request.CuisineType))
-            prompt.AppendLine($"- Cuisine: {request.CuisineType}");
+            prompt.AppendLine($"- Ẩm thực: {request.CuisineType}");
         if (!string.IsNullOrEmpty(request.MealType))
-            prompt.AppendLine($"- Meal type: {request.MealType}");
+            prompt.AppendLine($"- Loại bữa ăn: {request.MealType}");
         if (!string.IsNullOrEmpty(request.DifficultyLevel))
-            prompt.AppendLine($"- Difficulty: {request.DifficultyLevel}");
+            prompt.AppendLine($"- Độ khó: {request.DifficultyLevel}");
         if (request.MaxPrepTime.HasValue)
-            prompt.AppendLine($"- Max prep time: {request.MaxPrepTime} minutes");
+            prompt.AppendLine($"- Thời gian chuẩn bị tối đa: {request.MaxPrepTime} phút");
         if (request.MaxCookTime.HasValue)
-            prompt.AppendLine($"- Max cook time: {request.MaxCookTime} minutes");
+            prompt.AppendLine($"- Thời gian nấu tối đa: {request.MaxCookTime} phút");
         if (request.Servings.HasValue)
-            prompt.AppendLine($"- Servings: {request.Servings}");
+            prompt.AppendLine($"- Số phần ăn: {request.Servings}");
         if (request.ExcludeAllergens?.Any() == true)
-            prompt.AppendLine($"- Exclude allergens: {string.Join(", ", request.ExcludeAllergens)}");
+            prompt.AppendLine($"- Loại trừ chất gây dị ứng: {string.Join(", ", request.ExcludeAllergens)}");
 
-        prompt.AppendLine($"\nGenerate {request.Count} recipes in the following JSON format:");
+        // Critical: Make sure the recipes are relevant to the search query
+        prompt.AppendLine($"\nCÁC YÊU CẦU QUAN TRỌNG:");
+        prompt.AppendLine($"- Công thức PHẢI liên quan trực tiếp đến từ khóa tìm kiếm '{request.SearchQuery}'");
+        prompt.AppendLine($"- Tên món ăn hoặc nguyên liệu chính PHẢI chứa hoặc liên quan đến '{request.SearchQuery}'");
+        prompt.AppendLine($"- Nếu từ khóa là loại thịt (như 'dê', 'bò', 'gà'), món ăn PHẢI sử dụng thịt đó làm nguyên liệu chính");
+        prompt.AppendLine($"- Tất cả nội dung PHẢI bằng tiếng Việt");
+        prompt.AppendLine($"- Sử dụng tên nguyên liệu tiếng Việt phù hợp với văn hóa Việt Nam");
+
+        prompt.AppendLine($"\nTạo {request.Count} công thức theo định dạng JSON sau:");
         prompt.AppendLine(@"[{
-    ""name"": ""Recipe Name"",
-    ""description"": ""Recipe description"",
-    ""cuisineType"": ""Cuisine type"",
-    ""mealType"": ""Meal type"",
+    ""name"": ""Tên món ăn"",
+    ""description"": ""Mô tả món ăn"",
+    ""cuisineType"": ""Việt Nam"",
+    ""mealType"": ""Bữa trưa"",
     ""prepTimeMinutes"": 30,
     ""cookTimeMinutes"": 45,
     ""servings"": 4,
-    ""difficultyLevel"": ""Easy"",
+    ""difficultyLevel"": ""Dễ"",
     ""ingredients"": [
         {
-            ""name"": ""Ingredient name"",
+            ""name"": ""Tên nguyên liệu"",
             ""quantity"": 1.5,
-            ""unit"": ""cup"",
-            ""notes"": ""Optional preparation notes""
+            ""unit"": ""kg"",
+            ""notes"": ""Ghi chú chế biến (tùy chọn)""
         }
     ],
     ""instructions"": [
         {
             ""stepNumber"": 1,
-            ""instruction"": ""Step description"",
+            ""instruction"": ""Mô tả bước thực hiện"",
             ""estimatedTimeMinutes"": 10
         }
     ],
-    ""allergens"": [""Allergen1"", ""Allergen2""],
-    ""allergenFreeClaims"": [""Claim1"", ""Claim2""]");
+    ""allergens"": [""Chất gây dị ứng 1"", ""Chất gây dị ứng 2""],
+    ""allergenFreeClaims"": [""Tuyên bố 1"", ""Tuyên bố 2""]");
         if (request.IncludeImage)
         {
             prompt.AppendLine(@",
@@ -263,14 +271,18 @@ public class GeminiRecipeService : IGeminiRecipeService
         }
         prompt.AppendLine("}]");
 
-        prompt.AppendLine("\nIMPORTANT NOTES:");
-        prompt.AppendLine("- Return ONLY valid JSON, no additional text or explanations");
-        prompt.AppendLine("- All strings must be properly escaped");
+        prompt.AppendLine("\nGHI CHÚ QUAN TRỌNG:");
+        prompt.AppendLine("- Chỉ trả về JSON hợp lệ, không thêm văn bản hoặc giải thích");
+        prompt.AppendLine("- Tất cả chuỗi phải được escape đúng cách");
+        prompt.AppendLine("- SỬ DỤNG SỐ THẬP PHÂN thay vì phân số (ví dụ: 0.25 thay vì 1/4, 0.5 thay vì 1/2)");
+        prompt.AppendLine("- Sử dụng đơn vị đo lường Việt Nam (kg, gram, thìa canh, thìa cà phê, chén, cốc, v.v.)");
+        prompt.AppendLine("- Sử dụng tiếng Việt HOÀN TOÀN với dấu thanh chính xác (không dùng ký tự ?)");
+        prompt.AppendLine("- Đảm bảo tất cả từ tiếng Việt có dấu thanh đúng: thịt, nước, mắm, tỏi, ớt, v.v.");
         if (request.IncludeImage)
         {
-            prompt.AppendLine("- Image URLs must be short (under 200 characters) and point to actual food photos");
-            prompt.AppendLine("- Use common image hosting domains like unsplash.com, pexels.com, or food blog URLs");
-            prompt.AppendLine("- Avoid extremely long URLs with repeated parameters");
+            prompt.AppendLine("- URL hình ảnh phải ngắn (dưới 200 ký tự) và trỏ đến ảnh thức ăn thực tế");
+            prompt.AppendLine("- Sử dụng các tên miền lưu trữ hình ảnh phổ biến như unsplash.com, pexels.com");
+            prompt.AppendLine("- Tránh URL cực dài với nhiều tham số lặp lại");
         }
 
         return prompt.ToString();
@@ -383,12 +395,14 @@ public class GeminiRecipeService : IGeminiRecipeService
             // Replace escaped quotes that might be causing issues
             json = json.Replace("\\\"", "\"");
 
-            // Fix fraction values (e.g., "1/2" or "1\/2" -> "0.5")
-            json = Regex.Replace(json, @"(\d+)\\/?(\d+)", match =>
+            // Fix fraction values (e.g., "1/2", "1\/2", or standalone fractions -> "0.5")
+            json = Regex.Replace(json, @"(\d+)\\?/(\d+)", match =>
             {
                 var numerator = decimal.Parse(match.Groups[1].Value);
                 var denominator = decimal.Parse(match.Groups[2].Value);
-                return (numerator / denominator).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var result = (numerator / denominator).ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+                _logger.LogDebug("Converted fraction {Fraction} to {Decimal}", match.Value, result);
+                return result;
             });
 
             // Create a case-insensitive dictionary to store unique mappings
