@@ -16,7 +16,7 @@ public class GeminiRecipeService : IGeminiRecipeService
     private readonly ILogger<GeminiRecipeService> _logger;
 
     private const int MaxRetryAttempts = 3;
-    private const int BaseDelayMs = 1000;
+    private const int BaseDelayMs = 2000;
 
     public GeminiRecipeService(
         HttpClient httpClient,
@@ -155,7 +155,7 @@ public class GeminiRecipeService : IGeminiRecipeService
             generationConfig = new
             {
                 temperature = 0.1,
-                maxOutputTokens = 4000,
+                maxOutputTokens = 4500, 
                 topP = 0.8,
                 topK = 40
             }
@@ -278,6 +278,8 @@ public class GeminiRecipeService : IGeminiRecipeService
         prompt.AppendLine("- Sử dụng đơn vị đo lường Việt Nam (kg, gram, thìa canh, thìa cà phê, chén, cốc, v.v.)");
         prompt.AppendLine("- Sử dụng tiếng Việt HOÀN TOÀN với dấu thanh chính xác (không dùng ký tự ?)");
         prompt.AppendLine("- Đảm bảo tất cả từ tiếng Việt có dấu thanh đúng: thịt, nước, mắm, tỏi, ớt, v.v.");
+        prompt.AppendLine("- GIỮ MÔ TẢ NGẮN GỌN (tối đa 50 từ) để tránh cắt cụt JSON");
+        prompt.AppendLine("- GHI CHÚ NGUYÊN LIỆU NGẮN (tối đa 10 từ mỗi ghi chú)");
         if (request.IncludeImage)
         {
             prompt.AppendLine("- URL hình ảnh phải ngắn (dưới 200 ký tự) và trỏ đến ảnh thức ăn thực tế");
@@ -368,6 +370,9 @@ public class GeminiRecipeService : IGeminiRecipeService
             }
 
             var json = jsonMatch.Value;
+            
+            // Fix truncated JSON by ensuring proper closing
+            json = FixTruncatedJson(json);
 
             // Clean up common issues
             json = CleanJsonContentAdvanced(json);
@@ -385,6 +390,51 @@ public class GeminiRecipeService : IGeminiRecipeService
         {
             _logger.LogError(ex, "Error extracting and cleaning JSON");
             return string.Empty;
+        }
+    }
+
+    private string FixTruncatedJson(string json)
+    {
+        try
+        {
+            // Check if it's an array and fix truncation
+            if (json.TrimStart().StartsWith("["))
+            {
+                // Count opening and closing brackets
+                int openBrackets = json.Count(c => c == '[');
+                int closeBrackets = json.Count(c => c == ']');
+                int openBraces = json.Count(c => c == '{');
+                int closeBraces = json.Count(c => c == '}');
+
+                // If we have unmatched brackets/braces, try to fix
+                if (openBrackets > closeBrackets || openBraces > closeBraces)
+                {
+                    _logger.LogWarning("Detected truncated JSON, attempting to fix");
+                    
+                    // Remove incomplete trailing content (usually incomplete URLs or strings)
+                    var lastCompleteObject = json.LastIndexOf('}');
+                    if (lastCompleteObject > 0)
+                    {
+                        json = json.Substring(0, lastCompleteObject + 1);
+                        
+                        // Add missing closing brackets
+                        while (openBrackets > closeBrackets)
+                        {
+                            json += "]";
+                            closeBrackets++;
+                        }
+                        
+                        _logger.LogInformation("Fixed truncated JSON");
+                    }
+                }
+            }
+
+            return json;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fixing truncated JSON");
+            return json;
         }
     }
 

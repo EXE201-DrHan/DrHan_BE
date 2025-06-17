@@ -73,7 +73,7 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                 {
                     // No existing AI recipes, generate new ones
                     _logger.LogInformation("Không tìm thấy công thức AI cho từ khóa '{SearchTerm}', tạo mới", searchDto.SearchTerm);
-                    var aiRecipes = await TryGetRecipesFromAI(searchDto, 5, cancellationToken);
+                    var aiRecipes = await TryGetRecipesFromAI(searchDto, 3, cancellationToken); // Reduced to 3 for complete responses
                     if (aiRecipes.Any())
                     {
                         _logger.LogInformation("Đã tạo thành công {Count} công thức AI mới cho từ khóa '{SearchTerm}'", 
