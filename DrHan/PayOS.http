@@ -1,0 +1,93 @@
+### PayOS Payment API Tests
+
+### Variables
+@baseUrl = https://localhost:7123
+@token = your-jwt-token-here
+
+### 1. Create Payment
+POST {{baseUrl}}/api/payment/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "amount": 100000,
+  "description": "Premium subscription payment",
+  "currency": "VND",
+  "userSubscriptionId": 1,
+  "buyerName": "John Doe",
+  "buyerEmail": "john@example.com",
+  "buyerPhone": "0123456789"
+}
+
+### 2. Get Payment Status
+@transactionId = 1703123456
+GET {{baseUrl}}/api/payment/status/{{transactionId}}
+Authorization: Bearer {{token}}
+
+### 3. Cancel Payment
+POST {{baseUrl}}/api/payment/cancel/{{transactionId}}
+Authorization: Bearer {{token}}
+
+### 4. Test Webhook (simulate PayOS webhook)
+POST {{baseUrl}}/api/payment/webhook
+Content-Type: application/json
+
+{
+  "code": "00",
+  "desc": "success",
+  "data": {
+    "orderCode": 1703123456,
+    "amount": 100000,
+    "description": "Premium subscription payment",
+    "accountNumber": "12345678",
+    "reference": "FT2024122012345",
+    "transactionDateTime": "2024-12-20T10:35:00Z",
+    "currency": "VND",
+    "paymentLinkId": "12345678-abcd-efgh-ijkl-123456789012",
+    "code": "00",
+    "desc": "success",
+    "counterAccountBankId": "970415",
+    "counterAccountBankName": "Vietinbank",
+    "counterAccountName": "NGUYEN VAN A",
+    "counterAccountNumber": "987654321",
+    "virtualAccountName": "PAYOS_VIRTUAL",
+    "virtualAccountNumber": "123456789"
+  },
+  "signature": "sample-signature-for-testing"
+}
+
+### 5. Payment Return Handler
+GET {{baseUrl}}/api/payment/return?orderCode=1703123456&status=paid
+
+### 6. Payment Cancel Handler
+GET {{baseUrl}}/api/payment/cancel?orderCode=1703123456
+
+### Test with different payment amounts
+POST {{baseUrl}}/api/payment/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "amount": 50000,
+  "description": "Basic subscription payment",
+  "currency": "VND",
+  "userSubscriptionId": 2,
+  "buyerName": "Jane Smith",
+  "buyerEmail": "jane@example.com",
+  "buyerPhone": "0987654321"
+}
+
+### Test invalid payment creation (missing required fields)
+POST {{baseUrl}}/api/payment/create
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "amount": 0,
+  "description": "",
+  "currency": "VND"
+}
+
+### Test payment status for non-existent transaction
+GET {{baseUrl}}/api/payment/status/9999999999
+Authorization: Bearer {{token}} 

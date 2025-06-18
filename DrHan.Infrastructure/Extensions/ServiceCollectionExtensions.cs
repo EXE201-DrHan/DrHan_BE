@@ -20,10 +20,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRecipeCacheService, Infrastructure.Services.RecipeCacheService>();
         services.AddHostedService<Infrastructure.Services.RecipeCacheService>();
         services.AddScoped<ISmartMealPlanService, SmartMealPlanService>(); 
+        
         // OTP and Push Notification Services
         services.AddScoped<IOtpService, OtpService>();
         services.AddScoped<IPushNotificationService, PushNotificationService>();
         services.AddHostedService<OtpCleanupService>();
+        
+        // Payment Services
+        services.AddScoped<IPayOSService, PayOSService>();
         
         // Ingredient Service
     }

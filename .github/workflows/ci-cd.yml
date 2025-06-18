@@ -1,0 +1,99 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  AZURE_CONTAINER_REGISTRY: 'your-acr-name.azurecr.io'
+  CONTAINER_NAME: 'drhan-api'
+  RESOURCE_GROUP: 'your-resource-group'
+  CONTAINER_INSTANCE_NAME: 'drhan-api-instance'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore DrHan.sln
+    
+    - name: Build
+      run: dotnet build DrHan.sln --no-restore --configuration Release
+    
+    - name: Test
+      run: dotnet test DrHan.sln --no-build --configuration Release --verbosity normal
+    
+    - name: Publish
+      run: dotnet publish DrHan/DrHan.csproj -c Release -o ./publish
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: ./publish
+
+  build-and-push-image:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Log in to Azure Container Registry
+      uses: azure/docker-login@v1
+      with:
+        login-server: ${{ env.AZURE_CONTAINER_REGISTRY }}
+        username: ${{ secrets.ACR_USERNAME }}
+        password: ${{ secrets.ACR_PASSWORD }}
+    
+    - name: Build and push Docker image
+      run: |
+        docker build . -f DrHan/Dockerfile -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.CONTAINER_NAME }}:${{ github.sha }}
+        docker build . -f DrHan/Dockerfile -t ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.CONTAINER_NAME }}:latest
+        docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.CONTAINER_NAME }}:${{ github.sha }}
+        docker push ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.CONTAINER_NAME }}:latest
+
+  deploy:
+    needs: build-and-push-image
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Deploy to Azure Container Instances
+      uses: azure/aci-deploy@v1
+      with:
+        resource-group: ${{ env.RESOURCE_GROUP }}
+        dns-name-label: drhan-api-${{ github.run_number }}
+        image: ${{ env.AZURE_CONTAINER_REGISTRY }}/${{ env.CONTAINER_NAME }}:${{ github.sha }}
+        registry-login-server: ${{ env.AZURE_CONTAINER_REGISTRY }}
+        registry-username: ${{ secrets.ACR_USERNAME }}
+        registry-password: ${{ secrets.ACR_PASSWORD }}
+        name: ${{ env.CONTAINER_INSTANCE_NAME }}
+        ports: 8080
+        environment-variables: ASPNETCORE_ENVIRONMENT=Production
+        secure-environment-variables: |
+          ConnectionStrings__DefaultConnection=${{ secrets.CONNECTION_STRING }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD }}
+    
+    - name: Get Container Instance URL
+      run: |
+        FQDN=$(az container show --resource-group ${{ env.RESOURCE_GROUP }} --name ${{ env.CONTAINER_INSTANCE_NAME }} --query ipAddress.fqdn --output tsv)
+        echo "Application deployed at: http://$FQDN:8080" 
