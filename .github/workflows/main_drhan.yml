@@ -48,7 +48,7 @@ jobs:
       
       
       - name: Publish application
-        run: dotnet publish DrHan/DrHan.csproj -c Release -o ${{ env.AZURE_WEBAPP_PACKAGE_PATH }} --no-restore
+        run: dotnet publish DrHan/DrHan.API.csproj -c Release -o ${{ env.AZURE_WEBAPP_PACKAGE_PATH }} --no-restore
       
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -89,8 +89,8 @@ jobs:
           Redis__InstanceName: "DrHanApp"
           Redis__Database: 0
           Redis__AbortOnConnectFail: false
-          Redis__ConnectTimeout: 5000
-          Redis__SyncTimeout: 5000
+          Redis__ConnectTimeout: 10000
+          Redis__SyncTimeout: 10000
           
           # JWT Configuration
           JwtSettings__SecretKey: ${{ secrets.JWT_SECRET_KEY }}
@@ -121,8 +121,8 @@ jobs:
           PayOS__ClientId: ${{ secrets.PAYOS_CLIENT_ID }}
           PayOS__ApiKey: ${{ secrets.PAYOS_API_KEY }}
           PayOS__ChecksumKey: ${{ secrets.PAYOS_CHECKSUM_KEY }}
-          PayOS__ReturnUrl: "https://drhan.azurewebsites.net/api/payment/return"
-          PayOS__CancelUrl: "https://drhan.azurewebsites.net/api/payment/cancel"
+          PayOS__ReturnUrl: "https://drhan-eebacffvehcwefdq.southeastasia-01.azurewebsites.net/api/payment/return"
+          PayOS__CancelUrl: "https://drhan-eebacffvehcwefdq.southeastasia-01.azurewebsites.net/api/payment/cancel"
           
           # Database Settings
           DatabaseSettings__AutoMigrate: false
