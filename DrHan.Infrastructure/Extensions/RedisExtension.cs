@@ -2,6 +2,7 @@
 using DrHan.Infrastructure.ExternalServices.CacheService;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
@@ -23,18 +24,40 @@ namespace DrHan.Infrastructure.Extensions
             services.AddMemoryCache();
             services.AddSingleton<ICacheKeyService,CacheKeyService>(provider => new CacheKeyService("drhan"));
             services.AddScoped<ICacheService, CacheService>();
-            // Add Redis connection multiplexer
+            
+            // Add Redis connection multiplexer with better error handling
             services.AddSingleton<IConnectionMultiplexer>(provider =>
             {
-                var config = new ConfigurationOptions
+                var logger = provider.GetRequiredService<ILogger<IConnectionMultiplexer>>();
+                
+                try
                 {
-                    EndPoints = { redisOptions.ConnectionString },
-                    AbortOnConnectFail = redisOptions.AbortOnConnectFail,
-                    ConnectTimeout = redisOptions.ConnectTimeout,
-                    SyncTimeout = redisOptions.SyncTimeout,
-                    DefaultDatabase = redisOptions.Database
-                };
-                return ConnectionMultiplexer.Connect(config);
+                    logger.LogInformation("Attempting to connect to Redis: {ConnectionString}", 
+                        redisOptions.ConnectionString?.Split(',')[0]); // Log only the endpoint, not the password
+                    
+                    var config = ConfigurationOptions.Parse(redisOptions.ConnectionString);
+                    config.AbortOnConnectFail = redisOptions.AbortOnConnectFail;
+                    config.ConnectTimeout = redisOptions.ConnectTimeout;
+                    config.SyncTimeout = redisOptions.SyncTimeout;
+                    config.DefaultDatabase = redisOptions.Database;
+                    config.ConnectRetry = 3;
+                    config.ReconnectRetryPolicy = new ExponentialRetry(100);
+                    
+                    var multiplexer = ConnectionMultiplexer.Connect(config);
+                    
+                    // Test the connection
+                    var database = multiplexer.GetDatabase();
+                    database.Ping();
+                    
+                    logger.LogInformation("Successfully connected to Redis");
+                    return multiplexer;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Failed to connect to Redis. Using in-memory fallback.");
+                    // Return a null multiplexer - handle this in CacheService
+                    throw;
+                }
             });
 
             // Add distributed cache

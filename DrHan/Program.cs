@@ -33,10 +33,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.AddPresentation(builder.Configuration);
 builder.Services.AddApplications(builder.Configuration);
 builder.Services.AddRedisServices(builder.Configuration);
-builder.Services.AddHangfireWithFallback(
-    builder.Configuration,
-    builder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>()
-);
+builder.Services.AddHangfireWithFallback(builder.Configuration);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -68,6 +65,13 @@ app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 app.UseAuthentication();  
 app.UseAuthorization();
+
+// Add Hangfire Dashboard (only in development)
+if (app.Environment.IsDevelopment())
+{
+    app.UseHangfireDashboard("/hangfire");
+}
+
 app.MapControllers();
 
 //using (var scope = app.Services.CreateScope())
