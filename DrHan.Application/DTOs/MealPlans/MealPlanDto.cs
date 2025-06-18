@@ -116,4 +116,14 @@ public class MealPlanTemplateDto
     public string Category { get; set; }
     public int Duration { get; set; } // Days
     public Dictionary<string, List<int>> MealStructure { get; set; } = new(); // MealType -> RecipeIds
+}
+
+// Smart Meals Generation for Existing Meal Plan
+public class GenerateSmartMealsDto
+{
+    public MealPlanPreferencesDto Preferences { get; set; }
+    public List<DateOnly> TargetDates { get; set; } = new(); // If empty, applies to all meal plan dates
+    public List<string> MealTypes { get; set; } = new(); // If empty, generates all meal types (breakfast, lunch, dinner)
+    public bool ReplaceExisting { get; set; } = false; // Whether to replace existing meals or only fill empty slots
+    public bool PreserveFavorites { get; set; } = true; // Don't replace meals marked as favorites
 } 

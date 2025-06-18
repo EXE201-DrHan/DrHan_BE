@@ -2,6 +2,7 @@ using DrHan.Application.Commons;
 using DrHan.Application.DTOs.MealPlans;
 using DrHan.Application.Services.MealPlanServices.Commands.CreateMealPlan;
 using DrHan.Application.Services.MealPlanServices.Commands.GenerateSmartMealPlan;
+using DrHan.Application.Services.MealPlanServices.Commands.GenerateSmartMeals;
 using DrHan.Application.Services.MealPlanServices.Commands.AddMealEntry;
 using DrHan.Application.Services.MealPlanServices.Commands.UpdateMealPlan;
 using DrHan.Application.Services.MealPlanServices.Commands.DeleteMealPlan;
@@ -189,6 +190,45 @@ public class MealPlansController : ControllerBase
             _logger.LogError(ex, "Error adding meal entry to plan {MealPlanId}", mealPlanId);
             var errorResponse = new AppResponse<MealEntryDto>()
                 .SetErrorResponse("Error", "An unexpected error occurred while adding the meal entry");
+            return StatusCode(StatusCodes.Status500InternalServerError, errorResponse);
+        }
+    }
+
+    /// <summary>
+    /// 🎯 Generate smart meals into existing meal plan
+    /// </summary>
+    /// <param name="mealPlanId">Meal plan ID</param>
+    /// <param name="request">Smart generation preferences</param>
+    /// <returns>Updated meal plan with generated meals</returns>
+    [HttpPost("{mealPlanId}/generate-smart-meals")]
+    [ProducesResponseType(typeof(AppResponse<MealPlanDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AppResponse<MealPlanDto>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(AppResponse<MealPlanDto>), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AppResponse<MealPlanDto>>> GenerateSmartMeals(
+        int mealPlanId,
+        [FromBody] GenerateSmartMealsDto request)
+    {
+        try
+        {
+            var command = new GenerateSmartMealsCommand(mealPlanId, request);
+            var result = await _mediator.Send(command);
+            
+            if (result.IsSucceeded)
+            {
+                _logger.LogInformation("Smart meals generated successfully for meal plan {MealPlanId}", mealPlanId);
+                return Ok(result);
+            }
+            
+            if (result.Messages?.ContainsKey("NotFound") == true)
+                return NotFound(result);
+                
+            return BadRequest(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating smart meals for meal plan {MealPlanId}", mealPlanId);
+            var errorResponse = new AppResponse<MealPlanDto>()
+                .SetErrorResponse("Error", "An unexpected error occurred while generating smart meals");
             return StatusCode(StatusCodes.Status500InternalServerError, errorResponse);
         }
     }

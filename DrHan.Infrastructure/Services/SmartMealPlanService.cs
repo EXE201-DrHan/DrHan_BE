@@ -161,6 +161,117 @@ public class SmartMealPlanService : ISmartMealPlanService
         }
     }
 
+    public async Task<AppResponse<MealPlanDto>> GenerateSmartMealsAsync(int mealPlanId, GenerateSmartMealsDto request, int userId)
+    {
+        var response = new AppResponse<MealPlanDto>();
+
+        try
+        {
+            // Get the existing meal plan
+            var mealPlan = await _unitOfWork.Repository<MealPlan>()
+                .ListAsync(
+                    filter: mp => mp.Id == mealPlanId && mp.UserId == userId,
+                    includeProperties: query => query.Include(mp => mp.MealPlanEntries)
+                );
+
+            var existingMealPlan = mealPlan.FirstOrDefault();
+            if (existingMealPlan == null)
+            {
+                return response.SetErrorResponse("NotFound", "Meal plan not found or access denied");
+            }
+
+            // Get user allergies and preferences
+            var userAllergies = await GetUserAllergiesAsync(userId);
+            
+            // Determine target dates
+            var targetDates = request.TargetDates.Any() 
+                ? request.TargetDates 
+                : GetDateRange(existingMealPlan.StartDate, existingMealPlan.EndDate);
+
+            // Determine meal types to generate
+            var mealTypes = request.MealTypes.Any() 
+                ? request.MealTypes 
+                : (request.Preferences?.PreferredMealTypes?.Any() == true 
+                    ? request.Preferences.PreferredMealTypes 
+                    : new List<string> { "Breakfast", "Lunch", "Dinner" });
+
+            var generatedMeals = new List<MealPlanEntry>();
+
+            foreach (var date in targetDates)
+            {
+                foreach (var mealType in mealTypes)
+                {
+                    // Check if meal already exists for this date and type
+                    var existingMeal = existingMealPlan.MealPlanEntries
+                        .FirstOrDefault(me => me.MealDate == date && me.MealType.Equals(mealType, StringComparison.OrdinalIgnoreCase));
+
+                    // Skip if meal exists and we're not replacing, or if it's marked as favorite and we preserve favorites
+                    if (existingMeal != null)
+                    {
+                        if (!request.ReplaceExisting)
+                        {
+                            _logger.LogDebug("Skipping existing meal for {Date} {MealType}", date, mealType);
+                            continue;
+                        }
+
+                        if (request.PreserveFavorites && IsMealFavorite(existingMeal))
+                        {
+                            _logger.LogDebug("Preserving favorite meal for {Date} {MealType}", date, mealType);
+                            continue;
+                        }
+
+                        // Remove existing meal entry
+                        _unitOfWork.Repository<MealPlanEntry>().Delete(existingMeal);
+                    }
+
+                    // Generate new meal
+                    var recipes = await FilterRecipesByPreferencesAsync(request.Preferences, userAllergies, mealType);
+                    if (recipes.Any())
+                    {
+                        var selectedRecipe = SelectRandomRecipe(recipes);
+                        var newMealEntry = new MealPlanEntry
+                        {
+                            MealPlanId = mealPlanId,
+                            MealDate = date,
+                            MealType = mealType,
+                            RecipeId = selectedRecipe.Id,
+                            Servings = CalculateServings(mealType),
+                            Notes = "Smart-generated"
+                        };
+
+                        await _unitOfWork.Repository<MealPlanEntry>().AddAsync(newMealEntry);
+                        generatedMeals.Add(newMealEntry);
+                    }
+                }
+            }
+
+            await _unitOfWork.CompleteAsync();
+
+            // Invalidate cache and reload meal plan
+            await InvalidateMealPlanCacheAsync(mealPlanId, userId);
+
+            // Load the updated meal plan with entries
+            var updatedMealPlan = await _unitOfWork.Repository<MealPlan>()
+                .ListAsync(
+                    filter: mp => mp.Id == mealPlanId,
+                    includeProperties: query => query.Include(mp => mp.MealPlanEntries).ThenInclude(mpe => mpe.Recipe)
+                );
+
+            var mealPlanDto = _mapper.Map<MealPlanDto>(updatedMealPlan.FirstOrDefault());
+
+            _logger.LogInformation("Generated {Count} smart meals for meal plan {MealPlanId}", 
+                generatedMeals.Count, mealPlanId);
+
+            return response.SetSuccessResponse(mealPlanDto, 
+                "Success", $"Successfully generated {generatedMeals.Count} smart meals");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating smart meals for meal plan {MealPlanId}", mealPlanId);
+            return response.SetErrorResponse("Error", "Failed to generate smart meals");
+        }
+    }
+
     public async Task<AppResponse<MealPlanDto>> ApplyTemplateAsync(int templateId, CreateMealPlanDto mealPlan, int userId)
     {
         // Template implementation would go here
@@ -425,6 +536,13 @@ public class SmartMealPlanService : ISmartMealPlanService
         var dietaryGoals = preferences?.DietaryGoals != null ? string.Join(",", preferences.DietaryGoals.OrderBy(x => x)) : "";
         var hashSource = $"{mealType}_{cuisineTypes}_{dietaryGoals}_{preferences?.MaxCookingTime}_{preferences?.BudgetRange}_{string.Join(",", userAllergies.OrderBy(x => x))}";
         return hashSource.GetHashCode().ToString();
+    }
+
+    private bool IsMealFavorite(MealPlanEntry mealEntry)
+    {
+        // For now, we'll consider meals marked as favorite based on notes
+        // In the future, this could be a separate field or table
+        return mealEntry.Notes?.Contains("favorite", StringComparison.OrdinalIgnoreCase) == true;
     }
 
     private async Task InvalidateMealPlanCacheAsync(int mealPlanId, int userId)
