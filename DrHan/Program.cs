@@ -28,12 +28,30 @@ Log.Logger = new LoggerConfiguration()
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
 // Add services to the container.
-builder.Services.AddInfrastructure(builder.Configuration);
-
-builder.AddPresentation(builder.Configuration);
-builder.Services.AddApplications(builder.Configuration);
-builder.Services.AddRedisServices(builder.Configuration);
-builder.Services.AddHangfireWithFallback(builder.Configuration);
+try
+{
+    builder.Services.AddInfrastructure(builder.Configuration);
+    builder.AddPresentation(builder.Configuration);
+    builder.Services.AddApplications(builder.Configuration);
+    
+    // Add Redis services with error handling
+    try
+    {
+        builder.Services.AddRedisServices(builder.Configuration);
+        Log.Information("Redis services added successfully");
+    }
+    catch (Exception ex)
+    {
+        Log.Warning(ex, "Failed to add Redis services, continuing without Redis");
+    }
+    
+    builder.Services.AddHangfireWithFallback(builder.Configuration);
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Failed to configure services");
+    throw;
+}
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

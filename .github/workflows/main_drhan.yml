@@ -142,5 +142,9 @@ jobs:
           ClearAndReseedData: false
           
           # Logging Level for Production
-          Logging__LogLevel__Default: "Warning"
-          Logging__LogLevel__Microsoft.AspNetCore: "Warning"
+          Logging__LogLevel__Default: "Information"
+          Logging__LogLevel__Microsoft.AspNetCore: "Information"
+          Logging__LogLevel__Microsoft.Hosting.Lifetime: "Information"
+          
+          # Enable stdout logging
+          ASPNETCORE_LOGGING__CONSOLE__DISABLECOLORS: true
