@@ -20,31 +20,41 @@ namespace DrHan.Infrastructure.Extensions
     {
         public static IServiceCollection AddHangfireWithFallback(
             this IServiceCollection services,
-            IConfiguration configuration,
-            ILogger logger)
+            IConfiguration configuration)
         {
-            var redisConnection = configuration.GetConnectionString("Redis");
+            // Get Redis connection from the correct configuration path
+            var redisConnection = configuration.GetSection("Redis:ConnectionString").Value;
             var sqlConnection = configuration.GetConnectionString("DefaultConnection");
 
-            try
+            // Always try SQL Server first for simplicity since Redis Cloud has SSL issues with Hangfire
+            // For production, SQL Server is more reliable for Hangfire anyway
+            services.AddHangfire(config =>
             {
-                // Try Redis first (preferred for performance)
-                logger.LogInformation("Attempting to connect to Redis for Hangfire storage...");
-
-                var redis = ConnectionMultiplexer.Connect(redisConnection);
-                redis.GetDatabase(); // Test connection
-
-                services.AddHangfire(config =>
-                    config.UseRedisStorage(redisConnection));
-
-                logger.LogInformation("Hangfire configured with Redis storage");
-            }
-            catch (Exception ex)
-            {
-                logger.LogWarning(ex, "Redis connection failed, falling back to SQL Server storage");
-
-                // Fallback to SQL Server
-                services.AddHangfire(config =>
+                if (!string.IsNullOrEmpty(redisConnection) && redisConnection.Contains("localhost"))
+                {
+                    // Use Redis only for local development
+                    try
+                    {
+                        var redis = ConnectionMultiplexer.Connect(redisConnection);
+                        redis.GetDatabase(); // Test connection
+                        config.UseRedisStorage(redisConnection);
+                    }
+                    catch (Exception)
+                    {
+                        // Fallback to SQL Server if local Redis fails
+                        config.UseSqlServerStorage(sqlConnection, new SqlServerStorageOptions
+                        {
+                            CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                            SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                            QueuePollInterval = TimeSpan.Zero,
+                            UseRecommendedIsolationLevel = true,
+                            DisableGlobalLocks = true
+                        });
+                    }
+                }
+                else
+                {
+                    // Use SQL Server for production (more reliable)
                     config.UseSqlServerStorage(sqlConnection, new SqlServerStorageOptions
                     {
                         CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
@@ -52,10 +62,9 @@ namespace DrHan.Infrastructure.Extensions
                         QueuePollInterval = TimeSpan.Zero,
                         UseRecommendedIsolationLevel = true,
                         DisableGlobalLocks = true
-                    }));
-
-                logger.LogInformation("Hangfire configured with SQL Server storage");
-            }
+                    });
+                }
+            });
 
             services.AddHangfireServer(options =>
             {

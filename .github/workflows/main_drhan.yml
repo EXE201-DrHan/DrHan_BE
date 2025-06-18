@@ -1,43 +1,65 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy ASP.Net Core app to Azure Web App - DrHan
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  AZURE_WEBAPP_NAME: 'DrHan'
+  AZURE_WEBAPP_PACKAGE_PATH: './publish'
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
-
+      contents: read
+    
     steps:
-      - uses: actions/checkout@v4
-
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.x'
-
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+      
+      - name: Restore dependencies
+        run: dotnet restore DrHan.sln
+      
       - name: Build with dotnet
-        run: dotnet build --configuration Release
-
-      - name: dotnet publish
-        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
-
+        run: dotnet build DrHan.sln --no-restore --configuration Release
+      
+      
+      
+      - name: Publish application
+        run: dotnet publish DrHan/DrHan.API.csproj -c Release -o ${{ env.AZURE_WEBAPP_PACKAGE_PATH }} --no-restore
+      
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
   deploy:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
@@ -47,12 +69,78 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .net-app
+          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
       
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'DrHan'
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
           slot-name: 'Production'
-          package: .
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_4B3BD07C44F44E96BD99F3DDDA74363D }}
+        env:
+          # Database Configuration
+          ConnectionStrings__DefaultConnection: ${{ secrets.DB_CONNECTION_STRING }}
+          ConnectionStrings__Redis: ${{ secrets.REDIS_CONNECTION_STRING }}
+          
+          # Redis Configuration
+          Redis__ConnectionString: ${{ secrets.REDIS_CONNECTION_STRING }}
+          Redis__InstanceName: "DrHanApp"
+          Redis__Database: 0
+          Redis__AbortOnConnectFail: false
+          Redis__ConnectTimeout: 10000
+          Redis__SyncTimeout: 10000
+          
+          # JWT Configuration
+          JwtSettings__SecretKey: ${{ secrets.JWT_SECRET_KEY }}
+          JwtSettings__Issuer: "this-app"
+          JwtSettings__Audience: "client-app"
+          JwtSettings__ExpirationInMinutes: 20
+          
+          JwtRefreshTokenSettings__SecretKey: ${{ secrets.JWT_REFRESH_SECRET_KEY }}
+          JwtRefreshTokenSettings__Issuer: "this-app"
+          JwtRefreshTokenSettings__Audience: "client-app"
+          JwtRefreshTokenSettings__ExpirationInMinutes: 43200
+          
+          # Mail Configuration
+          MailSettings__Mail: "caotri1203@gmail.com"
+          MailSettings__DisplayName: "DrHan"
+          MailSettings__Password: ${{ secrets.MAIL_PASSWORD }}
+          MailSettings__Host: "smtp.gmail.com"
+          MailSettings__Port: 587
+          
+          # Firebase Configuration
+          Firebase__ProjectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+          Firebase__ServiceAccountJson: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          
+          # Gemini Configuration
+          Gemini__ApiKey: ${{ secrets.GEMINI_API_KEY }}
+          
+          # PayOS Configuration
+          PayOS__ClientId: ${{ secrets.PAYOS_CLIENT_ID }}
+          PayOS__ApiKey: ${{ secrets.PAYOS_API_KEY }}
+          PayOS__ChecksumKey: ${{ secrets.PAYOS_CHECKSUM_KEY }}
+          PayOS__ReturnUrl: "https://drhan-eebacffvehcwefdq.southeastasia-01.azurewebsites.net/api/payment/return"
+          PayOS__CancelUrl: "https://drhan-eebacffvehcwefdq.southeastasia-01.azurewebsites.net/api/payment/cancel"
+          
+          # Database Settings
+          DatabaseSettings__AutoMigrate: false
+          DatabaseSettings__AutoSeed: false
+          
+          # Cache Settings
+          CacheSettings__DefaultExpirationMinutes: 30
+          CacheSettings__ShortExpirationMinutes: 5
+          CacheSettings__LongExpirationMinutes: 120
+          
+          # Recipe Cache Settings
+          RecipeCache__EnableBackgroundService: true
+          RecipeCache__IntervalHours: 24
+          
+          # Environment
+          ASPNETCORE_ENVIRONMENT: Production
+          ClearAndReseedData: false
+          
+          # Logging Level for Production
+          Logging__LogLevel__Default: "Warning"
+          Logging__LogLevel__Microsoft.AspNetCore: "Warning"
