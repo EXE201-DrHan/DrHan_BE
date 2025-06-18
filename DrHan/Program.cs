@@ -52,11 +52,19 @@ app.UseSerilogRequestLogging(options =>
             ? LogEventLevel.Error
             : LogEventLevel.Information;
 });
-if (app.Environment.IsDevelopment())
+// Enable Swagger in all environments
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "DrHan API v1");
+    c.RoutePrefix = "swagger"; // Set Swagger UI at /swagger
+    
+    // Optional: Require authentication in production
+    //if (!app.Environment.IsDevelopment())
+    //{
+    //    c.SupportedSubmitMethods(); // Disable "Try it out" in production
+    //}
+});
 
 // Configure middlewares
 app.UseMiddleware<ErrorHandlingMiddleware>();
