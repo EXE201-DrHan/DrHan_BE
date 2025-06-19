@@ -35,23 +35,23 @@ public class GetAllAllergensQueryHandler : IRequestHandler<GetAllAllergensQuery,
     {
         try
         {
-            var cacheKey = _cacheKeyService.Collection<Allergen>();
+            //var cacheKey = _cacheKeyService.Collection<Allergen>();
             
-            // Try to get allergens from cache first
-            var cachedAllergens = await _cacheService.GetAsync<IEnumerable<AllergenDto>>(cacheKey);
-            if (cachedAllergens != null)
-            {
-                _logger.LogInformation("Retrieved all allergens from cache");
-                return new AppResponse<IEnumerable<AllergenDto>>()
-                    .SetSuccessResponse(cachedAllergens);
-            }
+            //// Try to get allergens from cache first
+            //var cachedAllergens = await _cacheService.GetAsync<IEnumerable<AllergenDto>>(cacheKey);
+            //if (cachedAllergens != null)
+            //{
+            //    _logger.LogInformation("Retrieved all allergens from cache");
+            //    return new AppResponse<IEnumerable<AllergenDto>>()
+            //        .SetSuccessResponse(cachedAllergens);
+            //}
 
             // If not in cache, fetch from database
             var allergens = await _unitOfWork.Repository<Allergen>().ListAllAsync();
             var allergenDtos = _mapper.Map<IEnumerable<AllergenDto>>(allergens);
 
             // Cache the result for future requests
-            await _cacheService.SetAsync(cacheKey, allergenDtos, TimeSpan.FromHours(12));
+            //await _cacheService.SetAsync(cacheKey, allergenDtos, TimeSpan.FromHours(12));
             _logger.LogInformation("Cached all allergens for 12 hours");
 
             return new AppResponse<IEnumerable<AllergenDto>>()
