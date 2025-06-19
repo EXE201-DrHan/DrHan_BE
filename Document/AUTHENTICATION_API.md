@@ -1,521 +1,271 @@
-# Authentication API Documentation
+# 🔐 Authentication API Documentation
 
 ## Overview
+The Authentication API provides comprehensive user authentication and account management functionality including registration, login, email verification, password management, and account recovery features.
 
-This API provides comprehensive authentication services including user registration, login, token management, and account security features.
-
-**Base URL:** `https://your-domain.com/api/authentication`
-
-**Authentication:** Bearer Token (JWT) for protected endpoints
+**Base URL**: `/api/authentication`  
+**Content-Type**: `application/json`
 
 ---
 
-## Endpoints
+## 🚀 Authentication Endpoints
 
-### 1. User Registration
+### Register User
+**POST** `/register`
 
-**Endpoint:** `POST /register`
+Register a new user account with email verification.
 
-**Description:** Register a new user account
+### Login User  
+**POST** `/login`
 
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "SecurePassword123!",
-  "confirmPassword": "SecurePassword123!",
-  "fullName": "John Doe",
-  "dateOfBirth": "1990-01-15",
-  "gender": "Male"
-}
-```
+Authenticate user with email and password.
 
-**Success Response (200):**
-```json
-{
-  "isSucceeded": true,
-  "data": {
-    "userId": 123,
-    "email": "user@example.com",
-    "fullName": "John Doe",
-    "message": "Registration successful. Please check your email to confirm your account."
-  },
-  "message": "User registered successfully",
-  "errors": null
-}
-```
+### Logout User
+**POST** `/logout`
 
-**Error Response (400):**
-```json
-{
-  "isSucceeded": false,
-  "data": null,
-  "message": "Registration failed",
-  "errors": {
-    "Email": ["User with this email already exists"],
-    "Password": ["Password must be at least 6 characters"],
-    "Gender": ["Invalid gender value"]
-  }
-}
-```
+Logout user and revoke active tokens.
 
-**Validation Rules:**
-- Email: Required, valid email format
-- Password: Required, minimum 6 characters
-- ConfirmPassword: Required, must match password
-- FullName: Required
-- DateOfBirth: Required, valid date
-- Gender: Required, valid enum value
+### Refresh Token
+**POST** `/refresh-token`
+
+Refresh expired access token using refresh token.
+
+### Verify OTP
+**POST** `/verify-otp`
+
+Verify OTP code for email verification or other purposes.
 
 ---
 
-### 2. User Login
+## 🔄 OTP & Account Recovery Endpoints
 
-**Endpoint:** `POST /login`
+### Resend OTP
+**POST** `/resend-otp`
 
-**Description:** Authenticate user and receive access tokens
+Resend OTP code when the original code expires or is lost. Works with email address only for simplicity and consistency.
 
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "SecurePassword123!"
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "isSucceeded": true,
-  "data": {
-    "userId": 123,
-    "email": "user@example.com",
-    "fullName": "John Doe",
-    "profileImageUrl": null,
-    "subscriptionTier": "Free",
-    "subscriptionStatus": "Active",
-    "subscriptionExpiresAt": null,
-    "lastLoginAt": "2024-01-15T10:30:00Z",
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "tokenExpiresAt": "2024-01-15T10:50:00Z"
-  },
-  "message": "Login successful",
-  "errors": null
-}
-```
-
-**Error Responses:**
-
-**Invalid Credentials (400):**
-```json
-{
-  "isSucceeded": false,
-  "data": null,
-  "message": "Login failed",
-  "errors": {
-    "Credentials": ["Invalid email or password"]
-  }
-}
-```
-
-**Email Not Confirmed (400):**
-```json
-{
-  "isSucceeded": false,
-  "data": null,
-  "message": "Login failed",
-  "errors": {
-    "Email": ["Please confirm your email address before logging in"]
-  }
-}
-```
-
-**Account Locked (400):**
-```json
-{
-  "isSucceeded": false,
-  "data": null,
-  "message": "Login failed",
-  "errors": {
-    "Account": ["Account is locked until 2024-01-15 12:00:00 UTC"]
-  }
-}
-```
-
-**Account Disabled (400):**
-```json
-{
-  "isSucceeded": false,
-  "data": null,
-  "message": "Login failed",
-  "errors": {
-    "Account": ["Account has been disabled. Please contact support."]
-  }
-}
-```
-
-**Security Features:**
-- ✅ Timing attack protection
-- ✅ Email confirmation requirement
-- ✅ Account lockout detection
-- ✅ Account status validation
-- ✅ Role assignment verification
-
----
-
-### 3. Debug Login (Development Only)
-
-**Endpoint:** `POST /debug-login`
-
-**Description:** Authenticate user bypassing email confirmation (for testing only)
-
-⚠️ **Warning:** Remove this endpoint in production
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "SecurePassword123!"
-}
-```
-
-**Response:** Same as regular login endpoint
-
----
-
-### 4. Refresh Token
-
-**Endpoint:** `POST /refresh-token`
-
-**Description:** Obtain new access token using refresh token
-
-**Request Body:**
-```json
-{
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "userId": 123
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "isSucceeded": true,
-  "data": {
-    "userId": 123,
-    "email": "user@example.com",
-    "fullName": "John Doe",
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    "tokenExpiresAt": "2024-01-15T11:10:00Z"
-  },
-  "message": "Token refreshed successfully",
-  "errors": null
-}
-```
-
-**Error Response (400):**
-```json
-{
-  "isSucceeded": false,
-  "data": null,
-  "message": "Token refresh failed",
-  "errors": {
-    "Token": ["Invalid or expired refresh token"]
-  }
-}
-```
-
----
-
-### 5. User Logout
-
-**Endpoint:** `POST /logout`
-
-**Description:** Invalidate user tokens and logout
-
-**Request Body:**
-```json
-{
-  "userId": 123,
-  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "isSucceeded": true,
-  "data": {
-    "message": "Logged out successfully"
-  },
-  "message": "Logout successful",
-  "errors": null
-}
-```
-
----
-
-### 6. Email Confirmation
-
-**Endpoint:** `POST /confirm-email`
-
-**Description:** Confirm user email address with verification token
-
-**Request Body:**
-```json
-{
-  "userId": 123,
-  "token": "base64-encoded-token"
-}
-```
-
-**Success Response (200):**
-```json
-{
-  "isSucceeded": true,
-  "data": {
-    "message": "Email confirmed successfully"
-  },
-  "message": "Email confirmation successful",
-  "errors": null
-}
-```
-
----
-
-### 7. Send Password Reset
-
-**Endpoint:** `POST /send-password-reset`
-
-**Description:** Send password reset email to user
-
-**Request Body:**
+#### Request Body
 ```json
 {
   "email": "user@example.com"
 }
 ```
 
-**Success Response (200):**
+#### Parameters
+- `email` (string, required) - User email address
+
+#### Response (200 OK)
 ```json
 {
   "isSucceeded": true,
   "data": {
-    "message": "Password reset email sent successfully"
+    "isSuccess": true,
+    "message": "OTP has been sent to your email address",
+    "expiresAt": "2024-01-01T10:05:00Z",
+    "remainingAttempts": 3
   },
-  "message": "Reset email sent",
-  "errors": null
+  "messages": {
+    "Success": "OTP resent successfully"
+  }
 }
 ```
+
+#### Error Responses
+- **400 Bad Request** - Invalid request parameters
+- **404 Not Found** - User not found
+- **429 Too Many Requests** - Rate limited (must wait between requests)
+
+**Rate Limiting**: 1 minute minimum between resend requests per user.
 
 ---
 
-### 8. Reset Password
+### Reactivate Account
+**POST** `/reactivate-account`
 
-**Endpoint:** `POST /reset-password`
+Reactivate abandoned user accounts that never completed email verification. This endpoint helps users who registered but never verified their email to complete the process.
 
-**Description:** Reset user password using reset token
-
-**Request Body:**
+#### Request Body
 ```json
 {
-  "email": "user@example.com",
-  "token": "reset-token",
-  "newPassword": "NewSecurePassword123!",
-  "confirmPassword": "NewSecurePassword123!"
+  "email": "abandoned@example.com"
 }
 ```
 
-**Success Response (200):**
+#### Parameters
+- `email` (string, required) - Email address of the abandoned account
+
+#### Response (200 OK - Account Found)
 ```json
 {
   "isSucceeded": true,
   "data": {
-    "message": "Password reset successfully"
+    "isSuccess": true,
+    "message": "Account reactivation OTP has been sent to your email address",
+    "userId": 123,
+    "accountExists": true,
+    "isAlreadyVerified": false,
+    "otpExpiresAt": "2024-01-01T10:05:00Z",
+    "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refreshToken": "abc123def456..."
   },
-  "message": "Password reset successful",
-  "errors": null
+  "messages": {
+    "Success": "Account reactivation OTP sent successfully"
+  }
 }
 ```
 
----
-
-## Protected Endpoints
-
-### 9. Get User Profile
-
-**Endpoint:** `GET /profile`
-
-**Authentication:** Required (Bearer Token)
-
-**Description:** Get current authenticated user's profile
-
-**Headers:**
-```
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-
-**Success Response (200):**
-```json
-{
-  "userId": "123",
-  "email": "user@example.com",
-  "role": "Customer",
-  "message": "Authentication working correctly!"
-}
-```
-
-**Error Response (401):**
-```json
-{
-  "type": "https://tools.ietf.org/html/rfc7235#section-3.1",
-  "title": "Unauthorized",
-  "status": 401
-}
-```
-
----
-
-### 10. Admin Only Endpoint
-
-**Endpoint:** `GET /admin-only`
-
-**Authentication:** Required (Bearer Token + Admin Role)
-
-**Description:** Test endpoint for admin role verification
-
-**Headers:**
-```
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-
-**Success Response (200):**
-```json
-{
-  "message": "Admin access granted!",
-  "userId": "123",
-  "email": "admin@example.com",
-  "timestamp": "2024-01-15T10:30:00Z"
-}
-```
-
-**Error Response (403):**
-```json
-{
-  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.3",
-  "title": "Forbidden",
-  "status": 403
-}
-```
-
----
-
-### 11. Revoke User (Admin Only)
-
-**Endpoint:** `POST /revoke-user`
-
-**Authentication:** Required (Bearer Token + Admin Role)
-
-**Description:** Revoke user account access (admin only)
-
-**Headers:**
-```
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
-
-**Request Body:**
-```json
-{
-  "userId": 456,
-  "reason": "Policy violation"
-}
-```
-
-**Success Response (200):**
+#### Response (200 OK - Already Verified)
 ```json
 {
   "isSucceeded": true,
   "data": {
-    "message": "User access revoked successfully"
+    "isSuccess": false,
+    "message": "Account is already verified. You can proceed to login",
+    "userId": 123,
+    "accountExists": true,
+    "isAlreadyVerified": true,
+    "otpExpiresAt": "0001-01-01T00:00:00Z",
+    "accessToken": "",
+    "refreshToken": ""
   },
-  "message": "User revoked",
-  "errors": null
+  "messages": {
+    "AlreadyVerified": "Account is already verified"
+  }
 }
 ```
 
----
-
-## Token Information
-
-### JWT Access Token
-- **Expiration:** 20 minutes
-- **Claims:**
-  - `sub`: User ID
-  - `email`: User email
-  - `role`: User role
-- **Algorithm:** HMAC SHA256
-
-### JWT Refresh Token
-- **Expiration:** 30 days (43,200 minutes)
-- **Claims:**
-  - `sub`: User ID
-- **Algorithm:** HMAC SHA256
-
-### Token Usage
-Include the access token in the `Authorization` header:
-```
-Authorization: Bearer <access_token>
+#### Response (200 OK - Account Not Found)
+```json
+{
+  "isSucceeded": true,
+  "data": {
+    "isSuccess": false,
+    "message": "If an account with this email exists, an OTP has been sent to your email address",
+    "userId": 0,
+    "accountExists": false,
+    "isAlreadyVerified": false,
+    "otpExpiresAt": "0001-01-01T00:00:00Z",
+    "accessToken": "",
+    "refreshToken": ""
+  },
+  "messages": {
+    "Info": "Account reactivation request processed"
+  }
+}
 ```
 
----
+#### Error Responses
+- **400 Bad Request** - Invalid email format
+- **429 Too Many Requests** - Rate limited (2 minute minimum between reactivation requests)
+- **500 Internal Server Error** - Server error
 
-## Error Codes
-
-| Status Code | Description |
-|-------------|-------------|
-| 200 | Success |
-| 400 | Bad Request - Validation errors or business logic errors |
-| 401 | Unauthorized - Invalid or missing token |
-| 403 | Forbidden - Insufficient permissions |
-| 404 | Not Found - Resource not found |
-| 500 | Internal Server Error - Server error |
+**Rate Limiting**: 2 minutes minimum between reactivation requests per email.
 
 ---
 
-## Security Features
+## 🔄 Complete Account Recovery Flow
 
-### Implemented Security Measures
-- ✅ **JWT Token Authentication** with secure signing
-- ✅ **Refresh Token Rotation** for enhanced security
-- ✅ **Email Confirmation** requirement
-- ✅ **Account Lockout** protection
-- ✅ **Timing Attack Protection** in login
-- ✅ **Role-Based Authorization** (Customer, Admin)
-- ✅ **Password Validation** with ASP.NET Core Identity
-- ✅ **Token Expiration** management
-- ✅ **Account Status** validation
+### Scenario 1: User Has Tokens (Authenticated)
+1. User calls `POST /resend-otp` with `userId` from their token
+2. New OTP is sent to their registered email
+3. User calls `POST /verify-otp` with the new code
+4. Account is verified and user can proceed
 
-### Best Practices
-- Use HTTPS in production
-- Store tokens securely on client side
-- Implement proper token refresh logic
-- Handle token expiration gracefully
-- Validate all user inputs
-- Log security events appropriately
+### Scenario 2: User Lost Tokens (Unauthenticated)
+1. User calls `POST /resend-otp` with their `email`
+2. New OTP is sent if account exists and is unverified
+3. User needs to get new tokens or use reactivate-account
 
----
-
-## Example Usage Flow
-
-1. **Register** new user account
-2. **Confirm email** using verification link
-3. **Login** to receive access and refresh tokens
-4. **Access protected endpoints** using Bearer token
-5. **Refresh tokens** before expiration
-6. **Logout** to invalidate tokens
+### Scenario 3: Abandoned Registration
+1. User calls `POST /reactivate-account` with their `email`
+2. System checks if account exists and is unverified
+3. New OTP is sent + fresh tokens are provided
+4. User calls `POST /verify-otp` with the code and user ID
+5. Account is verified and user can login normally
 
 ---
 
-**Note:** This API follows REST conventions and returns consistent response formats for all endpoints. 
+## 🛡️ Security Features
+
+### Rate Limiting
+- **Resend OTP**: 1 minute cooldown between requests
+- **Reactivate Account**: 2 minute cooldown between requests
+- Prevents spam and abuse
+
+### Privacy Protection
+- Account existence is not revealed for security
+- Consistent response times to prevent enumeration attacks
+- Generic messages for non-existent accounts
+
+### Token Management
+- Reactivate account provides fresh tokens for seamless flow
+- Existing tokens remain valid during OTP resend
+- Automatic token cleanup on successful verification
+
+---
+
+## 📱 Frontend Integration Examples
+
+### Resend OTP (Email-Based)
+```javascript
+const resendOtp = async (email) => {
+  const response = await fetch('/api/authentication/resend-otp', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ email })
+  });
+  
+  return await response.json();
+};
+```
+
+### Reactivate Abandoned Account
+```javascript
+const reactivateAccount = async (email) => {
+  const response = await fetch('/api/authentication/reactivate-account', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email })
+  });
+  
+  const result = await response.json();
+  
+  if (result.data.isSuccess && result.data.accessToken) {
+    // Store tokens and redirect to OTP verification
+    localStorage.setItem('accessToken', result.data.accessToken);
+    localStorage.setItem('refreshToken', result.data.refreshToken);
+    localStorage.setItem('userId', result.data.userId);
+    // Navigate to OTP verification page
+  }
+};
+```
+
+### Handle Rate Limiting
+```javascript
+const handleResendWithRetry = async (requestData) => {
+  try {
+    const response = await fetch('/api/authentication/resend-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestData)
+    });
+    
+    const result = await response.json();
+    
+    if (!result.isSucceeded && result.messages.RateLimit) {
+      // Show countdown timer based on rate limit message
+      showCountdownTimer(result.data.message);
+    }
+    
+    return result;
+  } catch (error) {
+    console.error('Resend OTP failed:', error);
+  }
+};
+```
+
+---
+
+These endpoints solve the common problem of abandoned registrations and provide users with multiple recovery paths to complete their account verification process. 

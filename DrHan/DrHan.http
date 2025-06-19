@@ -51,4 +51,20 @@ Content-Type: application/json
   "preserveFavorites": true
 }
 
+### Resend OTP
+POST {{host}}/api/authentication/resend-otp
+Content-Type: application/json
+
+{
+  "email": "user@example.com"
+}
+
+### Reactivate Abandoned Account
+POST {{host}}/api/authentication/reactivate-account
+Content-Type: application/json
+
+{
+  "email": "abandoned@example.com"
+}
+
 ###

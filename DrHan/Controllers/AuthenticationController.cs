@@ -11,6 +11,8 @@ using DrHan.Application.Services.AuthenticationServices.Commands.ResetPassword;
 using DrHan.Application.Services.AuthenticationServices.Commands.RevokeUser;
 using DrHan.Application.Services.AuthenticationServices.Commands.SendOtp;
 using DrHan.Application.Services.AuthenticationServices.Commands.VerifyOtp;
+using DrHan.Application.Services.AuthenticationServices.Commands.ResendOtp;
+using DrHan.Application.Services.AuthenticationServices.Commands.ReactivateAccount;
 using DrHan.Application.DTOs.Authentication;
 using DrHan.Application.Commons;
 using System.Security.Claims;
@@ -228,6 +230,39 @@ namespace DrHan.Controllers
             command.Type = OtpType.EmailVerification;
             var response = await _mediator.Send(command);
             _logger.LogInformation(response.Messages.Keys.ToString());
+            if (!response.IsSucceeded)
+                return BadRequest(response);
+            
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// Resend OTP code to user
+        /// </summary>
+        /// <param name="command">Resend OTP details</param>
+        /// <returns>Resend OTP response</returns>
+        [HttpPost("resend-otp")]
+        public async Task<ActionResult<AppResponse<ResendOtpResponse>>> ResendOtp([FromBody] ResendOtpCommand command)
+        {
+            command.Type = OtpType.EmailVerification;
+            var response = await _mediator.Send(command);
+            
+            if (!response.IsSucceeded)
+                return BadRequest(response);
+            
+            return Ok(response);
+        }
+
+        /// <summary>
+        /// Reactivate abandoned account and send new OTP
+        /// </summary>
+        /// <param name="command">Account reactivation details</param>
+        /// <returns>Account reactivation response</returns>
+        [HttpPost("reactivate-account")]
+        public async Task<ActionResult<AppResponse<ReactivateAccountResponse>>> ReactivateAccount([FromBody] ReactivateAccountCommand command)
+        {
+            var response = await _mediator.Send(command);
+            
             if (!response.IsSucceeded)
                 return BadRequest(response);
             
