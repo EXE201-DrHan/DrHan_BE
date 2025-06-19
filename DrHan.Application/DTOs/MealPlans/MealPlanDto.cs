@@ -126,4 +126,26 @@ public class GenerateSmartMealsDto
     public List<string> MealTypes { get; set; } = new(); // If empty, generates all meal types (breakfast, lunch, dinner)
     public bool ReplaceExisting { get; set; } = false; // Whether to replace existing meals or only fill empty slots
     public bool PreserveFavorites { get; set; } = true; // Don't replace meals marked as favorites
+}
+
+// Smart Generation Options Response DTO
+public class SmartGenerationOptionsDto
+{
+    public List<string> AvailableCuisineTypes { get; set; } = new();
+    public List<string> BudgetRangeOptions { get; set; } = new();
+    public List<string> DietaryGoalOptions { get; set; } = new();
+    public List<string> MealComplexityOptions { get; set; } = new();
+    public List<string> MealTypeOptions { get; set; } = new();
+    public List<string> PlanTypeOptions { get; set; } = new();
+    public List<string> FillPatternOptions { get; set; } = new();
+    public CookingTimeRangeDto CookingTimeRange { get; set; } = new();
+    public Dictionary<string, string> OptionDescriptions { get; set; } = new();
+}
+
+public class CookingTimeRangeDto
+{
+    public int MinCookingTime { get; set; } = 5;
+    public int MaxCookingTime { get; set; } = 180;
+    public int DefaultMaxCookingTime { get; set; } = 45;
+    public List<int> RecommendedTimeRanges { get; set; } = new() { 15, 30, 45, 60, 90 };
 } 

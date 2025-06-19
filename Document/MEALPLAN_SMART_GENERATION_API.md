@@ -234,24 +234,260 @@ curl -X POST "https://api.drhan.com/api/mealplans/456/generate-smart-meals" \
 
 ---
 
-## 🛡️ Security & Permissions
+## ⚙️ Get Smart Generation Options
 
-- **Authentication**: Bearer token required
-- **Authorization**: User must own the meal plan
-- **Validation**: All input parameters validated
-- **Rate Limiting**: Smart generation calls are rate-limited
-- **Error Handling**: Comprehensive error responses
+### Endpoint
+**GET** `/api/mealplans/smart-generation/options`
+
+Get all available options that users can pick when generating smart meals or meal plans. This endpoint helps frontend applications build user interfaces with the correct option values.
+
+### Request
+No request body required. This is a simple GET endpoint.
+
+### Response
+```json
+{
+  "isSucceeded": true,
+  "data": {
+    "availableCuisineTypes": [
+      "Italian", "Asian", "Mediterranean", "Mexican", "American",
+      "French", "Thai", "Indian", "Chinese", "Japanese",
+      "Korean", "Vietnamese", "Greek", "Spanish", "Middle Eastern"
+    ],
+    "budgetRangeOptions": ["low", "medium", "high"],
+    "dietaryGoalOptions": ["balanced", "protein-rich", "low-carb", "high-fiber", "low-sodium"],
+    "mealComplexityOptions": ["simple", "moderate", "complex"],
+    "mealTypeOptions": ["breakfast", "lunch", "dinner", "snack"],
+    "planTypeOptions": ["Personal", "Family", "Weekly", "Monthly"],
+    "fillPatternOptions": ["rotate", "random", "same"],
+    "cookingTimeRange": {
+      "minCookingTime": 5,
+      "maxCookingTime": 180,
+      "defaultMaxCookingTime": 45,
+      "recommendedTimeRanges": [15, 30, 45, 60, 90]
+    },
+    "optionDescriptions": {
+      "budgetRange.low": "Budget-friendly recipes with affordable ingredients",
+      "budgetRange.medium": "Balanced cost recipes with quality ingredients",
+      "budgetRange.high": "Premium recipes with high-quality or specialty ingredients",
+      "mealComplexity.simple": "Easy recipes with minimal prep and cooking steps",
+      "mealComplexity.moderate": "Recipes with moderate prep time and cooking techniques",
+      "mealComplexity.complex": "Advanced recipes requiring more time and cooking skills",
+      "dietaryGoals.balanced": "Well-rounded meals with balanced macronutrients",
+      "dietaryGoals.protein-rich": "High-protein meals for muscle building and satiety",
+      "dietaryGoals.low-carb": "Low-carbohydrate meals for weight management",
+      "dietaryGoals.high-fiber": "High-fiber meals for digestive health",
+      "dietaryGoals.low-sodium": "Low-sodium meals for heart health",
+      "fillPattern.rotate": "Cycle through recipes in order across dates",
+      "fillPattern.random": "Randomly select from available recipes",
+      "fillPattern.same": "Use the same recipe for all selected slots",
+      "includeLeftovers": "Include recipes that work well as leftovers for meal prep",
+      "varietyMode": "Ensure variety by avoiding repetitive meals within the plan",
+      "replaceExisting": "Replace existing meals in the plan with new smart-generated ones",
+      "preserveFavorites": "Keep meals marked as favorites and don't replace them"
+    }
+  },
+  "messages": {
+    "Success": "Smart generation options retrieved successfully"
+  }
+}
+```
+
+### Usage Examples
+
+**Frontend Integration:**
+```javascript
+// Fetch available options
+const response = await fetch('/api/mealplans/smart-generation/options', {
+  headers: { 'Authorization': `Bearer ${token}` }
+});
+const { data: options } = await response.json();
+
+// Build UI dropdowns
+const cuisineSelect = options.availableCuisineTypes.map(cuisine => ({
+  value: cuisine,
+  label: cuisine
+}));
+```
+
+### Status Codes
+- `200 OK` - Options retrieved successfully
+- `401 Unauthorized` - Authentication required
+- `500 Internal Server Error` - Server error
 
 ---
 
-## 🚀 Status Codes
+## 🛡️ Security & Permissions
 
-- `200 OK` - Meals generated successfully
-- `400 Bad Request` - Invalid request parameters
-- `401 Unauthorized` - Authentication required
-- `403 Forbidden` - Insufficient permissions  
-- `404 Not Found` - Meal plan not found
-- `422 Unprocessable Entity` - Invalid meal plan state
+- **Authentication**: Bearer token required
+- **Authorization**: User can only access their own meal plans
+- **Rate Limiting**: Standard API rate limits apply
+- **Data Validation**: All input parameters are validated
+
+---
+
+## 📚 Related Endpoints
+
+- [Create Meal Plan](./MEALPLAN_API.md#create-meal-plan) - Create empty meal plan first
+- [Get Meal Plans](./MEALPLAN_API.md#get-meal-plans) - List user's meal plans
+- [Recipe Search](./RECIPE_API.md) - Search recipes manually
+- [User Allergies](./USER_ALLERGY_API.md) - Manage user allergies
+
+---
+
+## ⚙️ Get Smart Generation Options
+
+### Endpoint
+**GET** `/api/mealplans/smart-generation/options`
+
+Get all available options that users can pick when generating smart meals or meal plans. This endpoint helps frontend applications build user interfaces with the correct option values.
+
+### Request
+No request body required. This is a simple GET endpoint.
+
+### Response
+```json
+{
+  "isSucceeded": true,
+  "data": {
+    "availableCuisineTypes": [
+      "Italian", "Asian", "Mediterranean", "Mexican", "American",
+      "French", "Thai", "Indian", "Chinese", "Japanese",
+      "Korean", "Vietnamese", "Greek", "Spanish", "Middle Eastern"
+    ],
+    "budgetRangeOptions": ["low", "medium", "high"],
+    "dietaryGoalOptions": ["balanced", "protein-rich", "low-carb", "high-fiber", "low-sodium"],
+    "mealComplexityOptions": ["simple", "moderate", "complex"],
+    "mealTypeOptions": ["breakfast", "lunch", "dinner", "snack"],
+    "planTypeOptions": ["Personal", "Family", "Weekly", "Monthly"],
+    "fillPatternOptions": ["rotate", "random", "same"],
+    "cookingTimeRange": {
+      "minCookingTime": 5,
+      "maxCookingTime": 180,
+      "defaultMaxCookingTime": 45,
+      "recommendedTimeRanges": [15, 30, 45, 60, 90]
+    },
+    "optionDescriptions": {
+      "budgetRange.low": "Budget-friendly recipes with affordable ingredients",
+      "budgetRange.medium": "Balanced cost recipes with quality ingredients",
+      "budgetRange.high": "Premium recipes with high-quality or specialty ingredients",
+      "mealComplexity.simple": "Easy recipes with minimal prep and cooking steps",
+      "mealComplexity.moderate": "Recipes with moderate prep time and cooking techniques",
+      "mealComplexity.complex": "Advanced recipes requiring more time and cooking skills",
+      "dietaryGoals.balanced": "Well-rounded meals with balanced macronutrients",
+      "dietaryGoals.protein-rich": "High-protein meals for muscle building and satiety",
+      "dietaryGoals.low-carb": "Low-carbohydrate meals for weight management",
+      "dietaryGoals.high-fiber": "High-fiber meals for digestive health",
+      "dietaryGoals.low-sodium": "Low-sodium meals for heart health",
+      "fillPattern.rotate": "Cycle through recipes in order across dates",
+      "fillPattern.random": "Randomly select from available recipes",
+      "fillPattern.same": "Use the same recipe for all selected slots",
+      "includeLeftovers": "Include recipes that work well as leftovers for meal prep",
+      "varietyMode": "Ensure variety by avoiding repetitive meals within the plan",
+      "replaceExisting": "Replace existing meals in the plan with new smart-generated ones",
+      "preserveFavorites": "Keep meals marked as favorites and don't replace them"
+    }
+  },
+  "messages": {
+    "Success": "Smart generation options retrieved successfully"
+  }
+}
+```
+
+### Response Fields Explained
+
+**availableCuisineTypes** (array) - All supported cuisine types
+- Use these values in the `cuisineTypes` array when making generation requests
+
+**budgetRangeOptions** (array) - Available budget levels
+- `"low"` - Budget-friendly recipes
+- `"medium"` - Balanced cost recipes 
+- `"high"` - Premium ingredient recipes
+
+**dietaryGoalOptions** (array) - Supported dietary goals
+- Can combine multiple goals in generation requests
+- Each goal filters recipes to match nutritional objectives
+
+**mealComplexityOptions** (array) - Recipe complexity levels
+- `"simple"` - Quick and easy recipes
+- `"moderate"` - Standard cooking complexity
+- `"complex"` - Advanced cooking techniques
+
+**mealTypeOptions** (array) - Meal categories
+- Use in `mealTypes` or `preferredMealTypes` arrays
+
+**planTypeOptions** (array) - Meal plan categories
+- Used when creating new meal plans
+
+**fillPatternOptions** (array) - Patterns for bulk operations
+- `"rotate"` - Cycle through recipes in order
+- `"random"` - Random selection each time
+- `"same"` - Use same recipe for all slots
+
+**cookingTimeRange** (object) - Cooking time constraints
+- `minCookingTime` - Minimum supported cooking time
+- `maxCookingTime` - Maximum supported cooking time  
+- `defaultMaxCookingTime` - Recommended default value
+- `recommendedTimeRanges` - Common time limit choices
+
+**optionDescriptions** (object) - User-friendly descriptions
+- Key format: `"{category}.{value}"` or `"{booleanOption}"`
+- Values provide explanatory text for UI tooltips/help
+
+### Usage Examples
+
+**Basic Frontend Integration:**
+```javascript
+// Fetch available options
+const response = await fetch('/api/mealplans/smart-generation/options', {
+  headers: { 'Authorization': `Bearer ${token}` }
+});
+const { data: options } = await response.json();
+
+// Build UI dropdowns
+const cuisineSelect = options.availableCuisineTypes.map(cuisine => ({
+  value: cuisine,
+  label: cuisine
+}));
+
+const budgetSelect = options.budgetRangeOptions.map(budget => ({
+  value: budget,
+  label: options.optionDescriptions[`budgetRange.${budget}`]
+}));
+```
+
+**Validation Helper:**
+```javascript
+function validateGenerationRequest(request, options) {
+  const errors = [];
+  
+  if (request.preferences?.budgetRange && 
+      !options.budgetRangeOptions.includes(request.preferences.budgetRange)) {
+    errors.push('Invalid budget range');
+  }
+  
+  if (request.preferences?.mealComplexity && 
+      !options.mealComplexityOptions.includes(request.preferences.mealComplexity)) {
+    errors.push('Invalid meal complexity');
+  }
+  
+  return errors;
+}
+```
+
+### Caching
+- Options are cached for 6 hours to improve performance
+- Cache automatically invalidates when new options are added
+- No authentication required, but standard rate limits apply
+
+### Status Codes
+- `200 OK` - Options retrieved successfully
+- `401 Unauthorized` - Authentication required (Bearer token)
+- `429 Too Many Requests` - Rate limit exceeded
 - `500 Internal Server Error` - Server error
+
+---
+
+This endpoint is essential for building user-friendly interfaces that guide users through the smart meal generation process with valid option values and helpful descriptions.
 
 This new API endpoint provides powerful flexibility for users to enhance their existing meal plans with AI-powered smart meal generation! 

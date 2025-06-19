@@ -108,6 +108,28 @@ public class MealPlansController : ControllerBase
     }
 
     /// <summary>
+    /// ⚙️ Get available options for smart meal generation
+    /// </summary>
+    /// <returns>All available options users can pick for smart meal/meal plan generation</returns>
+    [HttpGet("smart-generation/options")]
+    [ProducesResponseType(typeof(AppResponse<SmartGenerationOptionsDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<AppResponse<SmartGenerationOptionsDto>>> GetSmartGenerationOptions()
+    {
+        try
+        {
+            var result = await _smartMealPlanService.GetSmartGenerationOptionsAsync();
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting smart generation options");
+            var errorResponse = new AppResponse<SmartGenerationOptionsDto>()
+                .SetErrorResponse("Error", "An error occurred while retrieving smart generation options");
+            return StatusCode(StatusCodes.Status500InternalServerError, errorResponse);
+        }
+    }
+
+    /// <summary>
     /// ⚡ Bulk fill meal slots with selected recipes
     /// </summary>
     /// <param name="request">Bulk fill configuration</param>

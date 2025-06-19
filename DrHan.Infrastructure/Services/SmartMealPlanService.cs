@@ -376,42 +376,121 @@ public class SmartMealPlanService : ISmartMealPlanService
 
     public async Task<AppResponse<List<MealPlanTemplateDto>>> GetAvailableTemplatesAsync()
     {
-        var cacheKey = _cacheKeyService.Custom("mealplan", "templates");
-        
-        var templates = await _cacheService.GetAsync<List<MealPlanTemplateDto>>(cacheKey, async () =>
+        var response = new AppResponse<List<MealPlanTemplateDto>>();
+
+        try
         {
-            // Return predefined templates - could be stored in database later
-            return new List<MealPlanTemplateDto>
+            var cacheKey = _cacheKeyService.Custom("templates", "all");
+            
+            // Try to get from cache first
+            var cachedTemplates = await _cacheService.GetAsync<List<MealPlanTemplateDto>>(cacheKey);
+            if (cachedTemplates != null)
             {
-                new MealPlanTemplateDto
+                return response.SetSuccessResponse(cachedTemplates);
+            }
+
+            // For now, return some predefined templates
+            // In the future, these could be stored in the database
+            var templates = new List<MealPlanTemplateDto>
+            {
+                new()
                 {
                     Id = 1,
                     Name = "Busy Professional Week",
                     Description = "Quick 15-minute meals for busy weekdays",
                     Category = "Quick & Easy",
-                    Duration = 7
-                },
-                new MealPlanTemplateDto
-                {
-                    Id = 2,
-                    Name = "Mediterranean Week",
-                    Description = "Healthy Mediterranean-style meals",
-                    Category = "Healthy",
-                    Duration = 7
-                },
-                new MealPlanTemplateDto
-                {
-                    Id = 3,
-                    Name = "Family Friendly Month",
-                    Description = "Kid-approved meals for the whole family",
-                    Category = "Family",
-                    Duration = 30
+                    Duration = 7,
+                    MealStructure = new Dictionary<string, List<int>>
+                    {
+                        ["breakfast"] = new List<int> { 101, 102, 103 },
+                        ["lunch"] = new List<int> { 201, 202, 203 },
+                        ["dinner"] = new List<int> { 301, 302, 303 }
+                    }
                 }
             };
-        }, TemplatesCacheExpiration);
-        
-        var response = new AppResponse<List<MealPlanTemplateDto>>();
-        return response.SetSuccessResponse(templates, "Success", "Templates retrieved successfully");
+
+            // Cache the result
+            await _cacheService.SetAsync(cacheKey, templates, TemplatesCacheExpiration);
+
+            return response.SetSuccessResponse(templates);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving meal plan templates");
+            return response.SetErrorResponse("Error", "Failed to retrieve meal plan templates");
+        }
+    }
+
+    public async Task<AppResponse<SmartGenerationOptionsDto>> GetSmartGenerationOptionsAsync()
+    {
+        var response = new AppResponse<SmartGenerationOptionsDto>();
+
+        try
+        {
+            var cacheKey = _cacheKeyService.Custom("smart-generation", "options");
+            
+            // Try to get from cache first
+            var cachedOptions = await _cacheService.GetAsync<SmartGenerationOptionsDto>(cacheKey);
+            if (cachedOptions != null)
+            {
+                return response.SetSuccessResponse(cachedOptions);
+            }
+
+            // Build the available options
+            var options = new SmartGenerationOptionsDto
+            {
+                AvailableCuisineTypes = new List<string>
+                {
+                    "Italian", "Asian", "Mediterranean", "Mexican", "American", 
+                    "French", "Thai", "Indian", "Chinese", "Japanese", 
+                    "Korean", "Vietnamese", "Greek", "Spanish", "Middle Eastern"
+                },
+                BudgetRangeOptions = new List<string> { "low", "medium", "high" },
+                DietaryGoalOptions = new List<string> { "balanced", "protein-rich", "low-carb", "high-fiber", "low-sodium" },
+                MealComplexityOptions = new List<string> { "simple", "moderate", "complex" },
+                MealTypeOptions = new List<string> { "breakfast", "lunch", "dinner", "snack" },
+                PlanTypeOptions = new List<string> { "Personal", "Family", "Weekly", "Monthly" },
+                FillPatternOptions = new List<string> { "rotate", "random", "same" },
+                CookingTimeRange = new CookingTimeRangeDto
+                {
+                    MinCookingTime = 5,
+                    MaxCookingTime = 180,
+                    DefaultMaxCookingTime = 45,
+                    RecommendedTimeRanges = new List<int> { 15, 30, 45, 60, 90 }
+                },
+                OptionDescriptions = new Dictionary<string, string>
+                {
+                    ["budgetRange.low"] = "Budget-friendly recipes with affordable ingredients",
+                    ["budgetRange.medium"] = "Balanced cost recipes with quality ingredients",
+                    ["budgetRange.high"] = "Premium recipes with high-quality or specialty ingredients",
+                    ["mealComplexity.simple"] = "Easy recipes with minimal prep and cooking steps",
+                    ["mealComplexity.moderate"] = "Recipes with moderate prep time and cooking techniques",
+                    ["mealComplexity.complex"] = "Advanced recipes requiring more time and cooking skills",
+                    ["dietaryGoals.balanced"] = "Well-rounded meals with balanced macronutrients",
+                    ["dietaryGoals.protein-rich"] = "High-protein meals for muscle building and satiety",
+                    ["dietaryGoals.low-carb"] = "Low-carbohydrate meals for weight management",
+                    ["dietaryGoals.high-fiber"] = "High-fiber meals for digestive health",
+                    ["dietaryGoals.low-sodium"] = "Low-sodium meals for heart health",
+                    ["fillPattern.rotate"] = "Cycle through recipes in order across dates",
+                    ["fillPattern.random"] = "Randomly select from available recipes",
+                    ["fillPattern.same"] = "Use the same recipe for all selected slots",
+                    ["includeLeftovers"] = "Include recipes that work well as leftovers for meal prep",
+                    ["varietyMode"] = "Ensure variety by avoiding repetitive meals within the plan",
+                    ["replaceExisting"] = "Replace existing meals in the plan with new smart-generated ones",
+                    ["preserveFavorites"] = "Keep meals marked as favorites and don't replace them"
+                }
+            };
+
+            // Cache the result for 6 hours
+            await _cacheService.SetAsync(cacheKey, options, TimeSpan.FromHours(6));
+
+            return response.SetSuccessResponse(options);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving smart generation options");
+            return response.SetErrorResponse("Error", "Failed to retrieve smart generation options");
+        }
     }
 
     // PRIVATE METHODS WITH CACHING
@@ -466,8 +545,6 @@ public class SmartMealPlanService : ISmartMealPlanService
             return new List<int>();
         }
     }
-
-
 
     private async Task<List<Recipe>> FilterRecipesByPreferencesAsync(MealPlanPreferencesDto preferences, List<int> userAllergies, string mealType)
     {

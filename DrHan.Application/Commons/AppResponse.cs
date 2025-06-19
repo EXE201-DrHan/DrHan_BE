@@ -40,7 +40,13 @@ namespace DrHan.Application.Commons
             Messages.Add(key, value);
             return this;
         }
-
+        public AppResponse<T> SetErrorResponse(T data, string key, string value)
+        {
+            IsSucceeded = false;
+            Data = data;
+            Messages.Add(key, [value]);
+            return this;
+        }
         public AppResponse<T> SetErrorResponse(string key, string value)
         {
             IsSucceeded = false;

@@ -3,4 +3,52 @@
 GET {{DrHan_HostAddress}}/weatherforecast/
 Accept: application/json
 
+### Health Check
+GET {{host}}/health
+
+### Get Smart Generation Options
+GET {{host}}/api/mealplans/smart-generation/options
+Authorization: Bearer {{token}}
+
+### Generate Smart Meal Plan
+POST {{host}}/api/mealplans/generate-smart
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "My Smart Meal Plan",
+  "startDate": "2024-01-01",
+  "endDate": "2024-01-07",
+  "planType": "Weekly",
+  "preferences": {
+    "cuisineTypes": ["Italian", "Mediterranean"],
+    "maxCookingTime": 45,
+    "budgetRange": "medium",
+    "dietaryGoals": ["balanced", "protein-rich"],
+    "mealComplexity": "moderate",
+    "preferredMealTypes": ["breakfast", "lunch", "dinner"],
+    "includeLeftovers": true,
+    "varietyMode": true
+  }
+}
+
+### Generate Smart Meals into Existing Plan
+POST {{host}}/api/mealplans/456/generate-smart-meals
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "preferences": {
+    "cuisineTypes": ["Asian", "Mediterranean"],
+    "maxCookingTime": 30,
+    "budgetRange": "medium",
+    "mealComplexity": "simple",
+    "varietyMode": true
+  },
+  "targetDates": ["2024-01-01", "2024-01-02"],
+  "mealTypes": ["Breakfast", "Lunch"],
+  "replaceExisting": false,
+  "preserveFavorites": true
+}
+
 ###

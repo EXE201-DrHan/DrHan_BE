@@ -38,7 +38,7 @@ public class VerifyOtpCommandHandler : IRequestHandler<VerifyOtpCommand, AppResp
             var remainingAttempts = remainingOtp?.MaxAttempts - remainingOtp?.AttemptsCount ?? 0;
             
             return new AppResponse<VerifyOtpResponse>()
-                .SetSuccessResponse(new VerifyOtpResponse
+                .SetErrorResponse(new VerifyOtpResponse
                 {
                     IsVerified = false,
                     Message = "Invalid or expired OTP code",

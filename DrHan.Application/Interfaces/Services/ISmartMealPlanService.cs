@@ -12,4 +12,5 @@ public interface ISmartMealPlanService
     Task<AppResponse<MealPlanDto>> ApplyTemplateAsync(int templateId, CreateMealPlanDto mealPlan, int userId);
     Task<AppResponse<bool>> BulkFillMealsAsync(BulkFillMealsDto request, int userId);
     Task<AppResponse<List<MealPlanTemplateDto>>> GetAvailableTemplatesAsync();
+    Task<AppResponse<SmartGenerationOptionsDto>> GetSmartGenerationOptionsAsync();
 } 
