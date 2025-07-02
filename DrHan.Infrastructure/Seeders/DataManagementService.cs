@@ -28,12 +28,13 @@ namespace DrHan.Infrastructure.Seeders
         #region Seeding Operations
 
         /// <summary>
-        /// Seeds all data (users, roles, allergens, ingredients, and their relationships)
+        /// Seeds all data (users, roles, allergens, ingredients, subscription plans, and their relationships)
         /// </summary>
         public async Task SeedAllDataAsync()
         {
             _logger.LogInformation("Starting complete data seeding...");
             await SeedUsersAndRolesAsync();
+            await SeedSubscriptionPlansAsync();
             await MasterSeeder.SeedAllAsync(_context, _logger);
         }
 
@@ -90,17 +91,36 @@ namespace DrHan.Infrastructure.Seeders
             await MasterSeeder.SeedAllAsync(_context, _logger);
         }
 
+        /// <summary>
+        /// Seeds only subscription plans and their features
+        /// </summary>
+        public async Task SeedSubscriptionPlansAsync()
+        {
+            try
+            {
+                _logger.LogInformation("Starting subscription plan seeding...");
+                await SubscriptionPlanSeeder.SeedSubscriptionPlansAsync(_context, _logger);
+                _logger.LogInformation("Subscription plan seeding completed!");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to seed subscription plans");
+                throw;
+            }
+        }
+
         #endregion
 
         #region Cleaning Operations
 
         /// <summary>
-        /// Cleans all seeded data from the database (including users and roles)
+        /// Cleans all seeded data from the database (including users, roles, and subscription plans)
         /// </summary>
         public async Task CleanAllDataAsync()
         {
             _logger.LogInformation("Starting complete data cleaning...");
             await CleanUsersAndRolesAsync();
+            await CleanSubscriptionPlansAsync();
             await DataCleaner.CleanAllAsync(_context, _logger);
         }
 
@@ -165,6 +185,24 @@ namespace DrHan.Infrastructure.Seeders
             await DataCleaner.CleanRecipeDataAsync(_context, _logger);
         }
 
+        /// <summary>
+        /// Cleans only subscription plan-related data
+        /// </summary>
+        public async Task CleanSubscriptionPlansAsync()
+        {
+            try
+            {
+                _logger.LogInformation("Starting subscription plan cleaning...");
+                await SubscriptionPlanSeeder.CleanSubscriptionPlansAsync(_context, _logger);
+                _logger.LogInformation("Subscription plan cleaning completed!");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to clean subscription plans");
+                throw;
+            }
+        }
+
         #endregion
 
         #region Combined Operations
@@ -227,6 +265,16 @@ namespace DrHan.Infrastructure.Seeders
             _logger.LogInformation("Starting recipe data reset...");
             await CleanRecipeDataAsync();
             // Note: No seeding method for recipes as they are generated via API
+        }
+
+        /// <summary>
+        /// Resets subscription plans only
+        /// </summary>
+        public async Task ResetSubscriptionPlansAsync()
+        {
+            _logger.LogInformation("Starting subscription plan reset...");
+            await CleanSubscriptionPlansAsync();
+            await SeedSubscriptionPlansAsync();
         }
 
         #endregion

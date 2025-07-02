@@ -4,6 +4,7 @@ using DrHan.Application.Interfaces.Services;
 using DrHan.Domain.Constants.Status;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Net.payOS.Types;
 
 namespace DrHan.Controllers
 {
@@ -32,7 +33,12 @@ namespace DrHan.Controllers
             try
             {
                 var result = await _payOSService.CreatePaymentAsync(request);
-                return Ok(new AppResponse<PaymentResponseDto>().SetSuccessResponse(result, "message", "Payment created successfully"));
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Invalid operation when creating payment");
+                return BadRequest(new AppResponse<PaymentResponseDto>().SetErrorResponse("error", ex.Message));
             }
             catch (Exception ex)
             {
@@ -40,7 +46,25 @@ namespace DrHan.Controllers
                 return BadRequest(new AppResponse<PaymentResponseDto>().SetErrorResponse("error", "Failed to create payment"));
             }
         }
-
+        [HttpPost("createTest")]
+        public async Task<ActionResult<AppResponse<CreatePaymentResult>>> CreatePaymentTest([FromBody] CreatePaymentRequestDto request)
+        {
+            try
+            {
+                var result = await _payOSService.CreatePaymentTestAsync(request);
+                return Ok(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Invalid operation when creating payment");
+                return BadRequest(new AppResponse<CreatePaymentResult>().SetErrorResponse("error", ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating payment");
+                return BadRequest(new AppResponse<CreatePaymentResult>().SetErrorResponse("error", "Failed to create payment"));
+            }
+        }
         /// <summary>
         /// Get payment status by transaction ID
         /// </summary>
@@ -53,7 +77,7 @@ namespace DrHan.Controllers
             try
             {
                 var result = await _payOSService.GetPaymentStatusAsync(transactionId);
-                return Ok(new AppResponse<PaymentResponseDto>().SetSuccessResponse(result, "message", "Payment status retrieved successfully"));
+                return result;
             }
             catch (Exception ex)
             {
@@ -74,7 +98,7 @@ namespace DrHan.Controllers
             try
             {
                 var result = await _payOSService.CancelPaymentAsync(transactionId);
-                if (result)
+                if (result.IsSucceeded)
                 {
                     return Ok(new AppResponse<bool>().SetSuccessResponse(true, "message", "Payment cancelled successfully"));
                 }
@@ -131,17 +155,17 @@ namespace DrHan.Controllers
 
                 var result = await _payOSService.GetPaymentStatusAsync(orderCode);
                 
-                if (status?.ToLower() == "paid" || result.PaymentStatus == PaymentStatus.Success)
+                if (status?.ToLower() == "paid" || result.IsSucceeded)
                 {
-                    return Ok(new AppResponse<PaymentResponseDto>().SetSuccessResponse(result, "message", "Payment completed successfully"));
+                    return Ok(result);
                 }
-                
-                return Ok(new AppResponse<PaymentResponseDto>().SetSuccessResponse(result, "message", "Payment status retrieved"));
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error handling payment return for order {OrderCode}", orderCode);
-                return BadRequest(new AppResponse<PaymentResponseDto>().SetErrorResponse("error", "Failed to process payment return"));
+                return BadRequest(new AppResponse<string>().SetErrorResponse("error","what happended"));
             }
         }
 
@@ -160,9 +184,8 @@ namespace DrHan.Controllers
                 {
                     return BadRequest(new AppResponse<PaymentResponseDto>().SetErrorResponse("error", "Order code is required"));
                 }
-
                 var result = await _payOSService.GetPaymentStatusAsync(orderCode);
-                return Ok(new AppResponse<PaymentResponseDto>().SetSuccessResponse(result, "message", "Payment was cancelled"));
+                return Ok(result);
             }
             catch (Exception ex)
             {

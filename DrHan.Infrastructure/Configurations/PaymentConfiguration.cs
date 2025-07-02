@@ -23,5 +23,12 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
 
         builder.HasIndex(p => p.TransactionId);
         builder.HasIndex(p => p.UserSubscriptionId);
+
+        // Explicit foreign key configuration
+        builder.HasOne(p => p.UserSubscription)
+            .WithMany()
+            .HasForeignKey(p => p.UserSubscriptionId)
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired();
     }
 } 

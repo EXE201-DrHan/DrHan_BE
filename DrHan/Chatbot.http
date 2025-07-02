@@ -1,0 +1,140 @@
+### DrHan AI Chatbot API Examples
+
+@baseUrl = https://localhost:7155/api
+@chatbot = {{baseUrl}}/Chatbot
+
+### 1. Chat với AI về dị ứng thực phẩm
+POST {{chatbot}}/chat
+Content-Type: application/json
+
+{
+  "message": "Tôi bị dị ứng sữa bò. Các triệu chứng và thực phẩm cần tránh là gì?",
+  "language": "vi",
+  "category": "allergy"
+}
+
+### 2. Chat về lập kế hoạch bữa ăn
+POST {{chatbot}}/chat
+Content-Type: application/json
+
+{
+  "message": "Làm thế nào để tạo kế hoạch bữa ăn cho người dị ứng gluten?",
+  "conversationId": "conv-12345",
+  "language": "vi",
+  "category": "mealplan",
+  "userId": "user-123"
+}
+
+### 3. Chat với lịch sử cuộc trò chuyện
+POST {{chatbot}}/chat
+Content-Type: application/json
+
+{
+  "message": "Còn có thực phẩm thay thế nào khác không?",
+  "conversationId": "conv-12345",
+  "language": "vi",
+  "conversationHistory": [
+    {
+      "role": "user",
+      "content": "Tôi bị dị ứng sữa bò",
+      "timestamp": "2024-01-15T10:00:00Z"
+    },
+    {
+      "role": "assistant", 
+      "content": "Bạn có thể thay thế bằng sữa hạnh nhân, sữa dừa, sữa đậu nành",
+      "timestamp": "2024-01-15T10:00:30Z"
+    }
+  ]
+}
+
+### 4. Hỏi về tính năng ứng dụng
+POST {{chatbot}}/chat
+Content-Type: application/json
+
+{
+  "message": "Ứng dụng DrHan có những tính năng gì?",
+  "language": "vi",
+  "category": "app_help"
+}
+
+### 5. Câu hỏi chung
+POST {{chatbot}}/chat
+Content-Type: application/json
+
+{
+  "message": "Chào bạn! Bạn có thể giúp tôi những gì?",
+  "language": "vi"
+}
+
+### 6. Lấy lịch sử cuộc trò chuyện
+GET {{chatbot}}/conversation/conv-12345/history?limit=10
+
+### 7. Xóa lịch sử cuộc trò chuyện
+DELETE {{chatbot}}/conversation/conv-12345
+
+### 8. Lấy câu hỏi gợi ý - Dị ứng
+GET {{chatbot}}/suggestions?category=allergy&language=vi
+
+### 9. Lấy câu hỏi gợi ý - Kế hoạch bữa ăn
+GET {{chatbot}}/suggestions?category=mealplan&language=vi
+
+### 10. Lấy câu hỏi gợi ý - Hướng dẫn app
+GET {{chatbot}}/suggestions?category=app_help&language=vi
+
+### 11. Lấy câu hỏi gợi ý - Chung
+GET {{chatbot}}/suggestions?category=general&language=vi
+
+### 12. Phân tích intent của tin nhắn
+POST {{chatbot}}/analyze-intent
+Content-Type: application/json
+
+{
+  "message": "Tôi muốn tạo thực đơn cho người dị ứng đậu phộng",
+  "language": "vi"
+}
+
+### 13. Phân tích intent - Dị ứng
+POST {{chatbot}}/analyze-intent
+Content-Type: application/json
+
+{
+  "message": "Dị ứng hải sản có triệu chứng gì?",
+  "language": "vi"
+}
+
+### 14. Lấy trạng thái chatbot
+GET {{chatbot}}/status
+
+### 15. Chat trường hợp khẩn cấp
+POST {{chatbot}}/chat
+Content-Type: application/json
+
+{
+  "message": "Tôi vừa ăn đậu phộng và đang khó thở, sưng họng!",
+  "language": "vi",
+  "category": "emergency"
+}
+
+### 16. Chat về công thức nấu ăn
+POST {{chatbot}}/chat
+Content-Type: application/json
+
+{
+  "message": "Có công thức nào để làm bánh không gluten không?",
+  "language": "vi",
+  "category": "recipe"
+}
+
+### 17. Chat với conversation ID mới
+POST {{chatbot}}/chat
+Content-Type: application/json
+
+{
+  "message": "Xin chào! Tôi mới sử dụng ứng dụng DrHan",
+  "conversationId": "conv-new-user-67890",
+  "language": "vi",
+  "userId": "new-user-456"
+}
+
+### 18. Lấy lịch sử cuộc trò chuyện mới
+GET {{chatbot}}/conversation/conv-new-user-67890/history?limit=5 

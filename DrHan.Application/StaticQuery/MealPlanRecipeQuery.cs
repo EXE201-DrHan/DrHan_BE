@@ -28,45 +28,13 @@ public static class MealPlanRecipeQuery
 
             // Filter by cuisine type if specified
             (!preferences.CuisineTypes.Any() ||
-             preferences.CuisineTypes.Contains(recipe.CuisineType) ||
-             string.IsNullOrEmpty(recipe.CuisineType)) &&
+             preferences.CuisineTypes.Contains(recipe.CuisineType)) &&
 
-            // Meal type specific filtering with flexible matching
+            // Simplified meal type filtering for EF Core compatibility
             (string.IsNullOrEmpty(mealType) ||
-             BuildMealTypeFilter(mealType).Compile()(recipe));
-    }
-
-    /// <summary>
-    /// Build meal type specific filter
-    /// </summary>
-    public static Expression<Func<Recipe, bool>> BuildMealTypeFilter(string mealType)
-    {
-        var normalizedMealType = mealType.ToLower();
-        
-        return normalizedMealType switch
-        {
-            "breakfast" => recipe => 
-                recipe.MealType == "Breakfast" ||
-                recipe.Name.ToLower().Contains("breakfast") ||
-                recipe.Description.ToLower().Contains("breakfast"),
-
-            "lunch" => recipe =>
-                recipe.MealType == "Lunch" ||
-                recipe.Name.ToLower().Contains("lunch") ||
-                (recipe.PrepTimeMinutes.HasValue && recipe.PrepTimeMinutes <= 30), // Quick meals for lunch
-
-            "dinner" => recipe =>
-                recipe.MealType == "Dinner" ||
-                recipe.Name.ToLower().Contains("dinner") ||
-                (!recipe.MealType.Contains("Breakfast") && !recipe.MealType.Contains("Snack")),
-
-            "snack" => recipe =>
-                recipe.MealType == "Snack" ||
-                recipe.Name.ToLower().Contains("snack") ||
-                (recipe.PrepTimeMinutes.HasValue && recipe.PrepTimeMinutes <= 15),
-
-            _ => recipe => true
-        };
+             recipe.MealType.Contains(mealType) ||
+             recipe.Name.ToLower().Contains(mealType.ToLower()) ||
+             recipe.Description.ToLower().Contains(mealType.ToLower()));
     }
 
     /// <summary>

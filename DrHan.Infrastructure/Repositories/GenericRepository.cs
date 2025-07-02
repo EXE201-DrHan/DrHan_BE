@@ -148,6 +148,20 @@ namespace DrHan.Infrastructure.Repositories
             }
             return await query.ToListAsync();
         }
+        public async Task<T?> FindAsync(
+            Expression<Func<T, bool>> match,
+            Func<IQueryable<T>, IIncludableQueryable<T, object>>? includeProperties = null)
+        {
+            IQueryable<T> query = _context.Set<T>();
+
+            if (includeProperties != null)
+            {
+                query = includeProperties(query);
+            }
+
+            return await query.SingleOrDefaultAsync(match);
+        }
+
 
         public async Task<IPaginatedList<T>> ListAsyncWithPaginated(Expression<Func<T, bool>>? filter = null, Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null, Func<IQueryable<T>, IIncludableQueryable<T, object>>? includeProperties = null, PaginationRequest? pagination = null, CancellationToken cancellationToken = default)
         {

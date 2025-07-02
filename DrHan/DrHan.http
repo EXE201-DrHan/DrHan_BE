@@ -24,8 +24,6 @@ Content-Type: application/json
     "cuisineTypes": ["Italian", "Mediterranean"],
     "maxCookingTime": 45,
     "budgetRange": "medium",
-    "dietaryGoals": ["balanced", "protein-rich"],
-    "mealComplexity": "moderate",
     "preferredMealTypes": ["breakfast", "lunch", "dinner"],
     "includeLeftovers": true,
     "varietyMode": true
@@ -42,7 +40,6 @@ Content-Type: application/json
     "cuisineTypes": ["Asian", "Mediterranean"],
     "maxCookingTime": 30,
     "budgetRange": "medium",
-    "mealComplexity": "simple",
     "varietyMode": true
   },
   "targetDates": ["2024-01-01", "2024-01-02"],
@@ -65,6 +62,40 @@ Content-Type: application/json
 
 {
   "email": "abandoned@example.com"
+}
+
+### Test No Results - Non-existent Cuisine
+POST {{host}}/api/mealplans/generate-smart
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Test No Results Meal Plan",
+  "startDate": "2024-01-01",
+  "endDate": "2024-01-03",
+  "planType": "Personal",
+  "preferences": {
+    "cuisineTypes": ["nhật bản", "korean"],
+    "maxCookingTime": 10,
+    "budgetRange": "low"
+  }
+}
+
+### Test With Existing Cuisine - Should Work
+POST {{host}}/api/mealplans/generate-smart
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Test Working Meal Plan",
+  "startDate": "2024-01-01",
+  "endDate": "2024-01-03",
+  "planType": "Personal",
+  "preferences": {
+    "cuisineTypes": ["Ý"],
+    "maxCookingTime": 60,
+    "budgetRange": "medium"
+  }
 }
 
 ###

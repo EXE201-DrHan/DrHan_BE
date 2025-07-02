@@ -41,7 +41,6 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // Check if background service is enabled
         var isBackgroundServiceEnabled = _configuration.GetValue<bool>("RecipeCache:EnableBackgroundService", false);
         
         if (!isBackgroundServiceEnabled)
@@ -50,14 +49,12 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
             return;
         }
 
-        // Only run if Gemini API key is configured
         if (string.IsNullOrEmpty(_configuration["Gemini:ApiKey"]))
         {
             _logger.LogError("Gemini API key not configured. Please set the 'Gemini:ApiKey' configuration value.");
             return;
         }
 
-        // Pre-populate database with popular recipes every 24 hours
         var intervalHours = _configuration.GetValue<int>("RecipeCache:IntervalHours", 24);
         var interval = TimeSpan.FromHours(intervalHours);
 
@@ -640,25 +637,22 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
                 }
                 else
                 {
-                    return null; // Reject if we can't truncate safely
+                    return null; 
                 }
             }
 
-            // Validate URL format
             if (!Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri))
             {
                 _logger.LogWarning("Invalid image URL format: {ImageUrl}", imageUrl);
                 return null;
             }
 
-            // Check if it's HTTP/HTTPS
             if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
             {
                 _logger.LogWarning("Image URL must be HTTP/HTTPS: {ImageUrl}", imageUrl);
                 return null;
             }
 
-            // Check for common image file extensions or image hosting domains
             var validImageExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp" };
             var validImageHosts = new[] { "images.unsplash.com", "cdn.pixabay.com", "images.pexels.com", 
                                         "www.simplyrecipes.com", "images.immediate.co.uk", "www.foodnetwork.com" };
@@ -668,8 +662,6 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
             var hasValidHost = validImageHosts.Any(host => 
                 uri.Host.ToLower().Contains(host.ToLower()));
 
-            // If it doesn't have a valid extension or host, it might still be valid (some URLs don't show extensions)
-            // So we'll allow it but log a warning
             if (!hasValidExtension && !hasValidHost)
             {
                 _logger.LogDebug("Image URL doesn't have recognizable image extension or host, but allowing: {ImageUrl}", imageUrl);
@@ -691,7 +683,6 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
     {
         try
         {
-            // Look for common patterns where we can safely truncate
             var truncationPatterns = new[]
             {
                 "-456", // Repeated pattern in your example

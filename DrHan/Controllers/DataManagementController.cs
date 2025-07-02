@@ -136,6 +136,24 @@ namespace DrHan.Controllers
         }
 
         /// <summary>
+        /// Seeds only subscription plans and their features
+        /// </summary>
+        [HttpPost("seed/subscriptions")]
+        public async Task<IActionResult> SeedSubscriptionPlans()
+        {
+            try
+            {
+                await _dataManagementService.SeedSubscriptionPlansAsync();
+                return Ok(new { Message = "Subscription plans seeded successfully", Timestamp = DateTime.UtcNow });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to seed subscription plans");
+                return StatusCode(500, new { Error = "Failed to seed subscription plans", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Cleans all seeded data (including users)
         /// </summary>
         [HttpDelete("clean/all")]
@@ -204,6 +222,24 @@ namespace DrHan.Controllers
             {
                 _logger.LogError(ex, "Failed to clean recipe data");
                 return StatusCode(500, new { Error = "Failed to clean recipe data", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Cleans all subscription plan data
+        /// </summary>
+        [HttpDelete("clean/subscriptions")]
+        public async Task<IActionResult> CleanSubscriptionPlans()
+        {
+            try
+            {
+                await _dataManagementService.CleanSubscriptionPlansAsync();
+                return Ok(new { Message = "Subscription plans cleaned successfully", Timestamp = DateTime.UtcNow });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to clean subscription plans");
+                return StatusCode(500, new { Error = "Failed to clean subscription plans", Details = ex.Message });
             }
         }
 
@@ -286,6 +322,27 @@ namespace DrHan.Controllers
             {
                 _logger.LogError(ex, "Failed to reset recipe data");
                 return StatusCode(500, new { Error = "Failed to reset recipe data", Details = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Resets subscription plan data (cleans and reseeds subscription plans)
+        /// </summary>
+        [HttpPost("reset/subscriptions")]
+        public async Task<IActionResult> ResetSubscriptionPlans()
+        {
+            try
+            {
+                await _dataManagementService.ResetSubscriptionPlansAsync();
+                return Ok(new { 
+                    Message = "Subscription plans reset successfully",
+                    Timestamp = DateTime.UtcNow 
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to reset subscription plans");
+                return StatusCode(500, new { Error = "Failed to reset subscription plans", Details = ex.Message });
             }
         }
 

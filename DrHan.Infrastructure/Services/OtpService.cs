@@ -129,7 +129,7 @@ public class OtpService : IOtpService
             .Where(o => o.ExpiresAt < DateTime.UtcNow || o.IsUsed)
             .ToListAsync();
 
-        _context.UserOtps.RemoveRange(expiredOtps);
+        //_context.UserOtps.RemoveRange(expiredOtps);
         await _context.SaveChangesAsync();
     }
 

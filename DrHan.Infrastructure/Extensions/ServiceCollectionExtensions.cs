@@ -3,6 +3,8 @@ using DrHan.Infrastructure.ExternalServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using DrHan.Infrastructure.Services;
+using DrHan.Application.DTOs.Payment;
+using Net.payOS;
 namespace DrHan.Infrastructure.Extensions;
 
 public static class ServiceCollectionExtensions
@@ -12,7 +14,7 @@ public static class ServiceCollectionExtensions
         // HTTP Clients
         services.AddHttpClient<IGeminiRecipeService, GeminiRecipeService>(client =>
         {
-            client.Timeout = TimeSpan.FromMinutes(2); // Set timeout for Gemini API calls
+            client.Timeout = TimeSpan.FromMinutes(2); 
             client.DefaultRequestHeaders.Add("User-Agent", "DrHan-Recipe-App/1.0");
         });
         
@@ -27,8 +29,40 @@ public static class ServiceCollectionExtensions
         services.AddHostedService<OtpCleanupService>();
         
         // Payment Services
-        services.AddScoped<IPayOSService, PayOSService>();
+        //services.AddScoped<IPayOSService, PayOSService>();
+        
+        // Subscription Service
+        services.AddScoped<ISubscriptionService, SubscriptionService>();
+        services.AddHostedService<SubscriptionExpiryService>();
         
         // Ingredient Service
+    }
+    public static IServiceCollection AddPayOSService(this IServiceCollection services, IConfiguration configuration)
+    {
+        // Configure PayOS settings
+        services.Configure<PayOSConfiguration>(configuration.GetSection("PayOS"));
+
+        // Register HttpClient for PayOS with proper configuration
+        services.AddHttpClient("PayOS", client =>
+        {
+            var payOSConfig = configuration.GetSection("PayOS").Get<PayOSConfiguration>();
+            if (payOSConfig != null)
+            {
+                client.BaseAddress = new Uri(payOSConfig.BaseUrl);
+                client.DefaultRequestHeaders.Add("x-client-id", payOSConfig.ClientId);
+                client.DefaultRequestHeaders.Add("x-api-key", payOSConfig.ApiKey);
+            }
+        });
+        var payOSConfig = configuration.GetSection("PayOS").Get<PayOSConfiguration>();
+
+        PayOS payOS = new PayOS(payOSConfig.ClientId ?? throw new Exception("Cannot find environment"),
+                    payOSConfig.ApiKey ?? throw new Exception("Cannot find environment"),
+                    payOSConfig.ChecksumKey ?? throw new Exception("Cannot find environment"));
+
+        // Register the service
+        services.AddScoped<IPayOSService, PayOSService>();
+        services.AddSingleton(payOS);
+
+        return services;
     }
 } 

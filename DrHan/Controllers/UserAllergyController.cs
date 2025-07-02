@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using MediatR;
 using DrHan.Application.Services.UserAllergyServices.Commands.AddUserAllergy;
+using DrHan.Application.Services.UserAllergyServices.Commands.AddMultipleUserAllergies;
 using DrHan.Application.Services.UserAllergyServices.Commands.RemoveUserAllergy;
 using DrHan.Application.Services.UserAllergyServices.Commands.UpdateUserAllergy;
 using DrHan.Application.Services.UserAllergyServices.Queries.GetUserAllergyProfile;
@@ -82,30 +83,30 @@ public class UserAllergyController : ControllerBase
     /// <summary>
     /// Get current user's allergies
     /// </summary>
-    //[HttpGet]
-    //[Authorize]
-    //public async Task<IActionResult> GetMyAllergies()
-    //{
-    //    try
-    //    {
-    //        var userId = _userContext.GetCurrentUserId();
-    //        if (userId == null)
-    //            return Unauthorized("User ID not found in token");
+    [HttpGet]
+    [Authorize]
+    public async Task<IActionResult> GetMyAllergies()
+    {
+        try
+        {
+            var userId = _userContext.GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized("User ID not found in token");
 
-    //        var query = new GetUserAllergiesQuery { UserId = userId.Value };
-    //        var response = await _mediator.Send(query);
+            var query = new GetUserAllergiesQuery { UserId = userId.Value };
+            var response = await _mediator.Send(query);
             
-    //        if (!response.IsSucceeded)
-    //            return BadRequest(response);
+            if (!response.IsSucceeded)
+                return BadRequest(response);
                 
-    //        return Ok(response);
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        _logger.LogError(ex, "Error retrieving user allergies");
-    //        return StatusCode(500, "An error occurred while retrieving allergies");
-    //    }
-    //}
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving user allergies");
+            return StatusCode(500, "An error occurred while retrieving allergies");
+        }
+    }
 
     /// <summary>
     /// Add an allergy to current user's profile
@@ -148,6 +149,49 @@ public class UserAllergyController : ControllerBase
         {
             _logger.LogError(ex, "Error adding user allergy");
             return StatusCode(500, "An error occurred while adding the allergy");
+        }
+    }
+
+    /// <summary>
+    /// Add multiple allergies to current user's profile at once
+    /// </summary>
+    [HttpPost("bulk")]
+    [Authorize]
+    public async Task<IActionResult> AddMultipleAllergies([FromBody] CreateMultipleUserAllergiesDto createMultipleAllergiesDto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userId = _userContext.GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized("User ID not found in token");
+
+            var command = new AddMultipleUserAllergiesCommand
+            {
+                UserId = userId.Value,
+                AllergenIds = createMultipleAllergiesDto.AllergenIds,
+                Severity = createMultipleAllergiesDto.Severity,
+                DiagnosisDate = createMultipleAllergiesDto.DiagnosisDate,
+                DiagnosedBy = createMultipleAllergiesDto.DiagnosedBy,
+                LastReactionDate = createMultipleAllergiesDto.LastReactionDate,
+                AvoidanceNotes = createMultipleAllergiesDto.AvoidanceNotes,
+                Outgrown = createMultipleAllergiesDto.Outgrown,
+                OutgrownDate = createMultipleAllergiesDto.OutgrownDate,
+                NeedsVerification = createMultipleAllergiesDto.NeedsVerification
+            };
+            
+            var response = await _mediator.Send(command);
+            
+            // For bulk operations, we return 200 OK even with partial failures
+            // The response contains details about successes and failures
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding multiple user allergies");
+            return StatusCode(500, "An error occurred while adding multiple allergies");
         }
     }
 
@@ -246,9 +290,42 @@ public class UserAllergyController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Check if current user has any allergies
+    /// </summary>
+    [HttpGet("has-allergies")]
+    [Authorize]
+    public async Task<IActionResult> HasAllergies()
+    {
+        try
+        {
+            var userId = _userContext.GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized("User ID not found in token");
+
+            var query = new GetUserAllergiesQuery { UserId = userId.Value };
+            var response = await _mediator.Send(query);
+            
+            if (!response.IsSucceeded)
+                return BadRequest(response);
+
+            var hasAllergies = response.Data?.Any() == true;
+            
+            return Ok(new HasAllergiesResponseDto
+            {
+                HasAllergies = hasAllergies,
+                AllergyCount = response.Data?.Count() ?? 0
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking if user has allergies");
+            return StatusCode(500, "An error occurred while checking allergies");
+        }
+    }
+
     // TODO: Implement additional CQRS commands and queries for the following endpoints:
     // - GetUserAllergyById
-    // - HasAllergy
     // - GetSevereAllergies
     // - GetOutgrownAllergies
 } 

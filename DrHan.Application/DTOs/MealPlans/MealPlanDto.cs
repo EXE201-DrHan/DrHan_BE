@@ -52,8 +52,6 @@ public class MealPlanPreferencesDto
     public List<string> CuisineTypes { get; set; } = new(); // "Italian", "Asian", "Mexican"
     public int? MaxCookingTime { get; set; } // in minutes
     public string BudgetRange { get; set; } // "low", "medium", "high"
-    public List<string> DietaryGoals { get; set; } = new(); // "balanced", "protein-rich", "low-carb"
-    public string MealComplexity { get; set; } // "simple", "moderate", "complex"
     public List<string> PreferredMealTypes { get; set; } = new(); // "breakfast", "lunch", "dinner", "snack"
     public bool IncludeLeftovers { get; set; } = true;
     public bool VarietyMode { get; set; } = true; // Ensure meal variety
@@ -133,8 +131,6 @@ public class SmartGenerationOptionsDto
 {
     public List<string> AvailableCuisineTypes { get; set; } = new();
     public List<string> BudgetRangeOptions { get; set; } = new();
-    public List<string> DietaryGoalOptions { get; set; } = new();
-    public List<string> MealComplexityOptions { get; set; } = new();
     public List<string> MealTypeOptions { get; set; } = new();
     public List<string> PlanTypeOptions { get; set; } = new();
     public List<string> FillPatternOptions { get; set; } = new();

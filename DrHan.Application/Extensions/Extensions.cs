@@ -1,4 +1,6 @@
-﻿using DrHan.Application.Interfaces.Services.CacheService;
+﻿using DrHan.Application.DTOs.Payment;
+using DrHan.Application.Interfaces.Services;
+using DrHan.Application.Interfaces.Services.CacheService;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.Extensions.Configuration;
@@ -13,6 +15,7 @@ using System.Threading.Tasks;
 
 namespace DrHan.Application.Extensions
 {
+
     public static partial class ServiceCollectionExtensions
     {
         public static void AddApplications(this IServiceCollection services, IConfiguration configuration)
@@ -34,5 +37,6 @@ namespace DrHan.Application.Extensions
 
             // Services are automatically registered by MediatR through assembly scanning
         }
+        
     }
 }

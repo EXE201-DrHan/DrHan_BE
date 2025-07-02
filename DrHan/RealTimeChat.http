@@ -1,0 +1,398 @@
+# DrHan Real-Time Chatbot Testing Examples
+
+### Base Configuration
+@baseUrl = https://localhost:7153
+@authToken = Bearer your-jwt-token-here
+
+### WebSocket Connection URL for SignalR
+# ws://localhost:7153/chat-hub
+# wss://localhost:7153/chat-hub (for HTTPS)
+
+### 1. Basic SignalR Connection Test (JavaScript)
+/*
+import * as signalR from "@microsoft/signalr";
+
+const connection = new signalR.HubConnectionBuilder()
+    .withUrl("{{baseUrl}}/chat-hub", {
+        accessTokenFactory: () => "your-jwt-token"
+    })
+    .withAutomaticReconnect()
+    .build();
+
+await connection.start();
+console.log("Connected to ChatHub");
+*/
+
+### 2. Join Conversation Test
+/*
+await connection.invoke("JoinConversation", "test-conversation-123");
+*/
+
+### 3. Send Basic Message
+/*
+const request = {
+    message: "Xin chào DrHan AI!",
+    conversationId: "test-conversation-123",
+    language: "vi",
+    category: "general",
+    enableStreaming: true
+};
+
+await connection.invoke("SendMessage", request);
+*/
+
+### 4. Send Allergy Question
+/*
+const allergyRequest = {
+    message: "Tôi bị dị ứng sữa và trứng. Có món nào phù hợp không?",
+    conversationId: "test-conversation-123",
+    language: "vi",
+    category: "allergy",
+    enableStreaming: true
+};
+
+await connection.invoke("SendMessage", allergyRequest);
+*/
+
+### 5. Emergency Message Test
+/*
+const emergencyRequest = {
+    message: "Tôi đang bị khó thở và sưng môi sau khi ăn đậu phộng",
+    conversationId: "test-conversation-123",
+    language: "vi",
+    category: "allergy",
+    enableStreaming: true
+};
+
+await connection.invoke("SendMessage", emergencyRequest);
+*/
+
+### 6. Typing Indicator Test
+/*
+// Start typing
+await connection.invoke("SendTypingIndicator", {
+    conversationId: "test-conversation-123",
+    isTyping: true
+});
+
+// Stop typing after 3 seconds
+setTimeout(async () => {
+    await connection.invoke("SendTypingIndicator", {
+        conversationId: "test-conversation-123",
+        isTyping: false
+    });
+}, 3000);
+*/
+
+### 7. Event Listeners Setup
+/*
+// Listen for messages
+connection.on("MessageReceived", (message) => {
+    console.log("Received message:", message);
+});
+
+// Listen for typing indicators
+connection.on("TypingIndicator", (indicator) => {
+    console.log("Typing indicator:", indicator);
+});
+
+// Listen for errors
+connection.on("Error", (error) => {
+    console.error("Chat error:", error);
+});
+*/
+
+### 8. Get Online Users Test
+###
+/*
+await connection.invoke("GetOnlineUsers", "test-conversation-123");
+*/
+
+### 9. Get Message History Test
+###
+/*
+await connection.invoke("GetMessageHistory", "test-conversation-123", 50);
+*/
+
+### 10. Clear Conversation History Test
+###
+/*
+await connection.invoke("ClearConversationHistory", "test-conversation-123");
+*/
+
+### 11. Ping Test
+###
+/*
+await connection.invoke("Ping");
+*/
+
+### 12. Get Connection Info Test
+###
+/*
+await connection.invoke("GetConnectionInfo");
+*/
+
+### 13. Leave Conversation Test
+###
+/*
+await connection.invoke("LeaveConversation", "test-conversation-123");
+*/
+
+### 14. Complete Chat Flow Test
+###
+/*
+async function testCompleteFlow() {
+    try {
+        // 1. Connect
+        await connection.start();
+        console.log("✓ Connected to ChatHub");
+        
+        // 2. Join conversation
+        const conversationId = `test-${Date.now()}`;
+        await connection.invoke("JoinConversation", conversationId);
+        console.log("✓ Joined conversation");
+        
+        // 3. Send typing indicator
+        await connection.invoke("SendTypingIndicator", {
+            conversationId: conversationId,
+            isTyping: true
+        });
+        console.log("✓ Sent typing indicator");
+        
+        // 4. Send message
+        const request = {
+            message: "Tôi muốn biết về dị ứng thực phẩm",
+            conversationId: conversationId,
+            language: "vi",
+            category: "allergy",
+            enableStreaming: true
+        };
+        
+        await connection.invoke("SendMessage", request);
+        console.log("✓ Sent message");
+        
+        // 5. Stop typing
+        await connection.invoke("SendTypingIndicator", {
+            conversationId: conversationId,
+            isTyping: false
+        });
+        console.log("✓ Stopped typing");
+        
+        // 6. Get history after a delay
+        setTimeout(async () => {
+            await connection.invoke("GetMessageHistory", conversationId, 10);
+            console.log("✓ Retrieved history");
+        }, 5000);
+        
+    } catch (error) {
+        console.error("❌ Test failed:", error);
+    }
+}
+
+// Run the test
+testCompleteFlow();
+*/
+
+### 15. Load Testing Simulation
+###
+/*
+async function loadTest() {
+    const connections = [];
+    const numConnections = 10;
+    
+    for (let i = 0; i < numConnections; i++) {
+        const conn = new signalR.HubConnectionBuilder()
+            .withUrl("{{baseUrl}}/chat-hub", {
+                accessTokenFactory: () => "your-jwt-token"
+            })
+            .withAutomaticReconnect()
+            .build();
+            
+        await conn.start();
+        connections.push(conn);
+        
+        // Join same conversation
+        await conn.invoke("JoinConversation", "load-test-room");
+        
+        // Send messages at intervals
+        setInterval(async () => {
+            try {
+                await conn.invoke("SendMessage", {
+                    message: `Test message from connection ${i}`,
+                    conversationId: "load-test-room",
+                    language: "vi",
+                    category: "general",
+                    enableStreaming: true
+                });
+            } catch (error) {
+                console.error(`Connection ${i} error:`, error);
+            }
+        }, 2000 + Math.random() * 3000);
+    }
+    
+    console.log(`Load test started with ${numConnections} connections`);
+}
+*/
+
+### 16. Error Handling Test
+###
+/*
+async function testErrorHandling() {
+    try {
+        // Test invalid message
+        await connection.invoke("SendMessage", {
+            message: "",
+            conversationId: "test-conv",
+            language: "vi",
+            category: "general",
+            enableStreaming: true
+        });
+    } catch (error) {
+        console.log("✓ Caught invalid message error:", error);
+    }
+    
+    try {
+        // Test invalid conversation ID
+        await connection.invoke("JoinConversation", "");
+    } catch (error) {
+        console.log("✓ Caught invalid conversation error:", error);
+    }
+}
+*/
+
+### 17. Multiple Conversation Test
+###
+/*
+async function testMultipleConversations() {
+    const conversations = ["conv1", "conv2", "conv3"];
+    
+    for (const convId of conversations) {
+        await connection.invoke("JoinConversation", convId);
+        
+        await connection.invoke("SendMessage", {
+            message: `Hello from ${convId}`,
+            conversationId: convId,
+            language: "vi",
+            category: "general",
+            enableStreaming: true
+        });
+        
+        // Small delay between conversations
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+}
+*/
+
+### 18. Reconnection Test
+###
+/*
+async function testReconnection() {
+    // Force disconnect
+    await connection.stop();
+    console.log("Connection stopped");
+    
+    // Wait and reconnect
+    setTimeout(async () => {
+        await connection.start();
+        console.log("Reconnected successfully");
+        
+        // Rejoin conversation
+        await connection.invoke("JoinConversation", "reconnect-test");
+    }, 3000);
+}
+*/
+
+### Browser Console Testing Template
+###
+/*
+// Complete browser console test template
+(async function() {
+    // Load SignalR library if not available
+    if (typeof signalR === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/@microsoft/signalr@latest/dist/browser/signalr.min.js';
+        document.head.appendChild(script);
+        await new Promise(resolve => script.onload = resolve);
+    }
+    
+    // Create connection
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/chat-hub", {
+            accessTokenFactory: () => localStorage.getItem('authToken') || ''
+        })
+        .withAutomaticReconnect()
+        .configureLogging(signalR.LogLevel.Information)
+        .build();
+    
+    // Set up event listeners
+    connection.on("MessageReceived", (message) => {
+        console.log("📨 Message received:", message);
+    });
+    
+    connection.on("TypingIndicator", (indicator) => {
+        console.log("⌨️ Typing:", indicator);
+    });
+    
+    connection.on("Error", (error) => {
+        console.error("❌ Error:", error);
+    });
+    
+    // Connect and test
+    try {
+        await connection.start();
+        console.log("✅ Connected to DrHan ChatHub");
+        
+        // Make connection available globally
+        window.chatConnection = connection;
+        
+        // Test basic functionality
+        const testConv = `test-${Date.now()}`;
+        await connection.invoke("JoinConversation", testConv);
+        console.log("✅ Joined test conversation:", testConv);
+        
+        // Send test message
+        await connection.invoke("SendMessage", {
+            message: "Hello from browser console!",
+            conversationId: testConv,
+            language: "vi",
+            category: "general",
+            enableStreaming: true
+        });
+        console.log("✅ Sent test message");
+        
+        console.log("🎉 Real-time chat is working! Use window.chatConnection for further testing.");
+        
+    } catch (error) {
+        console.error("❌ Connection failed:", error);
+    }
+})();
+*/
+
+### Authentication Test Notes
+###
+# For testing with authentication:
+# 1. Get JWT token from login endpoint
+# 2. Include token in accessTokenFactory
+# 3. Test with different user roles
+# 4. Verify authorization on hub methods
+
+### Performance Testing Notes
+###
+# Monitor these metrics during testing:
+# - Connection establishment time
+# - Message latency
+# - Streaming response time
+# - Memory usage
+# - CPU usage
+# - Network bandwidth
+
+### Production Checklist
+###
+# Before deploying to production:
+# ✓ Enable HTTPS/WSS
+# ✓ Configure proper CORS
+# ✓ Set up load balancer with sticky sessions
+# ✓ Configure Redis backplane for scale-out
+# ✓ Set up monitoring and alerting
+# ✓ Test failover scenarios
+# ✓ Verify security configurations 

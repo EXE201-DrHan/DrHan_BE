@@ -1,8 +1,8 @@
 ### PayOS Payment API Tests
 
 ### Variables
-@baseUrl = https://localhost:7123
-@token = your-jwt-token-here
+@baseUrl = https://localhost:7087
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0OCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImN1c3RvbWVyMUBleGFtcGxlLmNvbSIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkN1c3RvbWVyIiwiYXVkIjoiY2xpZW50LWFwcCIsImlzcyI6InRoaXMtYXBwIiwiZXhwIjoxNzUxNDI0OTE0LCJpYXQiOjE3NTE0MjM3MTQsIm5iZiI6MTc1MTQyMzcxNH0.mio4wfwKYKBab_BXyAbrH5bUeL0aWnD_bD2Rlvgykh4
 
 ### 1. Create Payment
 POST {{baseUrl}}/api/payment/create

@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using DrHan.Application.Commons;
 using DrHan.Application.DTOs.MealPlans;
 using DrHan.Application.DTOs.Recipes;
@@ -22,7 +22,6 @@ public class SmartMealPlanService : ISmartMealPlanService
     private readonly ICacheService _cacheService;
     private readonly ICacheKeyService _cacheKeyService;
 
-    // Meal type distribution weights for smart planning
     private readonly Dictionary<string, double> _mealTypeWeights = new()
     {
         { "Breakfast", 0.20 }, // Light, quick meals
@@ -31,7 +30,6 @@ public class SmartMealPlanService : ISmartMealPlanService
         { "Snack", 0.10 }      // Light, healthy options
     };
 
-    // Cache expiration settings
     private static readonly TimeSpan UserAllergiesCacheExpiration = TimeSpan.FromHours(2);
     private static readonly TimeSpan RecipeFilterCacheExpiration = TimeSpan.FromMinutes(30);
     private static readonly TimeSpan TemplatesCacheExpiration = TimeSpan.FromHours(6);
@@ -56,7 +54,6 @@ public class SmartMealPlanService : ISmartMealPlanService
 
         try
         {
-            // Validate meal plan type and FamilyId relationship
             if (request.PlanType?.ToLower() == "personal")
             {
                 if (request.FamilyId.HasValue)
@@ -72,7 +69,6 @@ public class SmartMealPlanService : ISmartMealPlanService
                 }
             }
 
-            // Validate FamilyId if provided
             if (request.FamilyId.HasValue)
             {
                 var familyExists = await _unitOfWork.Repository<DrHan.Domain.Entities.Families.Family>()
@@ -84,7 +80,6 @@ public class SmartMealPlanService : ISmartMealPlanService
                 }
             }
 
-            // 1. Create the meal plan
             var mealPlan = new MealPlan
             {
                 UserId = userId,
@@ -99,29 +94,50 @@ public class SmartMealPlanService : ISmartMealPlanService
             await _unitOfWork.Repository<MealPlan>().AddAsync(mealPlan);
             await _unitOfWork.CompleteAsync();
 
-            // 2. Get user allergies and preferences
             var userAllergies = await GetUserAllergiesAsync(userId);
             
-            // 3. Generate meal entries for each day (OPTIMIZED)
             var totalDays = (request.EndDate.ToDateTime(TimeOnly.MinValue) - request.StartDate.ToDateTime(TimeOnly.MinValue)).Days + 1;
             var targetDates = GetDateRange(request.StartDate, request.EndDate);
             
-            // Determine meal types to generate
             var mealTypes = request.Preferences?.PreferredMealTypes?.Any() == true 
                 ? request.Preferences.PreferredMealTypes 
-                : new List<string> { "Breakfast", "Lunch", "Dinner" };
+                : new List<string> { "Sáng", "Trưa", "Chiều" };
 
-            // PRE-FETCH ALL RECIPES FOR ALL MEAL TYPES (PERFORMANCE OPTIMIZATION)
             var recipesByMealType = new Dictionary<string, List<Recipe>>();
+            var missingCuisines = new List<string>();
+            var missingMealTypes = new List<string>();
+            
             foreach (var mealType in mealTypes)
             {
                 var recipes = await FilterRecipesByPreferencesAsync(request.Preferences, userAllergies, mealType);
                 recipesByMealType[mealType] = recipes;
+                
+                if (!recipes.Any())
+                {
+                    missingMealTypes.Add(mealType);
+                }
+            }
+
+            // Check if no recipes found for any meal type
+            if (recipesByMealType.Values.All(recipes => !recipes.Any()))
+            {
+                // Delete the empty meal plan since we can't populate it
+                _unitOfWork.Repository<MealPlan>().Delete(mealPlan);
+                await _unitOfWork.CompleteAsync();
+
+                var errorMessage = BuildNoRecipesErrorMessage(request.Preferences, missingCuisines, missingMealTypes);
+                return response.SetErrorResponse("NoRecipesFound", errorMessage);
+            }
+
+            if (missingMealTypes.Any())
+            {
+                _logger.LogWarning("No recipes found for meal types: {MissingMealTypes} with preferences: {Preferences}", 
+                    string.Join(", ", missingMealTypes), 
+                    System.Text.Json.JsonSerializer.Serialize(request.Preferences));
             }
 
             var mealEntries = new List<MealPlanEntry>();
 
-            // BATCH GENERATE ALL MEALS (PERFORMANCE OPTIMIZATION)
             foreach (var date in targetDates)
             {
                 foreach (var mealType in mealTypes)
@@ -142,14 +158,12 @@ public class SmartMealPlanService : ISmartMealPlanService
                 }
             }
 
-            // 4. BATCH SAVE ALL MEAL ENTRIES (PERFORMANCE OPTIMIZATION)
             if (mealEntries.Any())
             {
                 await _unitOfWork.Repository<MealPlanEntry>().AddRangeAsync(mealEntries);
             }
             await _unitOfWork.CompleteAsync();
 
-            // 5. BUILD RESULT FROM MEMORY (AVOID EXTRA QUERY)
             mealPlan.MealPlanEntries = mealEntries;
             var mealPlanDto = _mapper.Map<MealPlanDto>(mealPlan);
 
@@ -175,6 +189,12 @@ public class SmartMealPlanService : ISmartMealPlanService
             var userAllergies = await GetUserAllergiesAsync(userId);
             var recipes = await FilterRecipesByPreferencesAsync(preferences, userAllergies, mealType);
             
+            if (!recipes.Any())
+            {
+                var errorMessage = BuildNoRecipesErrorMessage(preferences, new List<string>(), new List<string> { mealType });
+                return response.SetErrorResponse("NoRecipesFound", errorMessage);
+            }
+            
             var recipeIds = recipes.Select(r => r.Id).ToList();
             return response.SetSuccessResponse(recipeIds, "Success", $"Found {recipeIds.Count} recommended recipes");
         }
@@ -191,7 +211,6 @@ public class SmartMealPlanService : ISmartMealPlanService
 
         try
         {
-            // Get the existing meal plan
             var mealPlan = await _unitOfWork.Repository<MealPlan>()
                 .ListAsync(
                     filter: mp => mp.Id == mealPlanId && mp.UserId == userId,
@@ -204,42 +223,54 @@ public class SmartMealPlanService : ISmartMealPlanService
                 return response.SetErrorResponse("NotFound", "Meal plan not found or access denied");
             }
 
-            // Get user allergies and preferences
             var userAllergies = await GetUserAllergiesAsync(userId);
             
-            // Determine target dates
             var targetDates = request.TargetDates.Any() 
                 ? request.TargetDates 
                 : GetDateRange(existingMealPlan.StartDate, existingMealPlan.EndDate);
 
-            // Determine meal types to generate
             var mealTypes = request.MealTypes.Any() 
                 ? request.MealTypes 
                 : (request.Preferences?.PreferredMealTypes?.Any() == true 
                     ? request.Preferences.PreferredMealTypes 
                     : new List<string> { "Breakfast", "Lunch", "Dinner" });
 
-            // PRE-FETCH ALL RECIPES FOR ALL MEAL TYPES (PERFORMANCE OPTIMIZATION)
             var recipesByMealType = new Dictionary<string, List<Recipe>>();
+            var missingMealTypes = new List<string>();
+            
             foreach (var mealType in mealTypes)
             {
                 var recipes = await FilterRecipesByPreferencesAsync(request.Preferences, userAllergies, mealType);
                 recipesByMealType[mealType] = recipes;
+                
+                if (!recipes.Any())
+                {
+                    missingMealTypes.Add(mealType);
+                }
+            }
+
+            if (recipesByMealType.Values.All(recipes => !recipes.Any()))
+            {
+                var errorMessage = BuildNoRecipesErrorMessage(request.Preferences, new List<string>(), missingMealTypes);
+                return response.SetErrorResponse("NoRecipesFound", errorMessage);
+            }
+
+            if (missingMealTypes.Any())
+            {
+                _logger.LogWarning("No recipes found for meal types: {MissingMealTypes} in existing meal plan generation", 
+                    string.Join(", ", missingMealTypes));
             }
 
             var generatedMeals = new List<MealPlanEntry>();
             var mealsToDelete = new List<MealPlanEntry>();
 
-            // PROCESS ALL MEALS IN MEMORY FIRST (BATCH PROCESSING)
             foreach (var date in targetDates)
             {
                 foreach (var mealType in mealTypes)
                 {
-                    // Check if meal already exists for this date and type
                     var existingMeal = existingMealPlan.MealPlanEntries
                         .FirstOrDefault(me => me.MealDate == date && me.MealType.Equals(mealType, StringComparison.OrdinalIgnoreCase));
 
-                    // Skip if meal exists and we're not replacing, or if it's marked as favorite and we preserve favorites
                     if (existingMeal != null)
                     {
                         if (!request.ReplaceExisting)
@@ -254,11 +285,9 @@ public class SmartMealPlanService : ISmartMealPlanService
                             continue;
                         }
 
-                        // Mark for deletion
                         mealsToDelete.Add(existingMeal);
                     }
 
-                    // Generate new meal using pre-fetched recipes
                     if (recipesByMealType.ContainsKey(mealType) && recipesByMealType[mealType].Any())
                     {
                         var selectedRecipe = SelectRandomRecipe(recipesByMealType[mealType]);
@@ -277,7 +306,6 @@ public class SmartMealPlanService : ISmartMealPlanService
                 }
             }
 
-            // BATCH DATABASE OPERATIONS (PERFORMANCE OPTIMIZATION)
             if (mealsToDelete.Any())
             {
                 _unitOfWork.Repository<MealPlanEntry>().DeleteRange(mealsToDelete);
@@ -316,7 +344,6 @@ public class SmartMealPlanService : ISmartMealPlanService
 
     public async Task<AppResponse<MealPlanDto>> ApplyTemplateAsync(int templateId, CreateMealPlanDto mealPlan, int userId)
     {
-        // Template implementation would go here
         var response = new AppResponse<MealPlanDto>();
         return response.SetErrorResponse("NotImplemented", "Template functionality not yet implemented");
     }
@@ -327,7 +354,6 @@ public class SmartMealPlanService : ISmartMealPlanService
 
         try
         {
-            // Verify meal plan ownership
             var mealPlan = await _unitOfWork.Repository<MealPlan>()
                 .GetEntityByIdAsync(request.MealPlanId);
 
@@ -359,7 +385,6 @@ public class SmartMealPlanService : ISmartMealPlanService
             }
             await _unitOfWork.CompleteAsync();
 
-            // Invalidate meal plan cache after bulk operations
             await InvalidateMealPlanCacheAsync(request.MealPlanId, userId);
 
             _logger.LogInformation("Bulk filled {Count} meals for meal plan {MealPlanId}", 
@@ -382,15 +407,12 @@ public class SmartMealPlanService : ISmartMealPlanService
         {
             var cacheKey = _cacheKeyService.Custom("templates", "all");
             
-            // Try to get from cache first
             var cachedTemplates = await _cacheService.GetAsync<List<MealPlanTemplateDto>>(cacheKey);
             if (cachedTemplates != null)
             {
                 return response.SetSuccessResponse(cachedTemplates);
             }
 
-            // For now, return some predefined templates
-            // In the future, these could be stored in the database
             var templates = new List<MealPlanTemplateDto>
             {
                 new()
@@ -429,28 +451,35 @@ public class SmartMealPlanService : ISmartMealPlanService
         {
             var cacheKey = _cacheKeyService.Custom("smart-generation", "options");
             
-            // Try to get from cache first
             var cachedOptions = await _cacheService.GetAsync<SmartGenerationOptionsDto>(cacheKey);
             if (cachedOptions != null)
             {
                 return response.SetSuccessResponse(cachedOptions);
             }
 
-            // Build the available options
+            var recipes = await _unitOfWork.Repository<Recipe>().ListAsync();
+
             var options = new SmartGenerationOptionsDto
             {
-                AvailableCuisineTypes = new List<string>
-                {
-                    "Italian", "Asian", "Mediterranean", "Mexican", "American", 
-                    "French", "Thai", "Indian", "Chinese", "Japanese", 
-                    "Korean", "Vietnamese", "Greek", "Spanish", "Middle Eastern"
-                },
+                AvailableCuisineTypes = recipes
+                    .Where(r => !string.IsNullOrEmpty(r.CuisineType))
+                    .Select(r => r.CuisineType)
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToList(),
+                    
+                MealTypeOptions = recipes
+                    .Where(r => !string.IsNullOrEmpty(r.MealType))
+                    .Select(r => r.MealType)
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToList(),
+
+                // Business logic options (hardcoded)
                 BudgetRangeOptions = new List<string> { "low", "medium", "high" },
-                DietaryGoalOptions = new List<string> { "balanced", "protein-rich", "low-carb", "high-fiber", "low-sodium" },
-                MealComplexityOptions = new List<string> { "simple", "moderate", "complex" },
-                MealTypeOptions = new List<string> { "breakfast", "lunch", "dinner", "snack" },
-                PlanTypeOptions = new List<string> { "Personal", "Family", "Weekly", "Monthly" },
+                PlanTypeOptions = new List<string> { "Personal", "Family"},
                 FillPatternOptions = new List<string> { "rotate", "random", "same" },
+                
                 CookingTimeRange = new CookingTimeRangeDto
                 {
                     MinCookingTime = 5,
@@ -458,19 +487,12 @@ public class SmartMealPlanService : ISmartMealPlanService
                     DefaultMaxCookingTime = 45,
                     RecommendedTimeRanges = new List<int> { 15, 30, 45, 60, 90 }
                 },
+                
                 OptionDescriptions = new Dictionary<string, string>
                 {
                     ["budgetRange.low"] = "Budget-friendly recipes with affordable ingredients",
                     ["budgetRange.medium"] = "Balanced cost recipes with quality ingredients",
                     ["budgetRange.high"] = "Premium recipes with high-quality or specialty ingredients",
-                    ["mealComplexity.simple"] = "Easy recipes with minimal prep and cooking steps",
-                    ["mealComplexity.moderate"] = "Recipes with moderate prep time and cooking techniques",
-                    ["mealComplexity.complex"] = "Advanced recipes requiring more time and cooking skills",
-                    ["dietaryGoals.balanced"] = "Well-rounded meals with balanced macronutrients",
-                    ["dietaryGoals.protein-rich"] = "High-protein meals for muscle building and satiety",
-                    ["dietaryGoals.low-carb"] = "Low-carbohydrate meals for weight management",
-                    ["dietaryGoals.high-fiber"] = "High-fiber meals for digestive health",
-                    ["dietaryGoals.low-sodium"] = "Low-sodium meals for heart health",
                     ["fillPattern.rotate"] = "Cycle through recipes in order across dates",
                     ["fillPattern.random"] = "Randomly select from available recipes",
                     ["fillPattern.same"] = "Use the same recipe for all selected slots",
@@ -481,8 +503,7 @@ public class SmartMealPlanService : ISmartMealPlanService
                 }
             };
 
-            // Cache the result for 6 hours
-            await _cacheService.SetAsync(cacheKey, options, TimeSpan.FromHours(6));
+            await _cacheService.SetAsync(cacheKey, options, TimeSpan.FromMinutes(30));
 
             return response.SetSuccessResponse(options);
         }
@@ -493,7 +514,6 @@ public class SmartMealPlanService : ISmartMealPlanService
         }
     }
 
-    // PRIVATE METHODS WITH CACHING
 
     private async Task<List<int>> GetUserAllergiesAsync(int userId)
     {
@@ -501,7 +521,6 @@ public class SmartMealPlanService : ISmartMealPlanService
         {
             var cacheKey = _cacheKeyService.Custom("user", userId, "allergies");
             
-            // TRY CACHE FIRST, BUT DON'T BLOCK ON REDIS ISSUES
             try
             {
                 var cachedAllergies = await _cacheService.GetAsync<List<int>>(cacheKey);
@@ -524,7 +543,6 @@ public class SmartMealPlanService : ISmartMealPlanService
                 .Select(ua => ua.AllergenId.Value)
                 .ToList();
 
-            // CACHE RESULT ASYNCHRONOUSLY (DON'T BLOCK)
             _ = Task.Run(async () =>
             {
                 try
@@ -550,11 +568,9 @@ public class SmartMealPlanService : ISmartMealPlanService
     {
         try
         {
-            // Create cache key based on preferences and allergies
             var preferencesHash = GeneratePreferencesHash(preferences, userAllergies, mealType);
             var cacheKey = _cacheKeyService.Custom("recipes", "filtered", mealType, preferencesHash);
 
-            // TRY CACHE FIRST, BUT DON'T BLOCK ON REDIS ISSUES
             try
             {
                 var cachedRecipes = await _cacheService.GetAsync<List<Recipe>>(cacheKey);
@@ -583,7 +599,6 @@ public class SmartMealPlanService : ISmartMealPlanService
 
             var result = recipes.Take(recipeCount).ToList();
 
-            // CACHE RESULT ASYNCHRONOUSLY (DON'T BLOCK)
             _ = Task.Run(async () =>
             {
                 try
@@ -675,10 +690,8 @@ public class SmartMealPlanService : ISmartMealPlanService
 
     private string GeneratePreferencesHash(MealPlanPreferencesDto preferences, List<int> userAllergies, string mealType)
     {
-        // Create a simple hash based on key preference values
         var cuisineTypes = preferences?.CuisineTypes != null ? string.Join(",", preferences.CuisineTypes.OrderBy(x => x)) : "";
-        var dietaryGoals = preferences?.DietaryGoals != null ? string.Join(",", preferences.DietaryGoals.OrderBy(x => x)) : "";
-        var hashSource = $"{mealType}_{cuisineTypes}_{dietaryGoals}_{preferences?.MaxCookingTime}_{preferences?.BudgetRange}_{string.Join(",", userAllergies.OrderBy(x => x))}";
+        var hashSource = $"{mealType}_{cuisineTypes}_{preferences?.MaxCookingTime}_{preferences?.BudgetRange}_{string.Join(",", userAllergies.OrderBy(x => x))}";
         return hashSource.GetHashCode().ToString();
     }
 
@@ -707,5 +720,44 @@ public class SmartMealPlanService : ISmartMealPlanService
         {
             _logger.LogWarning(ex, "Failed to invalidate meal plan cache for meal plan {MealPlanId}", mealPlanId);
         }
+    }
+
+    private string BuildNoRecipesErrorMessage(MealPlanPreferencesDto preferences, List<string> missingCuisines, List<string> missingMealTypes)
+    {
+        var errorParts = new List<string>();
+        
+        if (preferences?.CuisineTypes?.Any() == true)
+        {
+            errorParts.Add($"No recipes found for requested cuisine types: {string.Join(", ", preferences.CuisineTypes)}");
+        }
+        
+        if (missingMealTypes.Any())
+        {
+            errorParts.Add($"No recipes available for meal types: {string.Join(", ", missingMealTypes)}");
+        }
+        
+        if (preferences?.MaxCookingTime.HasValue == true)
+        {
+            errorParts.Add($"with maximum cooking time of {preferences.MaxCookingTime} minutes");
+        }
+        
+        if (!string.IsNullOrEmpty(preferences?.BudgetRange))
+        {
+            errorParts.Add($"within '{preferences.BudgetRange}' budget range");
+        }
+
+        var baseMessage = errorParts.Any() 
+            ? string.Join(" ", errorParts) + ". "
+            : "No recipes found matching your preferences. ";
+
+        var suggestions = new List<string>
+        {
+            "Try using different cuisine types",
+            "increase the maximum cooking time",
+            "remove budget restrictions",
+            "or check available options from the smart generation options endpoint"
+        };
+
+        return baseMessage + "Suggestions: " + string.Join(", ", suggestions) + ".";
     }
 }

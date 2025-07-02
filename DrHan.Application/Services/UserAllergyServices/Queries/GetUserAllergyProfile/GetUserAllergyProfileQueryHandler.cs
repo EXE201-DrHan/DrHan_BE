@@ -36,6 +36,8 @@ public class GetUserAllergyProfileQueryHandler : IRequestHandler<GetUserAllergyP
 
             var allergiesDto = _mapper.Map<List<UserAllergyDto>>(userAllergies);
 
+
+
             var profile = new UserAllergyProfileDto
             {
                 UserId = request.UserId,

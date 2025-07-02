@@ -31,6 +31,7 @@ builder.Host.UseSerilog();
 try
 {
     builder.Services.AddInfrastructure(builder.Configuration);
+    builder.Services.AddPayOSService(builder.Configuration);
     builder.AddPresentation(builder.Configuration);
     builder.Services.AddApplications(builder.Configuration);
     
@@ -46,6 +47,15 @@ try
     }
     
     builder.Services.AddHangfireWithFallback(builder.Configuration);
+    
+    // Add SignalR for real-time chatbot
+    builder.Services.AddSignalR(options =>
+    {
+        options.EnableDetailedErrors = builder.Environment.IsDevelopment();
+        options.HandshakeTimeout = TimeSpan.FromSeconds(30);
+        options.KeepAliveInterval = TimeSpan.FromSeconds(15);
+        options.ClientTimeoutInterval = TimeSpan.FromSeconds(30);
+    });
 }
 catch (Exception ex)
 {
@@ -97,6 +107,9 @@ if (app.Environment.IsDevelopment())
 {
     app.UseHangfireDashboard("/hangfire");
 }
+
+// Map SignalR hubs for real-time chatbot
+app.MapHub<DrHan.Hubs.ChatHub>("/chat-hub");
 
 app.MapControllers();
 
