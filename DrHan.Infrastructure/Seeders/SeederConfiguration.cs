@@ -57,8 +57,8 @@ namespace DrHan.Infrastructure.Seeders
                     Id = dto.Id,
                     Name = dto.Name,
                     Description = dto.Description,
-                    CreateAt = DateTime.UtcNow,
-                    UpdateAt = DateTime.UtcNow
+                    CreateAt = DateTime.Now,
+                    UpdateAt = DateTime.Now
                 }).ToList() ?? new List<CrossReactivityGroup>());
             }
 
@@ -74,8 +74,8 @@ namespace DrHan.Infrastructure.Seeders
                     Description = dto.Description,
                     IsFdaMajor = dto.IsFdaMajor,
                     IsEuMajor = dto.IsEuMajor,
-                    CreateAt = DateTime.UtcNow,
-                    UpdateAt = DateTime.UtcNow
+                    CreateAt = DateTime.Now,
+                    UpdateAt = DateTime.Now
                 }).ToList() ?? new List<Allergen>());
             }
 
@@ -88,8 +88,8 @@ namespace DrHan.Infrastructure.Seeders
                     AllergenId = dto.AllergenId,
                     Name = dto.Name,
                     IsPrimary = dto.IsPrimary,
-                    CreateAt = DateTime.UtcNow,
-                    UpdateAt = DateTime.UtcNow
+                    CreateAt = DateTime.Now,
+                    UpdateAt = DateTime.Now
                 }).ToList() ?? new List<AllergenName>());
             }
 
@@ -101,8 +101,8 @@ namespace DrHan.Infrastructure.Seeders
                     Id = dto.Id,
                     AllergenId = dto.AllergenId,
                     GroupId = dto.GroupId,
-                    CreateAt = DateTime.UtcNow,
-                    UpdateAt = DateTime.UtcNow
+                    CreateAt = DateTime.Now,
+                    UpdateAt = DateTime.Now
                 }).ToList() ?? new List<AllergenCrossReactivity>());
             }
 
@@ -115,8 +115,8 @@ namespace DrHan.Infrastructure.Seeders
                     Name = dto.Name,
                     Category = dto.Category,
                     Description = dto.Description,
-                    CreateAt = DateTime.UtcNow,
-                    UpdateAt = DateTime.UtcNow
+                    CreateAt = DateTime.Now,
+                    UpdateAt = DateTime.Now
                 }).ToList() ?? new List<Ingredient>());
             }
 
@@ -129,8 +129,8 @@ namespace DrHan.Infrastructure.Seeders
                     IngredientId = dto.IngredientId,
                     Name = dto.Name,
                     IsPrimary = dto.IsPrimary,
-                    CreateAt = DateTime.UtcNow,
-                    UpdateAt = DateTime.UtcNow
+                    CreateAt = DateTime.Now,
+                    UpdateAt = DateTime.Now
                 }).ToList() ?? new List<IngredientName>());
             }
 
@@ -143,8 +143,8 @@ namespace DrHan.Infrastructure.Seeders
                     IngredientId = dto.IngredientId,
                     AllergenId = dto.AllergenId,
                     AllergenType = dto.AllergenType,
-                    CreateAt = DateTime.UtcNow,
-                    UpdateAt = DateTime.UtcNow
+                    CreateAt = DateTime.Now,
+                    UpdateAt = DateTime.Now
                 }).ToList() ?? new List<IngredientAllergen>());
             }
         }

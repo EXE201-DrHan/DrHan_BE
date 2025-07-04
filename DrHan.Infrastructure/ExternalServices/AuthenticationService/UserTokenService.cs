@@ -37,7 +37,7 @@ namespace DrHan.Infrastructure.ExternalServices.AuthenticationService
                         new Claim(ClaimTypes.Email, user.Email),
                         new Claim(ClaimTypes.Role, role),
                     ]),
-                Expires = DateTime.UtcNow.AddMinutes(configuration.GetValue<int>("JwtSettings:ExpirationInMinutes")),
+                Expires = DateTime.Now.AddMinutes(configuration.GetValue<int>("JwtSettings:ExpirationInMinutes")),
                 SigningCredentials = credentials,
                 Audience = jwtSettings["Audience"],
                 Issuer = jwtSettings["Issuer"]!,
@@ -67,7 +67,7 @@ namespace DrHan.Infrastructure.ExternalServices.AuthenticationService
                     {
                         { JwtRegisteredClaimNames.Sub, user.Id.ToString() }
                     },
-                Expires = DateTime.UtcNow.AddMinutes(configuration.GetValue<int>("JwtRefreshTokenSettings:ExpirationInMinutes")),
+                Expires = DateTime.Now.AddMinutes(configuration.GetValue<int>("JwtRefreshTokenSettings:ExpirationInMinutes")),
                 SigningCredentials = credentials,
                 Issuer = jwtSettings["Issuer"]!,
                 Audience = jwtSettings["Audience"]!,
@@ -87,7 +87,7 @@ namespace DrHan.Infrastructure.ExternalServices.AuthenticationService
             var expirationMinutes = jwtSettings.GetValue<int>("ExpirationInMinutes");
 
             // Return UTC time when the access token will expire
-            return DateTime.UtcNow.AddMinutes(expirationMinutes);
+            return DateTime.Now.AddMinutes(expirationMinutes);
         }
 
         public async Task<bool> ValidateRefreshToken(string userId, string refreshToken)

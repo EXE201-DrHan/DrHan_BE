@@ -47,7 +47,7 @@
 //        var expiredSubscriptions = await unitOfWork.Repository<UserSubscription>()
 //            .ListAsync(filter: s => s.Status == UserSubscriptionStatus.Active &&
 //                       s.EndDate.HasValue &&
-//                       s.EndDate <= DateTime.UtcNow);
+//                       s.EndDate <= DateTime.Now);
 
 //        if (expiredSubscriptions.Any())
 //        {
@@ -72,13 +72,13 @@
 
 //    private async Task CheckSubscriptionsExpiringSoon(IUnitOfWork unitOfWork)
 //    {
-//        var soonToExpireDate = DateTime.UtcNow.AddDays(7);
+//        var soonToExpireDate = DateTime.Now.AddDays(7);
         
 //        var subscriptionsExpiringSoon = await unitOfWork.Repository<UserSubscription>()
 //            .ListAsync(filter: s => s.Status == UserSubscriptionStatus.Active &&
 //                           s.EndDate.HasValue &&
 //                           s.EndDate <= soonToExpireDate &&
-//                           s.EndDate > DateTime.UtcNow);
+//                           s.EndDate > DateTime.Now);
 
 //        if (subscriptionsExpiringSoon.Any())
 //        {

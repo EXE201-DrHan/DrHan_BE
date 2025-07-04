@@ -117,7 +117,7 @@ namespace DrHan.Infrastructure.Seeders
                         BillingCycle = billingCycle,
                         UsageQuota = usageQuota,
                         IsActive = isActive,
-                        CreatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 30))
+                        CreatedAt = DateTime.Now.AddDays(-Random.Shared.Next(1, 30))
                     };
 
                     context.SubscriptionPlans.Add(plan);
@@ -132,7 +132,7 @@ namespace DrHan.Infrastructure.Seeders
                             FeatureName = featureName,
                             Description = featureDescription,
                             IsEnabled = isEnabled,
-                            CreatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 30))
+                            CreatedAt = DateTime.Now.AddDays(-Random.Shared.Next(1, 30))
                         };
 
                         context.PlanFeatures.Add(planFeature);

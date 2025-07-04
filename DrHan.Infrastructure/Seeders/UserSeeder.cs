@@ -25,10 +25,10 @@ namespace DrHan.Infrastructure.Seeders
             var users = new List<(string FullName, string Email, string UserName, string Role, DateTime? DateOfBirth, Gender Gender, string SubscriptionTier, string SubscriptionStatus, DateTime? SubscriptionExpiresAt, string PhoneNumber)>
             {
                 // Customers
-                ("Sarah Johnson", "customer1@example.com", "SarahCustomer", UserRoles.Customer, new DateTime(1985, 3, 15), Gender.Female, "Premium", "Active", DateTime.UtcNow.AddMonths(12), "+1234567890"),
-                ("Michael Chen", "customer2@example.com", "MichaelCustomer", UserRoles.Customer, new DateTime(1990, 7, 22), Gender.Male, "Basic", "Active", DateTime.UtcNow.AddMonths(1), "+1987654321"),
+                ("Sarah Johnson", "customer1@example.com", "SarahCustomer", UserRoles.Customer, new DateTime(1985, 3, 15), Gender.Female, "Premium", "Active", DateTime.Now.AddMonths(12), "+1234567890"),
+                ("Michael Chen", "customer2@example.com", "MichaelCustomer", UserRoles.Customer, new DateTime(1990, 7, 22), Gender.Male, "Basic", "Active", DateTime.Now.AddMonths(1), "+1987654321"),
                 ("Emma Davis", "customer3@example.com", "EmmaCustomer", UserRoles.Customer, new DateTime(1992, 11, 8), Gender.Female, "Free", "Active", null, "+1555123456"),
-                ("James Wilson", "customer4@example.com", "JamesCustomer", UserRoles.Customer, new DateTime(1988, 5, 3), Gender.Male, "Premium", "Expired", DateTime.UtcNow.AddDays(-30), "+1122334455"),
+                ("James Wilson", "customer4@example.com", "JamesCustomer", UserRoles.Customer, new DateTime(1988, 5, 3), Gender.Male, "Premium", "Expired", DateTime.Now.AddDays(-30), "+1122334455"),
                 
                 // Staff
                 ("Lisa Martinez", "staff1@example.com", "StaffLisa", UserRoles.Staff, new DateTime(1987, 12, 25), Gender.Female, null, null, null, "+1666777888"),
@@ -62,9 +62,9 @@ namespace DrHan.Infrastructure.Seeders
                         SubscriptionStatus = subscriptionStatus,
                         SubscriptionExpiresAt = subscriptionExpiresAt,
                         Status = UserStatus.Enabled,
-                        CreatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 30)),
-                        UpdatedAt = DateTime.UtcNow.AddDays(-Random.Shared.Next(1, 7)),
-                        LastLoginAt = DateTime.UtcNow.AddHours(-Random.Shared.Next(1, 72)),
+                        CreatedAt = DateTime.Now.AddDays(-Random.Shared.Next(1, 30)),
+                        UpdatedAt = DateTime.Now.AddDays(-Random.Shared.Next(1, 7)),
+                        LastLoginAt = DateTime.Now.AddHours(-Random.Shared.Next(1, 72)),
                         
                         
                     };

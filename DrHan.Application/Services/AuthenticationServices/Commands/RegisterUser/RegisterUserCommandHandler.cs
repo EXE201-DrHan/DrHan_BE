@@ -59,8 +59,8 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.RegisterUse
                 DateOfBirth = request.DateOfBirth,
                 Gender = genderEnum,
                 Status = UserStatus.Enabled,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
             };
 
             try

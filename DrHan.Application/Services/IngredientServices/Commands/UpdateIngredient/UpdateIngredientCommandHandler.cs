@@ -43,7 +43,7 @@ public class UpdateIngredientCommandHandler : IRequestHandler<UpdateIngredientCo
             if (!string.IsNullOrEmpty(request.Description))
                 ingredient.Description = request.Description;
 
-            ingredient.UpdateAt = DateTime.UtcNow;
+            ingredient.UpdateAt = DateTime.Now;
             _unitOfWork.Repository<Ingredient>().Update(ingredient);
 
             // Update nutritions if provided

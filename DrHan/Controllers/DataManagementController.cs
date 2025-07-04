@@ -37,7 +37,7 @@ namespace DrHan.Controllers
                         Message = "All data seeded successfully",
                         Operation = "SeedAll",
                         RecordsAffected = 0, // TODO: Return actual count from service
-                        Timestamp = DateTime.UtcNow
+                        Timestamp = DateTime.Now
                     });
                 return Ok(response);
             }
@@ -60,7 +60,7 @@ namespace DrHan.Controllers
             try
             {
                 await _dataManagementService.SeedAllergenDataAsync();
-                return Ok(new { Message = "Allergen data seeded successfully", Timestamp = DateTime.UtcNow });
+                return Ok(new { Message = "Allergen data seeded successfully", Timestamp = DateTime.Now });
             }
             catch (Exception ex)
             {
@@ -78,7 +78,7 @@ namespace DrHan.Controllers
             try
             {
                 await _dataManagementService.SeedIngredientDataAsync();
-                return Ok(new { Message = "Ingredient data seeded successfully", Timestamp = DateTime.UtcNow });
+                return Ok(new { Message = "Ingredient data seeded successfully", Timestamp = DateTime.Now });
             }
             catch (Exception ex)
             {
@@ -103,7 +103,7 @@ namespace DrHan.Controllers
                     {
                         Message = "Users and roles seeded successfully",
                         UserStatistics = ConvertToUserStatisticsDto(userStats),
-                        Timestamp = DateTime.UtcNow
+                        Timestamp = DateTime.Now
                     });
                 return Ok(response);
             }
@@ -126,7 +126,7 @@ namespace DrHan.Controllers
             try
             {
                 await _dataManagementService.SeedFoodDataAsync();
-                return Ok(new { Message = "Food data seeded successfully", Timestamp = DateTime.UtcNow });
+                return Ok(new { Message = "Food data seeded successfully", Timestamp = DateTime.Now });
             }
             catch (Exception ex)
             {
@@ -144,7 +144,7 @@ namespace DrHan.Controllers
             try
             {
                 await _dataManagementService.SeedSubscriptionPlansAsync();
-                return Ok(new { Message = "Subscription plans seeded successfully", Timestamp = DateTime.UtcNow });
+                return Ok(new { Message = "Subscription plans seeded successfully", Timestamp = DateTime.Now });
             }
             catch (Exception ex)
             {
@@ -162,7 +162,7 @@ namespace DrHan.Controllers
             try
             {
                 await _dataManagementService.CleanAllDataAsync();
-                return Ok(new { Message = "All data cleaned successfully", Timestamp = DateTime.UtcNow });
+                return Ok(new { Message = "All data cleaned successfully", Timestamp = DateTime.Now });
             }
             catch (Exception ex)
             {
@@ -180,7 +180,7 @@ namespace DrHan.Controllers
             try
             {
                 await _dataManagementService.CleanFoodDataAsync();
-                return Ok(new { Message = "Food data cleaned successfully", Timestamp = DateTime.UtcNow });
+                return Ok(new { Message = "Food data cleaned successfully", Timestamp = DateTime.Now });
             }
             catch (Exception ex)
             {
@@ -198,7 +198,7 @@ namespace DrHan.Controllers
             try
             {
                 await _dataManagementService.CleanUsersAndRolesAsync();
-                return Ok(new { Message = "Users and roles cleaned successfully", Timestamp = DateTime.UtcNow });
+                return Ok(new { Message = "Users and roles cleaned successfully", Timestamp = DateTime.Now });
             }
             catch (Exception ex)
             {
@@ -216,7 +216,7 @@ namespace DrHan.Controllers
             try
             {
                 await _dataManagementService.CleanRecipeDataAsync();
-                return Ok(new { Message = "Recipe data cleaned successfully", Timestamp = DateTime.UtcNow });
+                return Ok(new { Message = "Recipe data cleaned successfully", Timestamp = DateTime.Now });
             }
             catch (Exception ex)
             {
@@ -234,7 +234,7 @@ namespace DrHan.Controllers
             try
             {
                 await _dataManagementService.CleanSubscriptionPlansAsync();
-                return Ok(new { Message = "Subscription plans cleaned successfully", Timestamp = DateTime.UtcNow });
+                return Ok(new { Message = "Subscription plans cleaned successfully", Timestamp = DateTime.Now });
             }
             catch (Exception ex)
             {
@@ -252,7 +252,7 @@ namespace DrHan.Controllers
             try
             {
                 await _dataManagementService.ResetAllDataAsync();
-                return Ok(new { Message = "All data reset successfully", Timestamp = DateTime.UtcNow });
+                return Ok(new { Message = "All data reset successfully", Timestamp = DateTime.Now });
             }
             catch (Exception ex)
             {
@@ -270,7 +270,7 @@ namespace DrHan.Controllers
             try
             {
                 await _dataManagementService.ResetFoodDataAsync();
-                return Ok(new { Message = "Food data reset successfully", Timestamp = DateTime.UtcNow });
+                return Ok(new { Message = "Food data reset successfully", Timestamp = DateTime.Now });
             }
             catch (Exception ex)
             {
@@ -292,7 +292,7 @@ namespace DrHan.Controllers
                 return Ok(new { 
                     Message = "Users and roles reset successfully",
                     UserStatistics = userStats,
-                    Timestamp = DateTime.UtcNow 
+                    Timestamp = DateTime.Now 
                 });
             }
             catch (Exception ex)
@@ -315,7 +315,7 @@ namespace DrHan.Controllers
                 return Ok(new { 
                     Message = "Recipe data reset successfully",
                     Statistics = stats,
-                    Timestamp = DateTime.UtcNow 
+                    Timestamp = DateTime.Now 
                 });
             }
             catch (Exception ex)
@@ -336,7 +336,7 @@ namespace DrHan.Controllers
                 await _dataManagementService.ResetSubscriptionPlansAsync();
                 return Ok(new { 
                     Message = "Subscription plans reset successfully",
-                    Timestamp = DateTime.UtcNow 
+                    Timestamp = DateTime.Now 
                 });
             }
             catch (Exception ex)
@@ -446,7 +446,7 @@ namespace DrHan.Controllers
                 return Ok(new { 
                     Message = "Data ensured successfully", 
                     Statistics = stats,
-                    Timestamp = DateTime.UtcNow 
+                    Timestamp = DateTime.Now 
                 });
             }
             catch (Exception ex)
@@ -468,7 +468,7 @@ namespace DrHan.Controllers
                 NutritionistUsers = stats.NutritionistUsers,
                 CustomerUsers = stats.CustomerUsers,
                 TotalRoles = stats.TotalRoles,
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.Now
             };
         }
 
@@ -490,7 +490,7 @@ namespace DrHan.Controllers
                 RecipeImagesCount = stats.RecipeImagesCount,
                 RecipeNutritionsCount = stats.RecipeNutritionsCount,
                 TotalRecords = stats.TotalRecords,
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.Now
             };
         }
 
@@ -529,7 +529,7 @@ namespace DrHan.Controllers
                     ["IngredientNames"] = validation.IngredientNamesCount.ToString(),
                     ["IngredientAllergens"] = validation.IngredientAllergensCount.ToString()
                 },
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.Now
             };
         }
 

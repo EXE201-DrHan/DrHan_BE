@@ -100,7 +100,7 @@ namespace DrHan.Controllers
                         Message = "Recipe cache service is available for manual population",
                         IsBackgroundServiceEnabled = false, // This would need to be read from config if needed
                         LastPopulatedAt = null, // Could be tracked in database if needed
-                        Timestamp = DateTime.UtcNow
+                        Timestamp = DateTime.Now
                     });
 
                 return Ok(response);

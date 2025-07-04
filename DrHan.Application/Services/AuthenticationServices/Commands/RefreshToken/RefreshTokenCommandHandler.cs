@@ -43,7 +43,7 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.RefreshToke
             var tokenExpiration = _tokenService.GetAccessTokenExpiration();
 
             // Update user's updated timestamp
-            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.Now;
             await _userService.UpdateAsync(user);
 
             return new AppResponse<RefreshTokenResponse>()

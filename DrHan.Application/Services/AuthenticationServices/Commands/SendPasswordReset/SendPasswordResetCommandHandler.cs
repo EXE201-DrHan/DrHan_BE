@@ -31,7 +31,7 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.SendPasswor
                     .SetSuccessResponse(new SendPasswordResetResponse
                     {
                         Email = request.Email,
-                        SentAt = DateTime.UtcNow
+                        SentAt = DateTime.Now
                     });
             }
 
@@ -63,7 +63,7 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.SendPasswor
                     .SetSuccessResponse(new SendPasswordResetResponse
                     {
                         Email = request.Email,
-                        SentAt = DateTime.UtcNow
+                        SentAt = DateTime.Now
                     });
             }
             catch (Exception ex)

@@ -220,7 +220,7 @@ public class ChatbotController : ControllerBase
                 Version = "1.0.0",
                 SupportedLanguages = new[] { "vi", "en" },
                 SupportedCategories = new[] { "general", "allergy", "mealplan", "app_help" },
-                LastUpdated = DateTime.UtcNow
+                LastUpdated = DateTime.Now
             };
 
             return Ok(new AppResponse<ChatbotStatusDto>().SetSuccessResponse(status, "Message", "Lấy trạng thái chatbot thành công"));

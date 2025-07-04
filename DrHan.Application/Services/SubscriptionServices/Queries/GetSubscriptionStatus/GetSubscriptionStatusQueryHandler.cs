@@ -58,7 +58,7 @@ public class GetSubscriptionStatusQueryHandler : IRequestHandler<GetSubscription
                 currentUsage = new Dictionary<string, int>();
                 foreach (var feature in commonFeatures)
                 {
-                    currentUsage[feature] = await _subscriptionService.GetUsageCount(request.UserId, feature, DateTime.UtcNow.Date);
+                    currentUsage[feature] = await _subscriptionService.GetUsageCount(request.UserId, feature, DateTime.Now.Date);
                 }
             }
 

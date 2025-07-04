@@ -38,7 +38,7 @@ public class CancelSubscriptionCommandHandler : IRequestHandler<CancelSubscripti
 
             // Cancel the subscription
             subscription.Status = UserSubscriptionStatus.Cancelled;
-            subscription.EndDate = DateTime.UtcNow; // End immediately
+            subscription.EndDate = DateTime.Now; // End immediately
 
             _unitOfWork.Repository<UserSubscription>().Update(subscription);
             await _unitOfWork.CompleteAsync();

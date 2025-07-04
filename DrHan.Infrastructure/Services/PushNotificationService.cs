@@ -150,7 +150,7 @@ public class PushNotificationService : IPushNotificationService
             if (existingToken != null)
             {
                 existingToken.Platform = platform;
-                existingToken.UpdateAt = DateTime.UtcNow;
+                existingToken.UpdateAt = DateTime.Now;
                 existingToken.IsActive = true;
             }
             else
@@ -161,8 +161,8 @@ public class PushNotificationService : IPushNotificationService
                     DeviceToken = deviceToken,
                     Platform = platform,
                     IsActive = true,
-                    CreateAt = DateTime.UtcNow,
-                    UpdateAt = DateTime.UtcNow
+                    CreateAt = DateTime.Now,
+                    UpdateAt = DateTime.Now
                 };
                 _context.UserDeviceTokens.Add(newToken);
             }
@@ -187,7 +187,7 @@ public class PushNotificationService : IPushNotificationService
             if (token != null)
             {
                 token.IsActive = false;
-                token.UpdateAt = DateTime.UtcNow;
+                token.UpdateAt = DateTime.Now;
                 await _context.SaveChangesAsync();
             }
 
@@ -258,9 +258,9 @@ public class PushNotificationService : IPushNotificationService
             ActionUrl = actionUrl,
             SendViaPush = true,
             IsDelivered = true,
-            DeliveredAt = DateTime.UtcNow,
-            CreateAt = DateTime.UtcNow,
-            UpdateAt = DateTime.UtcNow
+            DeliveredAt = DateTime.Now,
+            CreateAt = DateTime.Now,
+            UpdateAt = DateTime.Now
         };
 
         _context.Notifications.Add(notification);

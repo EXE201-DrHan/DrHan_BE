@@ -40,7 +40,7 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.ConfirmEmai
             }
 
             // Update user's updated timestamp
-            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.Now;
             await _userService.UpdateAsync(user);
 
             var role = await _userService.GetUserRoleAsync(user);

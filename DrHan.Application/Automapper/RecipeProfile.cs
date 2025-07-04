@@ -51,26 +51,26 @@ public class RecipeProfile : Profile
             .ForMember(dest => dest.PreparationNotes, opt => opt.MapFrom(src => src.Notes))
             .ForMember(dest => dest.OrderInRecipe, opt => opt.MapFrom(src => src.OrderIndex))
             .ForMember(dest => dest.BusinessId, opt => opt.MapFrom(src => Guid.NewGuid()))
-            .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-            .ForMember(dest => dest.UpdateAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+            .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => DateTime.Now))
+            .ForMember(dest => dest.UpdateAt, opt => opt.MapFrom(src => DateTime.Now));
 
         CreateMap<RecipeInstructionDto, RecipeInstruction>()
             .ForMember(dest => dest.InstructionText, opt => opt.MapFrom(src => src.Instruction))
             .ForMember(dest => dest.TimeMinutes, opt => opt.MapFrom(src => src.EstimatedTimeMinutes))
             .ForMember(dest => dest.BusinessId, opt => opt.MapFrom(src => Guid.NewGuid()))
-            .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-            .ForMember(dest => dest.UpdateAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+            .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => DateTime.Now))
+            .ForMember(dest => dest.UpdateAt, opt => opt.MapFrom(src => DateTime.Now));
 
         CreateMap<RecipeNutritionDto, RecipeNutrition>()
             .ForMember(dest => dest.AmountPerServing, opt => opt.MapFrom(src => src.Amount))
             .ForMember(dest => dest.DailyValuePercent, opt => opt.MapFrom(src => src.DailyValuePercentage))
             .ForMember(dest => dest.BusinessId, opt => opt.MapFrom(src => Guid.NewGuid()))
-            .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-            .ForMember(dest => dest.UpdateAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+            .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => DateTime.Now))
+            .ForMember(dest => dest.UpdateAt, opt => opt.MapFrom(src => DateTime.Now));
 
         CreateMap<RecipeImageDto, RecipeImage>()
             .ForMember(dest => dest.BusinessId, opt => opt.MapFrom(src => Guid.NewGuid()))
-            .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => DateTime.UtcNow))
-            .ForMember(dest => dest.UpdateAt, opt => opt.MapFrom(src => DateTime.UtcNow));
+            .ForMember(dest => dest.CreateAt, opt => opt.MapFrom(src => DateTime.Now))
+            .ForMember(dest => dest.UpdateAt, opt => opt.MapFrom(src => DateTime.Now));
     }
 } 

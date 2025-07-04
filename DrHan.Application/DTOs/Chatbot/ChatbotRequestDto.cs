@@ -38,5 +38,5 @@ public class ChatMessageDto
 {
     public string Role { get; set; } = string.Empty; // "user" hoặc "assistant"
     public string Content { get; set; } = string.Empty;
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; set; } = DateTime.Now;
 } 

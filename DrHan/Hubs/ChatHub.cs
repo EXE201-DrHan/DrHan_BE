@@ -32,7 +32,7 @@ public class ChatHub : Hub
                 ConnectionId = Context.ConnectionId,
                 UserId = userId,
                 UserName = userName,
-                ConnectedAt = DateTime.UtcNow,
+                ConnectedAt = DateTime.Now,
                 IsOnline = true
             };
 
@@ -45,7 +45,7 @@ public class ChatHub : Hub
                 UserId = userId,
                 UserName = userName,
                 Message = "Kết nối thành công! Bạn có thể bắt đầu trò chuyện với DrHan AI.",
-                ConnectedAt = DateTime.UtcNow
+                ConnectedAt = DateTime.Now
             });
 
             _logger.LogInformation("User {UserId} connected with connection {ConnectionId}", userId, Context.ConnectionId);
@@ -106,7 +106,7 @@ public class ChatHub : Hub
                     UserId = connection?.UserId,
                     UserName = connection?.UserName,
                     ConnectionId = Context.ConnectionId,
-                    JoinedAt = DateTime.UtcNow
+                    JoinedAt = DateTime.Now
                 });
 
             // Send conversation history to the joining user
@@ -151,7 +151,7 @@ public class ChatHub : Hub
                     UserId = connection?.UserId,
                     UserName = connection?.UserName,
                     ConnectionId = Context.ConnectionId,
-                    LeftAt = DateTime.UtcNow
+                    LeftAt = DateTime.Now
                 });
 
             _logger.LogInformation("Connection {ConnectionId} left conversation {ConversationId}", 
@@ -209,7 +209,7 @@ public class ChatHub : Hub
 
             if (string.IsNullOrWhiteSpace(request.ConversationId))
             {
-                request.ConversationId = $"chat_{Context.ConnectionId}_{DateTime.UtcNow:yyyyMMddHHmmss}";
+                request.ConversationId = $"chat_{Context.ConnectionId}_{DateTime.Now:yyyyMMddHHmmss}";
             }
 
             // Get user information
@@ -294,7 +294,7 @@ public class ChatHub : Hub
             
             typingIndicator.SenderId = connection?.UserId ?? Context.ConnectionId;
             typingIndicator.SenderName = connection?.UserName ?? "User";
-            typingIndicator.Timestamp = DateTime.UtcNow;
+            typingIndicator.Timestamp = DateTime.Now;
 
             await _chatHubService.SendTypingIndicatorAsync(typingIndicator);
 
@@ -355,7 +355,7 @@ public class ChatHub : Hub
                 .SendAsync("ConversationCleared", new
                 {
                     ConversationId = conversationId,
-                    ClearedAt = DateTime.UtcNow
+                    ClearedAt = DateTime.Now
                 });
 
             _logger.LogInformation("Conversation history cleared for {ConversationId} by connection {ConnectionId}", 
@@ -389,7 +389,7 @@ public class ChatHub : Hub
             await Clients.Caller.SendAsync("Pong", new
             {
                 ConnectionId = Context.ConnectionId,
-                Timestamp = DateTime.UtcNow,
+                Timestamp = DateTime.Now,
                 Message = "Connection is alive"
             });
         }
@@ -441,7 +441,7 @@ public class ChatHub : Hub
                         UserId = connection.UserId,
                         UserName = connection.UserName,
                         Status = status,
-                        UpdatedAt = DateTime.UtcNow
+                        UpdatedAt = DateTime.Now
                     });
                 }
             }

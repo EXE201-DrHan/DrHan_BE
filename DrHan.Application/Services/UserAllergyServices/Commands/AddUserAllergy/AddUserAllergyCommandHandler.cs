@@ -49,7 +49,7 @@ public class AddUserAllergyCommandHandler : IRequestHandler<AddUserAllergyComman
             }
 
             var userAllergy = _mapper.Map<UserAllergy>(request);
-            userAllergy.CreateAt = DateTime.UtcNow;
+            userAllergy.CreateAt = DateTime.Now;
 
             await _unitOfWork.Repository<UserAllergy>().AddAsync(userAllergy);
             await _unitOfWork.CompleteAsync(cancellationToken);

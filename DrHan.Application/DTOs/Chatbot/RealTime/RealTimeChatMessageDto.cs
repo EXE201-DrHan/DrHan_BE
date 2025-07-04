@@ -40,7 +40,7 @@ public class RealTimeChatMessageDto
     /// <summary>
     /// Timestamp
     /// </summary>
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; set; } = DateTime.Now;
 
     /// <summary>
     /// Có phải tin nhắn đang được stream không
@@ -116,7 +116,7 @@ public class TypingIndicatorDto
     /// <summary>
     /// Timestamp
     /// </summary>
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; set; } = DateTime.Now;
 }
 
 public class ChatConnectionDto
@@ -144,7 +144,7 @@ public class ChatConnectionDto
     /// <summary>
     /// Thời gian kết nối
     /// </summary>
-    public DateTime ConnectedAt { get; set; } = DateTime.UtcNow;
+    public DateTime ConnectedAt { get; set; } = DateTime.Now;
 
     /// <summary>
     /// Trạng thái online
@@ -172,7 +172,7 @@ public class ChatRoomDto
     /// <summary>
     /// Thời gian tạo
     /// </summary>
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
 
     /// <summary>
     /// Tin nhắn cuối cùng

@@ -41,7 +41,7 @@ public class UpdateUserAllergyCommandHandler : IRequestHandler<UpdateUserAllergy
 
             // Update the user allergy using AutoMapper
             _mapper.Map(request, userAllergy);
-            userAllergy.UpdateAt = DateTime.UtcNow;
+            userAllergy.UpdateAt = DateTime.Now;
 
             _unitOfWork.Repository<UserAllergy>().Update(userAllergy);
             await _unitOfWork.CompleteAsync(cancellationToken);

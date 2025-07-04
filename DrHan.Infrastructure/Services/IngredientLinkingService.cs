@@ -54,8 +54,8 @@ public class IngredientLinkingService : IIngredientLinkingService
                 Name = ingredientName,
                 Category = category,
                 Description = $"Auto-generated ingredient from AI recipe",
-                CreateAt = DateTime.UtcNow,
-                UpdateAt = DateTime.UtcNow
+                CreateAt = DateTime.Now,
+                UpdateAt = DateTime.Now
             };
 
             await unitOfWork.Repository<Ingredient>().AddAsync(newIngredient);

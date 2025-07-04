@@ -62,7 +62,7 @@ public class UpdateMealPlanCommandHandler : IRequestHandler<UpdateMealPlanComman
             mealPlan.EndDate = request.MealPlan.EndDate;
             mealPlan.PlanType = request.MealPlan.PlanType;
             mealPlan.Notes = request.MealPlan.Notes;
-            mealPlan.UpdateAt = DateTime.UtcNow;
+            mealPlan.UpdateAt = DateTime.Now;
 
             _unitOfWork.Repository<MealPlan>().Update(mealPlan);
             await _unitOfWork.CompleteAsync();

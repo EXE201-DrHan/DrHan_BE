@@ -272,7 +272,7 @@ public class UserSubscriptionController : ControllerBase
             { 
                 FeatureName = featureName, 
                 UsageCount = usageCount,
-                FromDate = fromDate ?? DateTime.UtcNow.Date
+                FromDate = fromDate ?? DateTime.Now.Date
             });
         }
         catch (Exception ex)
@@ -544,7 +544,7 @@ public class SubscriptionController : ControllerBase
                     FeatureName = f.FeatureName,
                     Description = f.Description,
                     IsEnabled = f.IsEnabled,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.Now
                 }).ToList();
 
                 await _unitOfWork.Repository<PlanFeature>().AddRangeAsync(features);

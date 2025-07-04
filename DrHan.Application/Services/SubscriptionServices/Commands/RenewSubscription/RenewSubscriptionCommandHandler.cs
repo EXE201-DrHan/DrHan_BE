@@ -51,15 +51,15 @@ public class RenewSubscriptionCommandHandler : IRequestHandler<RenewSubscription
             }
 
             subscription.Status = UserSubscriptionStatus.Active;
-            subscription.StartDate = DateTime.UtcNow;
+            subscription.StartDate = DateTime.Now;
             
             subscription.EndDate = subscription.Plan.BillingCycle?.ToLower() switch
             {
-                "monthly" => DateTime.UtcNow.AddMonths(1),
-                "yearly" => DateTime.UtcNow.AddYears(1),
-                "quarterly" => DateTime.UtcNow.AddMonths(3),
-                "weekly" => DateTime.UtcNow.AddDays(7),
-                _ => DateTime.UtcNow.AddMonths(1)
+                "monthly" => DateTime.Now.AddMonths(1),
+                "yearly" => DateTime.Now.AddYears(1),
+                "quarterly" => DateTime.Now.AddMonths(3),
+                "weekly" => DateTime.Now.AddDays(7),
+                _ => DateTime.Now.AddMonths(1)
             };
 
             _unitOfWork.Repository<UserSubscription>().Update(subscription);

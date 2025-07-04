@@ -87,7 +87,7 @@ public class AddMultipleUserAllergiesCommandHandler : IRequestHandler<AddMultipl
                         Outgrown = request.Outgrown,
                         OutgrownDate = request.OutgrownDate,
                         NeedsVerification = request.NeedsVerification,
-                        CreateAt = DateTime.UtcNow
+                        CreateAt = DateTime.Now
                     };
 
                     await _unitOfWork.Repository<UserAllergy>().AddAsync(userAllergy);

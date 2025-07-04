@@ -330,7 +330,7 @@ public class ChatbotService : IChatbotService
             {
                 Role = role,
                 Content = content,
-                Timestamp = DateTime.UtcNow
+                Timestamp = DateTime.Now
             });
 
             if (history.Count > 50)

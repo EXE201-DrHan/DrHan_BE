@@ -280,8 +280,8 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
             IsPublic = true,
             SourceUrl = "Được tạo bởi AI",
             OriginalAuthor = "AI Generated", // Keep this in English for filtering purposes
-            CreateAt = DateTime.UtcNow,
-            UpdateAt = DateTime.UtcNow
+            CreateAt = DateTime.Now,
+            UpdateAt = DateTime.Now
         };
 
         // Add all the recipe details
@@ -321,8 +321,8 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                         BusinessId = Guid.NewGuid(),
                         Name = ingredient.Name,
                         Description = $"Added automatically for recipe: {recipe.Name}",
-                        CreateAt = DateTime.UtcNow,
-                        UpdateAt = DateTime.UtcNow
+                        CreateAt = DateTime.Now,
+                        UpdateAt = DateTime.Now
                     };
                     newIngredients.Add(existingIngredient);
                     existingIngredientDict[lowerName] = existingIngredient; // Add to dict for future reference
@@ -338,8 +338,8 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                     Unit = ingredient.Unit,
                     PreparationNotes = ingredient.Notes,
                     OrderInRecipe = recipe.RecipeIngredients.Count + 1,
-                    CreateAt = DateTime.UtcNow,
-                    UpdateAt = DateTime.UtcNow
+                    CreateAt = DateTime.Now,
+                    UpdateAt = DateTime.Now
                 });
             }
             catch (Exception ex)
@@ -407,8 +407,8 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                         Unit = ingredient.Unit,
                         PreparationNotes = ingredient.Notes,
                         OrderInRecipe = recipe.RecipeIngredients.Count + 1,
-                        CreateAt = DateTime.UtcNow,
-                        UpdateAt = DateTime.UtcNow
+                        CreateAt = DateTime.Now,
+                        UpdateAt = DateTime.Now
                     });
                 }
                 else
@@ -419,8 +419,8 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                         BusinessId = Guid.NewGuid(),
                         Name = ingredient.Name,
                         Description = $"Added automatically for recipe: {recipe.Name}",
-                        CreateAt = DateTime.UtcNow,
-                        UpdateAt = DateTime.UtcNow
+                        CreateAt = DateTime.Now,
+                        UpdateAt = DateTime.Now
                     };
                     
                     try
@@ -438,8 +438,8 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                             Unit = ingredient.Unit,
                             PreparationNotes = ingredient.Notes,
                             OrderInRecipe = recipe.RecipeIngredients.Count + 1,
-                            CreateAt = DateTime.UtcNow,
-                            UpdateAt = DateTime.UtcNow
+                            CreateAt = DateTime.Now,
+                            UpdateAt = DateTime.Now
                         });
                     }
                     catch (Exception ex)
@@ -464,8 +464,8 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                                     Unit = ingredient.Unit,
                                     PreparationNotes = ingredient.Notes,
                                     OrderInRecipe = recipe.RecipeIngredients.Count + 1,
-                                    CreateAt = DateTime.UtcNow,
-                                    UpdateAt = DateTime.UtcNow
+                                    CreateAt = DateTime.Now,
+                                    UpdateAt = DateTime.Now
                                 });
                             }
                         }
@@ -498,8 +498,8 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                 StepNumber = instruction.StepNumber,
                 InstructionText = instruction.Instruction,
                 TimeMinutes = instruction.EstimatedTimeMinutes,
-                CreateAt = DateTime.UtcNow,
-                UpdateAt = DateTime.UtcNow
+                CreateAt = DateTime.Now,
+                UpdateAt = DateTime.Now
             });
         }
     }
@@ -516,8 +516,8 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                 BusinessId = Guid.NewGuid(),
                 Recipe = recipe,
                 AllergenType = allergen,
-                CreateAt = DateTime.UtcNow,
-                UpdateAt = DateTime.UtcNow
+                CreateAt = DateTime.Now,
+                UpdateAt = DateTime.Now
             });
         }
     }
@@ -534,8 +534,8 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                 BusinessId = Guid.NewGuid(),
                 Recipe = recipe,
                 Claim = claim,
-                CreateAt = DateTime.UtcNow,
-                UpdateAt = DateTime.UtcNow
+                CreateAt = DateTime.Now,
+                UpdateAt = DateTime.Now
             });
         }
     }

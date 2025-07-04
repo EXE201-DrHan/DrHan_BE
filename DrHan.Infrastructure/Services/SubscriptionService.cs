@@ -38,7 +38,7 @@ namespace DrHan.Infrastructure.Services
                 .FirstOrDefaultAsync();
 
             return subscription != null &&
-                   (subscription.EndDate == null || subscription.EndDate > DateTime.UtcNow);
+                   (subscription.EndDate == null || subscription.EndDate > DateTime.Now);
         }
 
         public async Task<SubscriptionPlan> GetUserPlan(int userId)
@@ -78,8 +78,8 @@ namespace DrHan.Infrastructure.Services
                     return true;
 
                 var fromDate = limitType.ToLower() == "monthly"
-                    ? new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1)
-                    : DateTime.UtcNow.Date;
+                    ? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1)
+                    : DateTime.Now.Date;
 
                 var currentUsage = await GetUsageCount(userId, featureName, fromDate);
 
@@ -106,7 +106,7 @@ namespace DrHan.Infrastructure.Services
                     return;
                 }
 
-                var today = DateTime.UtcNow.Date;
+                var today = DateTime.Now.Date;
                 var existingRecord = await _context.SubscriptionUsages
                     .FirstOrDefaultAsync(u => u.UserSubscriptionId == userSubscription.Id &&
                                              u.FeatureType == featureName &&
@@ -123,8 +123,8 @@ namespace DrHan.Infrastructure.Services
                         UserSubscriptionId = userSubscription.Id,
                         FeatureType = featureName,
                         UsageCount = count,
-                        UsageDate = DateTime.UtcNow,
-                        ResourceUsed = $"Feature usage tracked at {DateTime.UtcNow}"
+                        UsageDate = DateTime.Now,
+                        ResourceUsed = $"Feature usage tracked at {DateTime.Now}"
                     });
                 }
 

@@ -51,7 +51,7 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.ResetPasswo
                 }
 
                 // Update user's updated timestamp
-                user.UpdatedAt = DateTime.UtcNow;
+                user.UpdatedAt = DateTime.Now;
                 await _userService.UpdateAsync(user);
 
                 return new AppResponse<ResetPasswordResponse>()
@@ -59,7 +59,7 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.ResetPasswo
                     {
                         UserId = user.Id,
                         Email = user.Email!,
-                        ResetAt = DateTime.UtcNow,
+                        ResetAt = DateTime.Now,
                         Message = "Password has been reset successfully"
                     });
             }

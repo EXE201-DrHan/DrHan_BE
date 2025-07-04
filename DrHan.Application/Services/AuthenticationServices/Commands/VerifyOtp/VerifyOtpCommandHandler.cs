@@ -50,7 +50,7 @@ public class VerifyOtpCommandHandler : IRequestHandler<VerifyOtpCommand, AppResp
         if (request.Type == OtpType.EmailVerification)
         {
             user.EmailConfirmed = true;
-            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.Now;
             await _userService.UpdateAsync(user);
         }
 

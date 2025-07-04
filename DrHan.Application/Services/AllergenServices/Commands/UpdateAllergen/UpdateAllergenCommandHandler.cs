@@ -57,7 +57,7 @@ public class UpdateAllergenCommandHandler : IRequestHandler<UpdateAllergenComman
             if (request.IsFdaMajor.HasValue) allergen.IsFdaMajor = request.IsFdaMajor;
             if (request.IsEuMajor.HasValue) allergen.IsEuMajor = request.IsEuMajor;
 
-            allergen.UpdateAt = DateTime.UtcNow;
+            allergen.UpdateAt = DateTime.Now;
 
             _unitOfWork.Repository<Allergen>().Update(allergen);
             await _unitOfWork.CompleteAsync(cancellationToken);

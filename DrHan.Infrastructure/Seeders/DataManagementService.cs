@@ -446,7 +446,7 @@ namespace DrHan.Infrastructure.Seeders
                     result.IsHealthy = result.HasCompleteData && result.JsonValidation.IsValid;
                 }
 
-                result.CheckedAt = DateTime.UtcNow;
+                result.CheckedAt = DateTime.Now;
             }
             catch (Exception ex)
             {

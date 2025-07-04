@@ -42,7 +42,7 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.RevokeUser
 
                 // Disable user account
                 user.Status = UserStatus.Disabled;
-                user.UpdatedAt = DateTime.UtcNow;
+                user.UpdatedAt = DateTime.Now;
                 await _userService.UpdateAsync(user);
 
                 return new AppResponse<RevokeUserResponse>()
@@ -51,7 +51,7 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.RevokeUser
                         UserId = user.Id,
                         Email = user.Email!,
                         Status = user.Status.ToString(),
-                        RevokedAt = DateTime.UtcNow,
+                        RevokedAt = DateTime.Now,
                         Reason = request.Reason
                     });
             }

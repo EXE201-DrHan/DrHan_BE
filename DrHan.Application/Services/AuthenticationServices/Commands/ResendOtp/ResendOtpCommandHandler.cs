@@ -43,7 +43,7 @@ public class ResendOtpCommandHandler : IRequestHandler<ResendOtpCommand, AppResp
                 {
                     IsSuccess = false,
                     Message = "If an account with this email exists, an OTP has been sent to your email address",
-                    ExpiresAt = DateTime.UtcNow.AddMinutes(5),
+                    ExpiresAt = DateTime.Now.AddMinutes(5),
                     RemainingAttempts = 3
                 };
 
@@ -62,7 +62,7 @@ public class ResendOtpCommandHandler : IRequestHandler<ResendOtpCommand, AppResp
             var existingOtp = await _otpService.GetValidOtpAsync(user.Id, request.Type);
             if (existingOtp != null)
             {
-                var timeSinceLastOtp = DateTime.UtcNow - existingOtp.CreateAt;
+                var timeSinceLastOtp = DateTime.Now - existingOtp.CreateAt;
                 if (timeSinceLastOtp < TimeSpan.FromMinutes(1)) // Minimum 1 minute between requests
                 {
                     var waitTime = TimeSpan.FromMinutes(1) - timeSinceLastOtp;
@@ -83,7 +83,7 @@ public class ResendOtpCommandHandler : IRequestHandler<ResendOtpCommand, AppResp
             {
                 IsSuccess = true,
                 Message = "OTP has been sent to your email address",
-                ExpiresAt = DateTime.UtcNow.AddMinutes(5),
+                ExpiresAt = DateTime.Now.AddMinutes(5),
                 RemainingAttempts = 3
             };
 

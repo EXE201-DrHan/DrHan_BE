@@ -10,7 +10,7 @@ public class UserOtp : BaseEntity
     public string PhoneNumber { get; set; } = string.Empty;
     public DateTime ExpiresAt { get; set; }
     public bool IsUsed { get; set; } = false;
-    public bool IsExpired => DateTime.UtcNow > ExpiresAt;
+    public bool IsExpired => DateTime.Now > ExpiresAt;
     public int AttemptsCount { get; set; } = 0;
     public int MaxAttempts { get; set; } = 3;
     public bool IsBlocked => AttemptsCount >= MaxAttempts;

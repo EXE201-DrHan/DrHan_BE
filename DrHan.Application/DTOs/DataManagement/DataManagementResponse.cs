@@ -3,7 +3,7 @@ namespace DrHan.Application.DTOs.DataManagement
     public class BaseDataManagementResponse
     {
         public string Message { get; set; } = string.Empty;
-        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        public DateTime Timestamp { get; set; } = DateTime.Now;
     }
 
     public class SeedDataResponse : BaseDataManagementResponse
@@ -53,7 +53,7 @@ namespace DrHan.Application.DTOs.DataManagement
         public int RecipeImagesCount { get; set; }
         public int RecipeNutritionsCount { get; set; }
         public int TotalRecords { get; set; }
-        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        public DateTime Timestamp { get; set; } = DateTime.Now;
     }
 
     public class UserStatistics
@@ -64,7 +64,7 @@ namespace DrHan.Application.DTOs.DataManagement
         public int NutritionistUsers { get; set; }
         public int CustomerUsers { get; set; }
         public int TotalRoles { get; set; }
-        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        public DateTime Timestamp { get; set; } = DateTime.Now;
     }
 
     public class HealthCheckResponse
@@ -76,7 +76,7 @@ namespace DrHan.Application.DTOs.DataManagement
         public StatisticsResponse? Statistics { get; set; }
         public ValidationResponse? JsonValidation { get; set; }
         public string? Error { get; set; }
-        public DateTime CheckedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CheckedAt { get; set; } = DateTime.Now;
     }
 
     public class ValidationResponse
@@ -88,7 +88,7 @@ namespace DrHan.Application.DTOs.DataManagement
         public int ValidFiles { get; set; }
         public int InvalidFiles { get; set; }
         public Dictionary<string, string> Details { get; set; } = new Dictionary<string, string>();
-        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        public DateTime Timestamp { get; set; } = DateTime.Now;
     }
 
     public class EnsureDataResponse : BaseDataManagementResponse

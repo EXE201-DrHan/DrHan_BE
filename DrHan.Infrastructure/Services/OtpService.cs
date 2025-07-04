@@ -28,7 +28,7 @@ public class OtpService : IOtpService
         foreach (var otp in existingOtps)
         {
             otp.IsUsed = true;
-            otp.UpdateAt = DateTime.UtcNow;
+            otp.UpdateAt = DateTime.Now;
         }
 
         // Generate new 6-digit OTP
@@ -40,9 +40,9 @@ public class OtpService : IOtpService
             Code = otpCode,
             Type = type,
             PhoneNumber = phoneNumber ?? string.Empty,
-            ExpiresAt = DateTime.UtcNow.AddMinutes(5), // 5 minutes expiry
-            CreateAt = DateTime.UtcNow,
-            UpdateAt = DateTime.UtcNow
+            ExpiresAt = DateTime.Now.AddMinutes(5), // 5 minutes expiry
+            CreateAt = DateTime.Now,
+            UpdateAt = DateTime.Now
         };
 
         _context.UserOtps.Add(newOtp);
@@ -96,7 +96,7 @@ public class OtpService : IOtpService
                        o.Type == type && 
                        !o.IsUsed && 
                        o.AttemptsCount < o.MaxAttempts &&
-                       o.ExpiresAt > DateTime.UtcNow)
+                       o.ExpiresAt > DateTime.Now)
             .OrderByDescending(o => o.CreateAt)
             .FirstOrDefaultAsync();
     }
@@ -107,7 +107,7 @@ public class OtpService : IOtpService
         if (otp != null)
         {
             otp.IsUsed = true;
-            otp.UpdateAt = DateTime.UtcNow;
+            otp.UpdateAt = DateTime.Now;
             await _context.SaveChangesAsync();
         }
     }
@@ -118,7 +118,7 @@ public class OtpService : IOtpService
         if (otp != null)
         {
             otp.AttemptsCount++;
-            otp.UpdateAt = DateTime.UtcNow;
+            otp.UpdateAt = DateTime.Now;
             await _context.SaveChangesAsync();
         }
     }
@@ -126,7 +126,7 @@ public class OtpService : IOtpService
     public async Task CleanupExpiredOtpsAsync()
     {
         var expiredOtps = await _context.UserOtps
-            .Where(o => o.ExpiresAt < DateTime.UtcNow || o.IsUsed)
+            .Where(o => o.ExpiresAt < DateTime.Now || o.IsUsed)
             .ToListAsync();
 
         //_context.UserOtps.RemoveRange(expiredOtps);

@@ -14,9 +14,9 @@ public class SubscriptionProfile : Profile
             .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Plan != null ? src.Plan.Currency : "VND"))
             .ForMember(dest => dest.BillingCycle, opt => opt.MapFrom(src => src.Plan != null ? src.Plan.BillingCycle : ""))
             .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.Status == Domain.Constants.Status.UserSubscriptionStatus.Active && 
-                (src.EndDate == null || src.EndDate > DateTime.UtcNow)))
+                (src.EndDate == null || src.EndDate > DateTime.Now)))
             .ForMember(dest => dest.DaysRemaining, opt => opt.MapFrom(src => src.EndDate.HasValue ? 
-                (int?)Math.Max(0, (src.EndDate.Value - DateTime.UtcNow).Days) : null));
+                (int?)Math.Max(0, (src.EndDate.Value - DateTime.Now).Days) : null));
 
         CreateMap<Payment, PurchaseHistoryDto>()
             .ForMember(dest => dest.PlanName, opt => opt.MapFrom(src => src.UserSubscription != null && src.UserSubscription.Plan != null ? src.UserSubscription.Plan.Name : ""))
@@ -37,7 +37,7 @@ public class SubscriptionProfile : Profile
             .ForMember(dest => dest.Features, opt => opt.MapFrom(src => src.PlanFeatures));
 
         CreateMap<CreateSubscriptionPlanDto, SubscriptionPlan>()
-            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.Now))
             .ForMember(dest => dest.PlanFeatures, opt => opt.Ignore()); // Will be handled separately
 
         CreateMap<UpdateSubscriptionPlanDto, SubscriptionPlan>()
@@ -49,7 +49,7 @@ public class SubscriptionProfile : Profile
         CreateMap<PlanFeature, PlanFeatureDto>();
 
         CreateMap<CreatePlanFeatureDto, PlanFeature>()
-            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow));
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.Now));
 
         CreateMap<UpdatePlanFeatureDto, PlanFeature>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
@@ -67,7 +67,7 @@ public class SubscriptionProfile : Profile
 
     private static int CalculateDaysActive(UserSubscription subscription)
     {
-        var endDate = subscription.EndDate ?? DateTime.UtcNow;
+        var endDate = subscription.EndDate ?? DateTime.Now;
         var startDate = subscription.StartDate;
         return Math.Max(0, (int)(endDate - startDate).TotalDays);
     }

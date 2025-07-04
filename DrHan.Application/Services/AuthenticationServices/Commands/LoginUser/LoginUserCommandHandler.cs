@@ -58,7 +58,7 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.LoginUser
             //    }
             //}
                        // Check if account is locked out
-            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > DateTime.UtcNow)
+            if (user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd > DateTime.Now)
             {
                 return new AppResponse<LoginUserResponse>()
                     .SetErrorResponse("Account", $"Account is locked until {user.LockoutEnd.Value:yyyy-MM-dd HH:mm:ss} UTC");
@@ -72,8 +72,8 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.LoginUser
             }
 
             // Update last login time
-            user.LastLoginAt = DateTime.UtcNow;
-            user.UpdatedAt = DateTime.UtcNow;
+            user.LastLoginAt = DateTime.Now;
+            user.UpdatedAt = DateTime.Now;
             await _userService.UpdateAsync(user);
 
             var role = await _userService.GetUserRoleAsync(user);

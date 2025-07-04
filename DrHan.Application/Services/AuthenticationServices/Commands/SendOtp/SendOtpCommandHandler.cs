@@ -36,7 +36,7 @@ public class SendOtpCommandHandler : IRequestHandler<SendOtpCommand, AppResponse
             var response = new SendOtpResponse
             {
                 Message = "OTP sent successfully via push notification",
-                ExpiresAt = DateTime.UtcNow.AddMinutes(5),
+                ExpiresAt = DateTime.Now.AddMinutes(5),
                 RemainingAttempts = 3
             };
 

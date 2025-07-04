@@ -15,7 +15,7 @@ public class ChatbotResponseDto
     /// <summary>
     /// Timestamp của phản hồi
     /// </summary>
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; set; } = DateTime.Now;
 
     /// <summary>
     /// Độ tin cậy của phản hồi (0-1)

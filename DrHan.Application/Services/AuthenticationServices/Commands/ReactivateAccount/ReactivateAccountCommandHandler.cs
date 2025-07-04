@@ -79,7 +79,7 @@ public class ReactivateAccountCommandHandler : IRequestHandler<ReactivateAccount
             var existingOtp = await _otpService.GetValidOtpAsync(user.Id, OtpType.EmailVerification);
             if (existingOtp != null)
             {
-                var timeSinceLastOtp = DateTime.UtcNow - existingOtp.CreateAt;
+                var timeSinceLastOtp = DateTime.Now - existingOtp.CreateAt;
                 if (timeSinceLastOtp < TimeSpan.FromMinutes(2)) // Minimum 2 minutes between reactivation requests
                 {
                     var waitTime = TimeSpan.FromMinutes(2) - timeSinceLastOtp;
@@ -105,13 +105,13 @@ public class ReactivateAccountCommandHandler : IRequestHandler<ReactivateAccount
 
             // Store refresh token on user entity
             user.RefreshToken = refreshToken;
-            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.Now;
             await _userService.UpdateAsync(user);
 
             response.IsSuccess = true;
             response.Message = "Account reactivation OTP has been sent to your email address";
             response.UserId = user.Id;
-            response.OtpExpiresAt = DateTime.UtcNow.AddMinutes(5);
+            response.OtpExpiresAt = DateTime.Now.AddMinutes(5);
             response.AccessToken = accessToken;
             response.RefreshToken = refreshToken;
 

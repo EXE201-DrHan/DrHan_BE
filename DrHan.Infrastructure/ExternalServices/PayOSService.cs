@@ -103,10 +103,10 @@ namespace DrHan.Infrastructure.ExternalServices
                     TransactionId = orderCode.ToString(),
                     PaymentStatus = PaymentStatus.Pending,
                     PaymentMethod = PaymentMethod.PAYOS,
-                    PaymentDate = DateTime.UtcNow,
+                    PaymentDate = DateTime.Now,
                     UserSubscriptionId = request.UserSubscriptionId,
-                    CreateAt = DateTime.UtcNow,
-                    UpdateAt = DateTime.UtcNow
+                    CreateAt = DateTime.Now,
+                    UpdateAt = DateTime.Now
                 };
 
                 await _unitOfWork.Repository<Payment>().AddAsync(payment);
@@ -161,7 +161,7 @@ namespace DrHan.Infrastructure.ExternalServices
                         if (newStatus != payment.PaymentStatus)
                         {
                             payment.PaymentStatus = newStatus;
-                            payment.UpdateAt = DateTime.UtcNow;
+                            payment.UpdateAt = DateTime.Now;
 
                             _unitOfWork.Repository<Payment>().Update(payment);
                             await _unitOfWork.CompleteAsync();
@@ -244,7 +244,7 @@ namespace DrHan.Infrastructure.ExternalServices
                     _logger.LogWarning("Payment {TransactionId} failed: {Reason}", payment.TransactionId, webhook.Desc);
                 }
 
-                payment.UpdateAt = DateTime.UtcNow;
+                payment.UpdateAt = DateTime.Now;
                 _unitOfWork.Repository<Payment>().Update(payment);
 
                 // Handle status changes
@@ -300,7 +300,7 @@ namespace DrHan.Infrastructure.ExternalServices
                 // Update payment status
                 payment.PaymentStatus = PaymentStatus.Failed;
                 payment.FailureReason = "Payment cancelled by user";
-                payment.UpdateAt = DateTime.UtcNow;
+                payment.UpdateAt = DateTime.Now;
 
                 _unitOfWork.Repository<Payment>().Update(payment);
                 await _unitOfWork.CompleteAsync();
@@ -370,23 +370,23 @@ namespace DrHan.Infrastructure.ExternalServices
                 var subscription = payment.UserSubscription;
 
                 subscription.Status = UserSubscriptionStatus.Active;
-                subscription.StartDate = DateTime.UtcNow;
+                subscription.StartDate = DateTime.Now;
 
                 // Set end date based on billing cycle
                 if (subscription.Plan != null)
                 {
                     subscription.EndDate = subscription.Plan.BillingCycle?.ToLower() switch
                     {
-                        "monthly" => DateTime.UtcNow.AddMonths(1),
-                        "yearly" => DateTime.UtcNow.AddYears(1),
-                        "quarterly" => DateTime.UtcNow.AddMonths(3),
-                        "weekly" => DateTime.UtcNow.AddDays(7),
-                        _ => DateTime.UtcNow.AddMonths(1) // Default to monthly
+                        "monthly" => DateTime.Now.AddMonths(1),
+                        "yearly" => DateTime.Now.AddYears(1),
+                        "quarterly" => DateTime.Now.AddMonths(3),
+                        "weekly" => DateTime.Now.AddDays(7),
+                        _ => DateTime.Now.AddMonths(1) // Default to monthly
                     };
                 }
                 else
                 {
-                    subscription.EndDate = DateTime.UtcNow.AddMonths(1); // Default to monthly
+                    subscription.EndDate = DateTime.Now.AddMonths(1); // Default to monthly
                 }
 
                 _unitOfWork.Repository<UserSubscription>().Update(subscription);

@@ -32,7 +32,7 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.LogoutUser
             await _tokenService.RevokeUserToken(user.Id.ToString());
 
             // Update user's updated timestamp
-            user.UpdatedAt = DateTime.UtcNow;
+            user.UpdatedAt = DateTime.Now;
             await _userService.UpdateAsync(user);
 
             return new AppResponse<LogoutUserResponse>()
@@ -40,7 +40,7 @@ namespace DrHan.Application.Services.AuthenticationServices.Commands.LogoutUser
                 {
                     UserId = user.Id,
                     Email = user.Email!,
-                    LoggedOutAt = DateTime.UtcNow
+                    LoggedOutAt = DateTime.Now
                 });
         }
     }

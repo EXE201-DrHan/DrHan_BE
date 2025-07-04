@@ -60,9 +60,9 @@ public class CreateSubscriptionCommandHandler : IRequestHandler<CreateSubscripti
                 UserId = request.UserId,
                 PlanId = request.PlanId,
                 Status = UserSubscriptionStatus.Pending,
-                StartDate = DateTime.UtcNow,
+                StartDate = DateTime.Now,
                 EndDate = null, // Will be set after payment
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.Now
             };
 
             await _unitOfWork.Repository<UserSubscription>().AddAsync(newSubscription);
