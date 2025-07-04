@@ -66,19 +66,51 @@ public class AddMealEntryCommandHandler : IRequestHandler<AddMealEntryCommand, A
                 return response.SetErrorResponse("Validation", validationResult.ErrorMessage);
             }
 
-            var mealEntry = new MealPlanEntry
-            {
-                MealPlanId = request.MealEntry.MealPlanId,
-                MealDate = request.MealEntry.MealDate,
-                MealType = request.MealEntry.MealType,
-                RecipeId = request.MealEntry.RecipeId,
-                ProductId = request.MealEntry.ProductId,
-                CustomMealName = request.MealEntry.CustomMealName,
-                Servings = request.MealEntry.Servings,
-                Notes = request.MealEntry.Notes
-            };
+            // Check if there's already a meal entry for the same day and meal type
+            var existingEntry = await _unitOfWork.Repository<MealPlanEntry>()
+                .FindAsync(me => me.MealPlanId == request.MealEntry.MealPlanId && 
+                               me.MealDate == request.MealEntry.MealDate && 
+                               me.MealType == request.MealEntry.MealType);
 
-            await _unitOfWork.Repository<MealPlanEntry>().AddAsync(mealEntry);
+            MealPlanEntry mealEntry;
+
+            if (existingEntry != null)
+            {
+                // Update existing entry (override)
+                existingEntry.RecipeId = request.MealEntry.RecipeId;
+                existingEntry.ProductId = request.MealEntry.ProductId;
+                existingEntry.CustomMealName = request.MealEntry.CustomMealName;
+                existingEntry.Servings = request.MealEntry.Servings;
+                existingEntry.Notes = request.MealEntry.Notes;
+                existingEntry.IsCompleted = false; // Reset completion status when overriding
+
+                _unitOfWork.Repository<MealPlanEntry>().Update(existingEntry);
+                mealEntry = existingEntry;
+
+                _logger.LogInformation("Overriding existing meal entry for plan {MealPlanId}, date {MealDate}, meal type {MealType}", 
+                    request.MealEntry.MealPlanId, request.MealEntry.MealDate, request.MealEntry.MealType);
+            }
+            else
+            {
+                // Create new entry
+                mealEntry = new MealPlanEntry
+                {
+                    MealPlanId = request.MealEntry.MealPlanId,
+                    MealDate = request.MealEntry.MealDate,
+                    MealType = request.MealEntry.MealType,
+                    RecipeId = request.MealEntry.RecipeId,
+                    ProductId = request.MealEntry.ProductId,
+                    CustomMealName = request.MealEntry.CustomMealName,
+                    Servings = request.MealEntry.Servings,
+                    Notes = request.MealEntry.Notes
+                };
+
+                await _unitOfWork.Repository<MealPlanEntry>().AddAsync(mealEntry);
+
+                _logger.LogInformation("Creating new meal entry for plan {MealPlanId}, date {MealDate}, meal type {MealType}", 
+                    request.MealEntry.MealPlanId, request.MealEntry.MealDate, request.MealEntry.MealType);
+            }
+
             await _unitOfWork.CompleteAsync();
 
             // Invalidate caches after adding meal entry
@@ -93,8 +125,11 @@ public class AddMealEntryCommandHandler : IRequestHandler<AddMealEntryCommand, A
 
             var mealEntryDto = _mapper.Map<MealEntryDto>(mealEntry);
             
-            _logger.LogInformation("Meal entry added to plan {MealPlanId} for user {UserId}", request.MealEntry.MealPlanId, userId);
-            return response.SetSuccessResponse(mealEntryDto, "Success", "Meal entry added successfully");
+            var successMessage = existingEntry != null ? "Meal entry updated successfully" : "Meal entry added successfully";
+            _logger.LogInformation("Meal entry {Action} for plan {MealPlanId} and user {UserId}", 
+                existingEntry != null ? "updated" : "added", request.MealEntry.MealPlanId, userId);
+            
+            return response.SetSuccessResponse(mealEntryDto, "Success", successMessage);
         }
         catch (Exception ex)
         {
@@ -106,15 +141,15 @@ public class AddMealEntryCommandHandler : IRequestHandler<AddMealEntryCommand, A
     private async Task<(bool IsValid, string ErrorMessage)> ValidateMealEntry(AddMealEntryDto mealEntry)
     {
         // Validate that exactly one meal source is provided
-        var sourceCount = 0;
-        if (mealEntry.RecipeId.HasValue) sourceCount++;
-        if (mealEntry.ProductId.HasValue) sourceCount++;
-        if (!string.IsNullOrEmpty(mealEntry.CustomMealName)) sourceCount++;
+        //var sourceCount = 0;
+        //if (mealEntry.RecipeId.HasValue) sourceCount++;
+        //if (mealEntry.ProductId.HasValue) sourceCount++;
+        //if (!string.IsNullOrEmpty(mealEntry.CustomMealName)) sourceCount++;
 
-        if (sourceCount != 1)
-        {
-            return (false, "Exactly one meal source must be provided (Recipe, Product, or Custom Meal)");
-        }
+        //if (sourceCount != 1)
+        //{
+        //    return (false, "Exactly one meal source must be provided (Recipe, Product, or Custom Meal)");
+        //}
 
         // Validate recipe exists if provided
         if (mealEntry.RecipeId.HasValue)
@@ -143,21 +178,21 @@ public class AddMealEntryCommandHandler : IRequestHandler<AddMealEntryCommand, A
 
     private async Task InvalidateMealPlanCacheAsync(int mealPlanId, int userId)
     {
-        try
-        {
-            // Invalidate specific meal plan cache
-            var mealPlanCacheKey = _cacheKeyService.Custom("user", userId, "mealplan", mealPlanId);
-            await _cacheService.RemoveAsync(mealPlanCacheKey);
+        //try
+        //{
+        //    // Invalidate specific meal plan cache
+        //    var mealPlanCacheKey = _cacheKeyService.Custom("user", userId, "mealplan", mealPlanId);
+        //    await _cacheService.RemoveAsync(mealPlanCacheKey);
 
-            // Invalidate user's meal plan list cache pattern
-            var userMealPlansPattern = _cacheKeyService.Custom("user", userId, "mealplans", "*");
-            await _cacheService.RemoveByPatternAsync(userMealPlansPattern);
+        //    // Invalidate user's meal plan list cache pattern
+        //    var userMealPlansPattern = _cacheKeyService.Custom("user", userId, "mealplans", "*");
+        //    await _cacheService.RemoveByPatternAsync(userMealPlansPattern);
 
-            _logger.LogInformation("Invalidated meal plan cache for meal plan {MealPlanId} and user {UserId}", mealPlanId, userId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to invalidate meal plan cache for meal plan {MealPlanId}", mealPlanId);
-        }
+        //    _logger.LogInformation("Invalidated meal plan cache for meal plan {MealPlanId} and user {UserId}", mealPlanId, userId);
+        //}
+        //catch (Exception ex)
+        //{
+        //    _logger.LogWarning(ex, "Failed to invalidate meal plan cache for meal plan {MealPlanId}", mealPlanId);
+        //}
     }
 } 

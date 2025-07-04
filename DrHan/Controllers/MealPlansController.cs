@@ -187,11 +187,11 @@ public class MealPlansController : ControllerBase
     }
 
     /// <summary>
-    /// ➕ Add a meal entry to existing meal plan
+    /// ➕ Add a meal entry to existing meal plan (overrides existing entry for same day and meal type)
     /// </summary>
     /// <param name="mealPlanId">Meal plan ID</param>
     /// <param name="request">Meal entry details</param>
-    /// <returns>Created meal entry</returns>
+    /// <returns>Created or updated meal entry</returns>
     [HttpPost("{mealPlanId}/entries")]
     [ProducesResponseType(typeof(AppResponse<MealEntryDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(AppResponse<MealEntryDto>), StatusCodes.Status400BadRequest)]

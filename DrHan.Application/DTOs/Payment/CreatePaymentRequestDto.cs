@@ -6,10 +6,7 @@ namespace DrHan.Application.DTOs.Payment
     {
         [Required]
         public decimal Amount { get; set; }
-        
-        [Required]
-        public string Currency { get; set; } = "VND";
-        
+                
         [Required]
         public string Description { get; set; } = string.Empty;
         

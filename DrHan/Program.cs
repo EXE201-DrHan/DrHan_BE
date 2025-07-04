@@ -16,14 +16,15 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .Enrich.WithEnvironmentName()
     .Enrich.WithThreadId()
+    .Enrich.With<VietnamTimeEnricher>()
     .WriteTo.Console(
-        outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
+        outputTemplate: "[{VietnamTime:yyyy-MM-dd HH:mm:ss} ICT {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
     .WriteTo.File(
         path: "logs/drhan-.log",
         rollingInterval: RollingInterval.Day,
         retainedFileCountLimit: 30,
         encoding: Encoding.UTF8,
-        outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
+        outputTemplate: "[{VietnamTime:yyyy-MM-dd HH:mm:ss} ICT {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
     .CreateLogger();
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();

@@ -125,6 +125,7 @@ namespace DrHan.Controllers
                 var result = await _payOSService.HandleWebhookAsync(webhook);
                 if (result)
                 {
+                    _logger.LogInformation("All cool");
                     return Ok();
                 }
                 return BadRequest("Invalid webhook data");

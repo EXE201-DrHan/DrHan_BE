@@ -33,7 +33,7 @@ public static class ServiceCollectionExtensions
         
         // Subscription Service
         services.AddScoped<ISubscriptionService, SubscriptionService>();
-        services.AddHostedService<SubscriptionExpiryService>();
+        //services.AddHostedService<SubscriptionExpiryService>();
         
         // Ingredient Service
     }

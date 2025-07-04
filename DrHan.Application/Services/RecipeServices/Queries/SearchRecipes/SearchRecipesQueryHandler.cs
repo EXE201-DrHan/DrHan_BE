@@ -44,16 +44,13 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
 
         try
         {
-            // Step 1: Search existing recipes in database
             var dbRecipes = await GetRecipesFromDatabase(searchDto, cancellationToken);
             
             _logger.LogInformation("Tìm thấy {Count} công thức trong database cho từ khóa '{SearchTerm}'", 
                 dbRecipes.Items.Count, searchDto.SearchTerm);
 
-            // Step 2: Check if we need AI recipes (only on first page with no results)
             var shouldUseAI = searchDto.Page == 1 && dbRecipes.Items.Count == 0;
 
-            // Step 3: If first page has no results, check if we already have AI recipes for this search term
             if (shouldUseAI)
             {
                 _logger.LogInformation("Không tìm thấy công thức nào trong database, kiểm tra công thức AI hiện có");

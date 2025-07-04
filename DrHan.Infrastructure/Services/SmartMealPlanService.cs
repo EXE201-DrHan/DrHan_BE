@@ -630,6 +630,7 @@ public class SmartMealPlanService : ISmartMealPlanService
         {
             try
             {
+                _logger.LogInformation("Activate Fallback filter");
                 var recipes = await _unitOfWork.Repository<Recipe>()
                     .ListAsync(
                         orderBy: q => q.OrderByDescending(r => r.RatingAverage)

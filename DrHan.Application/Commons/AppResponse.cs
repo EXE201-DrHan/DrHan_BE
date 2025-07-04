@@ -9,7 +9,7 @@ namespace DrHan.Application.Commons
     public class AppResponse<T>
     {
         public bool IsSucceeded { get; private set; } = true;
-        public DateTime Timestamp { get; private set; } = DateTime.UtcNow;
+        public DateTime Timestamp { get; private set; } = DateTime.Now;
         public Dictionary<string, string[]> Messages { get; private set; } = [];
         public T? Data { get; private set; }
         public PaginationInfo? Pagination { get; private set; }

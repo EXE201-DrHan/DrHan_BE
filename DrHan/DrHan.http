@@ -99,3 +99,59 @@ Content-Type: application/json
 }
 
 ###
+
+### Test Meal Entry Override Functionality
+
+# First, add a meal entry to meal plan
+POST {{host}}/api/mealplans/1/entries
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "mealDate": "2024-01-15",
+  "mealType": "1",
+  "recipeId": 123,
+  "servings": 1,
+  "notes": "First meal entry"
+}
+
+### Add another meal entry for the same day and meal type (should override the previous one)
+POST {{host}}/api/mealplans/1/entries
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "mealDate": "2024-01-15",
+  "mealType": "1",
+  "recipeId": 456,
+  "servings": 2,
+  "notes": "Updated meal entry - should override the first one"
+}
+
+### Add meal entry for different meal type on same day (should create new entry)
+POST {{host}}/api/mealplans/1/entries
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "mealDate": "2024-01-15",
+  "mealType": "2",
+  "recipeId": 789,
+  "servings": 1,
+  "notes": "Lunch meal - different meal type"
+}
+
+### Add meal entry for same meal type but different day (should create new entry)
+POST {{host}}/api/mealplans/1/entries
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "mealDate": "2024-01-16",
+  "mealType": "1", 
+  "recipeId": 321,
+  "servings": 1,
+  "notes": "Breakfast for next day"
+}
+
+###

@@ -1,3 +1,4 @@
+using DrHan.Application.DTOs.Chatbot.RealTime;
 using DrHan.Application.DTOs.Recipes;
 
 namespace DrHan.Application.DTOs.MealPlans;
@@ -62,10 +63,10 @@ public class AddMealEntryDto
 {
     public int MealPlanId { get; set; }
     public DateOnly MealDate { get; set; }
-    public string MealType { get; set; } // "Breakfast", "Lunch", "Dinner", "Snack"
+    public string MealType { get; set; } // "Breakfast 1", "Lunch 2", "Dinner 3", "Snack"
     public int? RecipeId { get; set; }
     public int? ProductId { get; set; }
-    public string CustomMealName { get; set; }
+    public string? CustomMealName { get; set; }
     public decimal? Servings { get; set; }
     public string Notes { get; set; }
 }
