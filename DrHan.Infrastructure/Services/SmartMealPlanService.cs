@@ -5,7 +5,10 @@ using DrHan.Application.DTOs.Recipes;
 using DrHan.Application.Interfaces.Repository;
 using DrHan.Application.Interfaces.Services;
 using DrHan.Application.Interfaces.Services.CacheService;
+using DrHan.Application.Services.SmartScoringService;
+using DrHan.Application.Services.ValidationServices;
 using DrHan.Application.StaticQuery;
+using DrHan.Domain.Constants;
 using DrHan.Domain.Entities.MealPlans;
 using DrHan.Domain.Entities.Recipes;
 using DrHan.Domain.Entities.Users;
@@ -21,6 +24,8 @@ public class SmartMealPlanService : ISmartMealPlanService
     private readonly ILogger<SmartMealPlanService> _logger;
     private readonly ICacheService _cacheService;
     private readonly ICacheKeyService _cacheKeyService;
+    private readonly IMealTypeValidationService _mealTypeValidationService;
+    private readonly ISmartScoringService _smartScoringService;
 
     private readonly Dictionary<string, double> _mealTypeWeights = new()
     {
@@ -39,13 +44,17 @@ public class SmartMealPlanService : ISmartMealPlanService
         IMapper mapper,
         ILogger<SmartMealPlanService> logger,
         ICacheService cacheService,
-        ICacheKeyService cacheKeyService)
+        ICacheKeyService cacheKeyService,
+        IMealTypeValidationService mealTypeValidationService,
+        ISmartScoringService smartScoringService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
         _logger = logger;
         _cacheService = cacheService;
         _cacheKeyService = cacheKeyService;
+        _mealTypeValidationService = mealTypeValidationService;
+        _smartScoringService = smartScoringService;
     }
 
     public async Task<AppResponse<MealPlanDto>> GenerateSmartMealPlanAsync(GenerateMealPlanDto request, int userId)
@@ -144,16 +153,25 @@ public class SmartMealPlanService : ISmartMealPlanService
                 {
                     if (recipesByMealType.ContainsKey(mealType) && recipesByMealType[mealType].Any())
                     {
-                        var selectedRecipe = SelectRandomRecipe(recipesByMealType[mealType]);
-                        mealEntries.Add(new MealPlanEntry
+                        var selectedRecipe = await SelectSmartRecipeAsync(
+                            recipesByMealType[mealType], 
+                            userId, 
+                            date, 
+                            mealType, 
+                            request.Preferences);
+                            
+                        if (selectedRecipe != null)
                         {
-                            MealPlanId = mealPlan.Id,
-                            MealDate = date,
-                            MealType = mealType,
-                            RecipeId = selectedRecipe.Id,
-                            Servings = CalculateServings(mealType),
-                            Notes = "Auto-generated"
-                        });
+                            mealEntries.Add(new MealPlanEntry
+                            {
+                                MealPlanId = mealPlan.Id,
+                                MealDate = date,
+                                MealType = mealType,
+                                RecipeId = selectedRecipe.Id,
+                                Servings = CalculateServings(mealType),
+                                Notes = "Smart-generated"
+                            });
+                        }
                     }
                 }
             }
@@ -233,7 +251,7 @@ public class SmartMealPlanService : ISmartMealPlanService
                 ? request.MealTypes 
                 : (request.Preferences?.PreferredMealTypes?.Any() == true 
                     ? request.Preferences.PreferredMealTypes 
-                    : new List<string> { "Breakfast", "Lunch", "Dinner" });
+                    : new List<string> { "Bữa sáng", "Bữa trưa", "Bữa tối" });
 
             var recipesByMealType = new Dictionary<string, List<Recipe>>();
             var missingMealTypes = new List<string>();
@@ -290,18 +308,27 @@ public class SmartMealPlanService : ISmartMealPlanService
 
                     if (recipesByMealType.ContainsKey(mealType) && recipesByMealType[mealType].Any())
                     {
-                        var selectedRecipe = SelectRandomRecipe(recipesByMealType[mealType]);
-                        var newMealEntry = new MealPlanEntry
+                        var selectedRecipe = await SelectSmartRecipeAsync(
+                            recipesByMealType[mealType], 
+                            userId, 
+                            date, 
+                            mealType, 
+                            request.Preferences);
+                            
+                        if (selectedRecipe != null)
                         {
-                            MealPlanId = mealPlanId,
-                            MealDate = date,
-                            MealType = mealType,
-                            RecipeId = selectedRecipe.Id,
-                            Servings = CalculateServings(mealType),
-                            Notes = "Smart-generated"
-                        };
+                            var newMealEntry = new MealPlanEntry
+                            {
+                                MealPlanId = mealPlanId,
+                                MealDate = date,
+                                MealType = mealType,
+                                RecipeId = selectedRecipe.Id,
+                                Servings = CalculateServings(mealType),
+                                Notes = "Smart-generated"
+                            };
 
-                        generatedMeals.Add(newMealEntry);
+                            generatedMeals.Add(newMealEntry);
+                        }
                     }
                 }
             }
@@ -568,21 +595,24 @@ public class SmartMealPlanService : ISmartMealPlanService
     {
         try
         {
-            var preferencesHash = GeneratePreferencesHash(preferences, userAllergies, mealType);
-            var cacheKey = _cacheKeyService.Custom("recipes", "filtered", mealType, preferencesHash);
+            //var preferencesHash = GeneratePreferencesHash(preferences, userAllergies, mealType);
+            //var cacheKey = _cacheKeyService.Custom("recipes", "filtered", mealType, preferencesHash);
 
-            try
-            {
-                var cachedRecipes = await _cacheService.GetAsync<List<Recipe>>(cacheKey);
-                if (cachedRecipes != null && cachedRecipes.Any())
-                {
-                    return cachedRecipes;
-                }
-            }
-            catch (Exception cacheEx)
-            {
-                _logger.LogWarning(cacheEx, "Cache access failed for recipe filtering, proceeding without cache");
-            }
+            //var preferencesHash = 0;
+            //var cacheKey = 0;
+            //try
+            //{
+            //    //var cachedRecipes = await _cacheService.GetAsync<List<Recipe>>(cacheKey);
+            //    var cachedRecipes = 0;
+            //    if (cachedRecipes != null && cachedRecipes.Any())
+            //    {
+            //        return cachedRecipes;
+            //    }
+            //}
+            //catch (Exception cacheEx)
+            //{
+            //    _logger.LogWarning(cacheEx, "Cache access failed for recipe filtering, proceeding without cache");
+            //}
 
             // EXECUTE QUERY DIRECTLY
             var filter = MealPlanRecipeQuery.BuildMealPlanFilter(preferences, userAllergies, mealType);
@@ -599,17 +629,17 @@ public class SmartMealPlanService : ISmartMealPlanService
 
             var result = recipes.Take(recipeCount).ToList();
 
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await _cacheService.SetAsync(cacheKey, result, RecipeFilterCacheExpiration);
-                }
-                catch (Exception cacheSetEx)
-                {
-                    _logger.LogWarning(cacheSetEx, "Failed to cache recipe results");
-                }
-            });
+            //_ = Task.Run(async () =>
+            //{
+            //    try
+            //    {
+            //        await _cacheService.SetAsync(cacheKey, result, RecipeFilterCacheExpiration);
+            //    }
+            //    catch (Exception cacheSetEx)
+            //    {
+            //        _logger.LogWarning(cacheSetEx, "Failed to cache recipe results");
+            //    }
+            //});
 
             return result;
         }
@@ -646,10 +676,70 @@ public class SmartMealPlanService : ISmartMealPlanService
         }, RecipeFilterCacheExpiration);
     }
 
-    private Recipe SelectRandomRecipe(List<Recipe> recipes)
+    private async Task<Recipe> SelectSmartRecipeAsync(
+        List<Recipe> recipes, 
+        int userId, 
+        DateOnly date, 
+        string mealType, 
+        MealPlanPreferencesDto preferences)
     {
+        try
+        {
+            // Create smart selection context
+            var context = new SmartSelectionContext
+            {
+                UserId = userId,
+                MealType = mealType,
+                Date = date,
+                CurrentTime = TimeOnly.FromDateTime(DateTime.Now),
+                IsWeekend = IsWeekend(date),
+                IsRushHour = IsRushHour(DateTime.Now),
+                TargetCalories = GetTargetCaloriesForMeal(mealType),
+                Preferences = preferences
+            };
+
+            // Use smart scoring service for selection
+            var selectedRecipe = await _smartScoringService.SelectSmartRecipeAsync(recipes, context);
+            
+            return selectedRecipe ?? SelectFallbackRecipe(recipes);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in smart recipe selection, falling back to random");
+            return SelectFallbackRecipe(recipes);
+        }
+    }
+
+    private Recipe SelectFallbackRecipe(List<Recipe> recipes)
+    {
+        // Fallback to random selection if smart selection fails
         var random = new Random();
         return recipes[random.Next(recipes.Count)];
+    }
+
+    private bool IsWeekend(DateOnly date)
+    {
+        var dayOfWeek = date.DayOfWeek;
+        return dayOfWeek == DayOfWeek.Saturday || dayOfWeek == DayOfWeek.Sunday;
+    }
+
+    private bool IsRushHour(DateTime now)
+    {
+        var hour = now.Hour;
+        // Consider rush hours: 7-9 AM and 12-1 PM
+        return (hour >= 7 && hour <= 9) || (hour >= 12 && hour <= 13);
+    }
+
+    private int GetTargetCaloriesForMeal(string mealType)
+    {
+        return mealType switch
+        {
+            MealTypeConstants.BREAKFAST => 500,   // 25% of 2000 cal diet
+            MealTypeConstants.LUNCH => 700,       // 35% of 2000 cal diet  
+            MealTypeConstants.DINNER => 800,      // 40% of 2000 cal diet
+            MealTypeConstants.SNACK => 200,       // 10% of 2000 cal diet
+            _ => 600 // Default
+        };
     }
 
     private decimal CalculateServings(string mealType)

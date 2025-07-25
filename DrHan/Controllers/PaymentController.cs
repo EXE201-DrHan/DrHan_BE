@@ -5,6 +5,8 @@ using DrHan.Domain.Constants.Status;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Net.payOS.Types;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DrHan.Controllers
 {
@@ -116,27 +118,111 @@ namespace DrHan.Controllers
         /// </summary>
         /// <param name="webhook">Webhook data from PayOS</param>
         /// <returns>Webhook processing result</returns>
+        //[HttpPost("webhook")]
+        //[AllowAnonymous]
+        //public async Task<ActionResult> HandleWebhook([FromBody] PayOSWebhookDto webhook)
+        //{
+        //    _logger.LogWarning("=== WEBHOOK ENDPOINT HIT ===");
+        //    try
+        //    {
+        //        _logger.LogWarning("All cool");
+        //        var result = await _payOSService.HandleWebhookAsync(webhook);
+        //        if (result)
+        //        {
+        //            _logger.LogInformation("All cool");
+        //            return Ok();
+        //        }
+        //        _logger.LogWarning("All cool");
+        //        _logger.LogInformation("All cool");
+        //        return BadRequest("Invalid webhook data");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error handling PayOS webhook");
+        //        return BadRequest("Webhook processing failed");
+        //    }
+        //}
         [HttpPost("webhook")]
         [AllowAnonymous]
-        public async Task<ActionResult> HandleWebhook([FromBody] PayOSWebhookDto webhook)
+        public async Task<ActionResult> HandleWebhook()
         {
+            _logger.LogWarning("=== WEBHOOK ENDPOINT HIT ===");
+
+            // Read raw request body
+            using var reader = new StreamReader(Request.Body);
+            var rawBody = await reader.ReadToEndAsync();
+
+            _logger.LogWarning("Raw webhook body: {Body}", rawBody);
+            _logger.LogWarning("Content-Type: {ContentType}", Request.ContentType);
+            _logger.LogWarning("Request Headers: {Headers}", string.Join(", ", Request.Headers.Select(h => $"{h.Key}: {h.Value}")));
+
+            if (string.IsNullOrEmpty(rawBody))
+            {
+                _logger.LogError("Webhook body is empty");
+                return BadRequest("Empty request body");
+            }
+
             try
             {
-                var result = await _payOSService.HandleWebhookAsync(webhook);
-                if (result)
+                // Configure JsonSerializer options
+                var options = new JsonSerializerOptions
                 {
-                    _logger.LogInformation("All cool");
-                    return Ok();
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    NumberHandling = JsonNumberHandling.AllowReadingFromString
+                };
+
+                var webhook = JsonSerializer.Deserialize<PayOSWebhookDto>(rawBody, options);
+
+                if (webhook == null)
+                {
+                    _logger.LogError("Webhook deserialization returned null");
+                    return BadRequest("Invalid webhook data");
                 }
-                return BadRequest("Invalid webhook data");
+
+                _logger.LogWarning("Deserialization successful");
+                _logger.LogWarning("Webhook Success: {Success}", webhook.Success);
+                _logger.LogWarning("Webhook Code: {Code}", webhook.Code);
+                _logger.LogWarning("Webhook Desc: {Desc}", webhook.Desc);
+
+                if (webhook.Data != null)
+                {
+                    _logger.LogWarning("OrderCode: {OrderCode}", webhook.Data.OrderCode);
+                    _logger.LogWarning("Amount: {Amount}", webhook.Data.Amount);
+                    _logger.LogWarning("Description: {Description}", webhook.Data.Description);
+                }
+                else
+                {
+                    _logger.LogError("Webhook.Data is null");
+                    return BadRequest("Missing webhook data");
+                }
+
+                var result = await _payOSService.HandleWebhookAsync(webhook);
+                return result ? Ok() : BadRequest("Processing failed");
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "JSON deserialization failed. Raw body: {RawBody}", rawBody);
+
+                // Try to parse as generic object to see the structure
+                try
+                {
+                    var genericObj = JsonSerializer.Deserialize<object>(rawBody);
+                    _logger.LogError("Generic deserialization succeeded: {GenericObj}", genericObj?.ToString());
+                }
+                catch (Exception innerEx)
+                {
+                    _logger.LogError(innerEx, "Even generic deserialization failed");
+                }
+
+                return BadRequest("Invalid JSON format");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error handling PayOS webhook");
-                return BadRequest("Webhook processing failed");
+                _logger.LogError(ex, "Unexpected error in webhook handler");
+                return StatusCode(500, "Internal server error");
             }
         }
-
         /// <summary>
         /// Payment success return endpoint
         /// </summary>
@@ -145,7 +231,9 @@ namespace DrHan.Controllers
         /// <returns>Payment success page or API response</returns>
         [HttpGet("return")]
         [AllowAnonymous]
-        public async Task<ActionResult<AppResponse<PaymentResponseDto>>> PaymentReturn([FromQuery] string orderCode, [FromQuery] string status)
+        public async Task<ActionResult<AppResponse<PaymentResponseDto>>> PaymentReturn(
+            [FromQuery] string orderCode
+            , [FromQuery] string status)
         {
             try
             {

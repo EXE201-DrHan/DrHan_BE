@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using DrHan.Infrastructure.Services;
 using DrHan.Application.DTOs.Payment;
 using Net.payOS;
+using DrHan.Application.Services.ValidationServices;
+using DrHan.Application.Services.SmartScoringService;
 namespace DrHan.Infrastructure.Extensions;
 
 public static class ServiceCollectionExtensions
@@ -27,10 +29,15 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOtpService, OtpService>();
         services.AddScoped<IPushNotificationService, PushNotificationService>();
         services.AddHostedService<OtpCleanupService>();
-        
+        services.AddScoped<IMealTypeValidationService, MealTypeValidationService>();
+        services.AddScoped<IMealNotificationService, MealNotificationService>();
+        services.AddHostedService<Infrastructure.BackgroundServices.MealNotificationBackgroundService>();
+        services.AddScoped<ISmartScoringService, SmartScoringService>();
+        services.AddScoped<IRecommendNewService, RecommendNewService>();
+
         // Payment Services
         //services.AddScoped<IPayOSService, PayOSService>();
-        
+
         // Subscription Service
         services.AddScoped<ISubscriptionService, SubscriptionService>();
         //services.AddHostedService<SubscriptionExpiryService>();

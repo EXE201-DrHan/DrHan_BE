@@ -9,6 +9,10 @@ using Hangfire;
 using Serilog;
 using Serilog.Events;
 using System.Text;
+using System.Text.Json;
+using Microsoft.AspNetCore.Mvc;
+
+
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
     .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
@@ -35,7 +39,11 @@ try
     builder.Services.AddPayOSService(builder.Configuration);
     builder.AddPresentation(builder.Configuration);
     builder.Services.AddApplications(builder.Configuration);
-    
+    builder.Services.Configure<JsonOptions>(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
     // Add Redis services with error handling
     try
     {

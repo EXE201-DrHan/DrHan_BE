@@ -12,6 +12,8 @@ using DrHan.Application.Interfaces.Services;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using DrHan.Application.Interfaces.Services.AuthenticationServices;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace DrHan.Controllers;
 
@@ -23,15 +25,20 @@ public class MealPlansController : ControllerBase
     private readonly IMediator _mediator;
     private readonly ISmartMealPlanService _smartMealPlanService;
     private readonly ILogger<MealPlansController> _logger;
-
+    private readonly IUserContext _userContext;
+    private readonly IRecommendNewService recommendNew;
     public MealPlansController(
         IMediator mediator,
         ISmartMealPlanService smartMealPlanService,
-        ILogger<MealPlansController> logger)
+        ILogger<MealPlansController> logger,
+        IUserContext userContext,
+        IRecommendNewService recommendNew)
     {
         _mediator = mediator;
         _smartMealPlanService = smartMealPlanService;
         _logger = logger;
+        _userContext = userContext;
+        this.recommendNew = recommendNew;
     }
 
     #region Smart Generation Endpoints
@@ -76,14 +83,19 @@ public class MealPlansController : ControllerBase
     /// <returns>List of recommended recipe IDs</returns>
     [HttpPost("recommendations")]
     [ProducesResponseType(typeof(AppResponse<List<int>>), StatusCodes.Status200OK)]
+    [Authorize]
     public async Task<ActionResult<AppResponse<List<int>>>> GetRecommendations(
         [FromBody] MealPlanPreferencesDto preferences,
-        [FromQuery] string mealType = "dinner")
+        [FromQuery] string mealType = "dinner",
+        [FromQuery] int count = 10)
     {
         try
         {
-            var userId = User.Identity.Name; // Assuming this gets user ID
-            var result = await _smartMealPlanService.GetRecommendedRecipesAsync(preferences, int.Parse(userId), mealType);
+            var userId = _userContext.GetCurrentUserId();
+            //var result = await _smartMealPlanService.GetRecommendedRecipesAsync(preferences, userId, mealType);
+
+            var result = await recommendNew.GetRecommendationsAsync(count);
+
             return Ok(result);
         }
         catch (Exception ex)
@@ -140,8 +152,8 @@ public class MealPlansController : ControllerBase
     {
         try
         {
-            var userId = User.Identity.Name;
-            var result = await _smartMealPlanService.BulkFillMealsAsync(request, int.Parse(userId));
+            var userId = _userContext.GetCurrentUserId().GetValueOrDefault();
+            var result = await _smartMealPlanService.BulkFillMealsAsync(request, userId);
             return Ok(result);
         }
         catch (Exception ex)

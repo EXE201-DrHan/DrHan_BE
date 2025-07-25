@@ -1,0 +1,62 @@
+### RecommendNew API Tests
+
+### 1. Get Current Time-Based Recommendations
+GET {{baseUrl}}/api/recommendnew/recommendations?count=10
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+### 2. Get Breakfast Recommendations
+GET {{baseUrl}}/api/recommendnew/recommendations/breakfast?count=5
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+### 3. Get Lunch Recommendations
+GET {{baseUrl}}/api/recommendnew/recommendations/lunch?count=10
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+### 4. Get Dinner Recommendations
+GET {{baseUrl}}/api/recommendnew/recommendations/dinner?count=15
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+### 5. Get Snack Recommendations
+GET {{baseUrl}}/api/recommendnew/recommendations/snack?count=8
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+### 6. Get Current Meal Type
+GET {{baseUrl}}/api/recommendnew/current-meal-type
+Content-Type: application/json
+
+###
+
+### 7. Test Invalid Count Parameter
+GET {{baseUrl}}/api/recommendnew/recommendations?count=100
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+### 8. Test Invalid Meal Type
+GET {{baseUrl}}/api/recommendnew/recommendations/invalid-meal-type
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+###
+
+### 9. Test Without Authentication
+GET {{baseUrl}}/api/recommendnew/recommendations?count=10
+Content-Type: application/json
+
+### 

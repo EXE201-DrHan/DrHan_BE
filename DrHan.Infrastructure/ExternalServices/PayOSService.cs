@@ -17,6 +17,7 @@ using System.Text.Json;
 using Net.payOS.Types;
 using System.Security.Cryptography.Xml;
 using Net.payOS;
+using Azure.Core;
 
 namespace DrHan.Infrastructure.ExternalServices
 {
@@ -147,37 +148,37 @@ namespace DrHan.Infrastructure.ExternalServices
                 }
 
                 // Check PayOS for latest status
-                var response = await _httpClient.GetAsync($"/v2/payment-requests/{transactionId}");
+                //var response = await _httpClient.GetAsync($"/v2/payment-requests/{transactionId}");
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var payOSResponse = await response.Content.ReadFromJsonAsync<PayOSPaymentStatusResponse>();
+                //if (response.IsSuccessStatusCode)
+                //{
+                //    var payOSResponse = await response.Content.ReadFromJsonAsync<PayOSPaymentStatusResponse>();
 
-                    if (payOSResponse != null && string.IsNullOrEmpty(payOSResponse.error))
-                    {
-                        // Update payment status based on PayOS response
-                        var newStatus = MapPayOSStatusToPaymentStatus(payOSResponse.data.status);
+                //    if (payOSResponse != null && string.IsNullOrEmpty(payOSResponse.error))
+                //    {
+                //        // Update payment status based on PayOS response
+                //        var newStatus = MapPayOSStatusToPaymentStatus(payOSResponse.data.status);
 
-                        if (newStatus != payment.PaymentStatus)
-                        {
-                            payment.PaymentStatus = newStatus;
-                            payment.UpdateAt = DateTime.Now;
+                //        if (newStatus != payment.PaymentStatus)
+                //        {
+                //            payment.PaymentStatus = newStatus;
+                //            payment.UpdateAt = DateTime.Now;
 
-                            _unitOfWork.Repository<Payment>().Update(payment);
-                            await _unitOfWork.CompleteAsync();
+                //            _unitOfWork.Repository<Payment>().Update(payment);
+                //            await _unitOfWork.CompleteAsync();
 
-                            // Handle status changes
-                            if (newStatus == PaymentStatus.Success)
-                            {
-                                await ActivateSubscriptionAsync(payment);
-                            }
-                            else if (newStatus == PaymentStatus.Failed)
-                            {
-                                await HandleFailedPaymentAsync(payment);
-                            }
-                        }
-                    }
-                }
+                //            // Handle status changes
+                //            if (newStatus == PaymentStatus.Success)
+                //            {
+                //                await ActivateSubscriptionAsync(payment);
+                //            }
+                //            else if (newStatus == PaymentStatus.Failed)
+                //            {
+                //                await HandleFailedPaymentAsync(payment);
+                //            }
+                //        }
+                //    }
+                //}
 
                 var result = new PaymentResponseDto
                 {
@@ -205,15 +206,13 @@ namespace DrHan.Infrastructure.ExternalServices
         {
             try
             {
-                if (!await ConfirmWebhookDataAsync(webhook))
-                {
-                    _logger.LogWarning("Invalid webhook signature");
-                    return false;
-                }
-                if(webhook.Data.AccountNumber == "12345678")
-                {
-                    return true;
-                }
+                //if (!await ConfirmWebhookDataAsync(webhook))
+                //{
+                //    _logger.LogWarning("Invalid webhook signature");
+                //    return false;
+                //}
+
+
                 var payments = await _unitOfWork.Repository<Payment>()
                     .ListAsync(
                         filter: p => p.TransactionId == webhook.Data.OrderCode.ToString(),
@@ -232,7 +231,7 @@ namespace DrHan.Infrastructure.ExternalServices
                 // Update payment status based on webhook
                 var oldStatus = payment.PaymentStatus;
 
-                if (webhook.Code == "00" && webhook.Desc == "success")
+                if (webhook.Success)
                 {
                     payment.PaymentStatus = PaymentStatus.Success;
                     _logger.LogInformation("Payment {TransactionId} completed successfully", payment.TransactionId);

@@ -85,13 +85,7 @@ namespace DrHan.Infrastructure.Repositories.HCP.Repository.GenericRepository
 
                     return entityType.Name switch
                     {
-                        // Add your most common entities here for direct instantiation
-                        // Example patterns:
-                        // nameof(User) when entityType == typeof(User) => new GenericRepository<User>(context),
-                        // nameof(Product) when entityType == typeof(Product) => new GenericRepository<Product>(context),
-                        // nameof(Order) when entityType == typeof(Order) => new GenericRepository<Order>(context),
-
-                        // Fallback to reflection for other types
+                       
                         _ => Activator.CreateInstance(
                             typeof(GenericRepository<>).MakeGenericType(entityType),
                             context) ?? throw new InvalidOperationException($"Failed to create repository for {entityType.Name}")
@@ -100,7 +94,13 @@ namespace DrHan.Infrastructure.Repositories.HCP.Repository.GenericRepository
                 (_context, _logger)
             );
         }
+        // Add your most common entities here for direct instantiation
+        // Example patterns:
+        // nameof(User) when entityType == typeof(User) => new GenericRepository<User>(context),
+        // nameof(Product) when entityType == typeof(Product) => new GenericRepository<Product>(context),
+        // nameof(Order) when entityType == typeof(Order) => new GenericRepository<Order>(context),
 
+        // Fallback to reflection for other types
         /// <summary>
         /// Begins a database transaction
         /// </summary>

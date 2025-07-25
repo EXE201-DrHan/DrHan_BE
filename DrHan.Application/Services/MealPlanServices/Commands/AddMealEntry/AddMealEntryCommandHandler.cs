@@ -1,14 +1,16 @@
-using AutoMapper;
+﻿using AutoMapper;
 using DrHan.Application.Commons;
 using DrHan.Application.DTOs.MealPlans;
 using DrHan.Application.Interfaces.Repository;
 using DrHan.Application.Interfaces.Services.AuthenticationServices;
 using DrHan.Application.Interfaces.Services.CacheService;
+using DrHan.Application.Services.ValidationServices;
 using DrHan.Domain.Entities.MealPlans;
 using DrHan.Domain.Entities.Recipes;
 using DrHan.Domain.Entities.FoodProducts;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using System.Linq.Expressions;
 
 namespace DrHan.Application.Services.MealPlanServices.Commands.AddMealEntry;
 
@@ -20,6 +22,7 @@ public class AddMealEntryCommandHandler : IRequestHandler<AddMealEntryCommand, A
     private readonly ILogger<AddMealEntryCommandHandler> _logger;
     private readonly ICacheService _cacheService;
     private readonly ICacheKeyService _cacheKeyService;
+    private readonly IMealTypeValidationService _mealTypeValidationService;
 
     public AddMealEntryCommandHandler(
         IUnitOfWork unitOfWork,
@@ -27,7 +30,8 @@ public class AddMealEntryCommandHandler : IRequestHandler<AddMealEntryCommand, A
         IUserContext userContext,
         ILogger<AddMealEntryCommandHandler> logger,
         ICacheService cacheService,
-        ICacheKeyService cacheKeyService)
+        ICacheKeyService cacheKeyService,
+        IMealTypeValidationService mealTypeValidationService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
@@ -35,6 +39,7 @@ public class AddMealEntryCommandHandler : IRequestHandler<AddMealEntryCommand, A
         _logger = logger;
         _cacheService = cacheService;
         _cacheKeyService = cacheKeyService;
+        _mealTypeValidationService = mealTypeValidationService;
     }
 
     public async Task<AppResponse<MealEntryDto>> Handle(AddMealEntryCommand request, CancellationToken cancellationToken)
@@ -58,6 +63,29 @@ public class AddMealEntryCommandHandler : IRequestHandler<AddMealEntryCommand, A
             {
                 return response.SetErrorResponse("Authorization", "You don't have permission to modify this meal plan");
             }
+            switch (request.MealEntry.MealType)
+            {
+                case "1":
+                    request.MealEntry.MealType = "Bữa Sáng";
+                    break;
+                case "2":
+                    request.MealEntry.MealType = "Bữa Trưa";
+                    break;
+                case "3":
+                    request.MealEntry.MealType = "Bữa Tối";
+                    break;
+                default:
+                    request.MealEntry.MealType = "Ăn Vặt";
+                    break;
+            }
+            // Validate and normalize meal type
+            //var mealTypeValidation = _mealTypeValidationService.ValidateAndNormalize(request.MealEntry.MealType);
+            //if (!mealTypeValidation.IsValid)
+            //{
+            //    return response.SetErrorResponse("MealType", mealTypeValidation.ErrorMessage);
+            //}
+            //// Normalize the meal type before further processing
+            //request.MealEntry.MealType = mealTypeValidation.NormalizedMealType;
 
             // Validate meal entry data
             var validationResult = await ValidateMealEntry(request.MealEntry);
@@ -87,7 +115,7 @@ public class AddMealEntryCommandHandler : IRequestHandler<AddMealEntryCommand, A
                 _unitOfWork.Repository<MealPlanEntry>().Update(existingEntry);
                 mealEntry = existingEntry;
 
-                _logger.LogInformation("Overriding existing meal entry for plan {MealPlanId}, date {MealDate}, meal type {MealType}", 
+                _logger.LogInformation("Overriding existing meal entry for plan {MealPlanId}, date {MealDate}, meal type {MealType} (normalized from original input)", 
                     request.MealEntry.MealPlanId, request.MealEntry.MealDate, request.MealEntry.MealType);
             }
             else
@@ -107,7 +135,7 @@ public class AddMealEntryCommandHandler : IRequestHandler<AddMealEntryCommand, A
 
                 await _unitOfWork.Repository<MealPlanEntry>().AddAsync(mealEntry);
 
-                _logger.LogInformation("Creating new meal entry for plan {MealPlanId}, date {MealDate}, meal type {MealType}", 
+                _logger.LogInformation("Creating new meal entry for plan {MealPlanId}, date {MealDate}, meal type {MealType} (normalized from original input)", 
                     request.MealEntry.MealPlanId, request.MealEntry.MealDate, request.MealEntry.MealType);
             }
 

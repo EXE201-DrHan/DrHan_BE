@@ -46,11 +46,25 @@ public class GetMealPlanByIdQueryHandler : IRequestHandler<GetMealPlanByIdQuery,
         try
         {
             var userId = _userContext.GetCurrentUserId().GetValueOrDefault();
-            var cacheKey = _cacheKeyService.Custom("user", userId, "mealplan", request.Id);
-            
-            var mealPlanDto = await _cacheService.GetAsync<MealPlanDto>(cacheKey, async () =>
-            {
-                var mealPlans = await _unitOfWork.Repository<MealPlan>()
+            //var cacheKey = _cacheKeyService.Custom("user", userId, "mealplan", request.Id);
+
+            //var mealPlanDto = await _cacheService.GetAsync<MealPlanDto>(cacheKey, async () =>
+            //{
+            //    var mealPlans = await _unitOfWork.Repository<MealPlan>()
+            //        .ListAsync(
+            //            filter: mp => mp.Id == request.Id && mp.UserId == userId,
+            //            includeProperties: query => query
+            //                .Include(mp => mp.MealPlanEntries)
+            //                .ThenInclude(mpe => mpe.Recipe)
+            //                .Include(mp => mp.MealPlanEntries)
+            //                .ThenInclude(mpe => mpe.Product)
+            //        );
+
+            //    var mealPlan = mealPlans.FirstOrDefault();
+            //    return mealPlan != null ? _mapper.Map<MealPlanDto>(mealPlan) : null;
+            //}, MealPlanCacheExpiration);
+
+            var mealPlans = await _unitOfWork.Repository<MealPlan>()
                     .ListAsync(
                         filter: mp => mp.Id == request.Id && mp.UserId == userId,
                         includeProperties: query => query
@@ -59,11 +73,8 @@ public class GetMealPlanByIdQueryHandler : IRequestHandler<GetMealPlanByIdQuery,
                             .Include(mp => mp.MealPlanEntries)
                             .ThenInclude(mpe => mpe.Product)
                     );
-                
-                var mealPlan = mealPlans.FirstOrDefault();
-                return mealPlan != null ? _mapper.Map<MealPlanDto>(mealPlan) : null;
-            }, MealPlanCacheExpiration);
-
+            var mealPlan = mealPlans.FirstOrDefault();
+            var mealPlanDto = mealPlan != null ? _mapper.Map<MealPlanDto>(mealPlan) : null;
             if (mealPlanDto == null)
             {
                 return response.SetErrorResponse("NotFound", "Meal plan not found");

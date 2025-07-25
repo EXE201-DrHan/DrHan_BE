@@ -52,7 +52,7 @@ public class MealPlanPreferencesDto
 {
     public List<string> CuisineTypes { get; set; } = new(); // "Italian", "Asian", "Mexican"
     public int? MaxCookingTime { get; set; } // in minutes
-    public string BudgetRange { get; set; } // "low", "medium", "high"
+    public string? BudgetRange { get; set; } // "low", "medium", "high"
     public List<string> PreferredMealTypes { get; set; } = new(); // "breakfast", "lunch", "dinner", "snack"
     public bool IncludeLeftovers { get; set; } = true;
     public bool VarietyMode { get; set; } = true; // Ensure meal variety

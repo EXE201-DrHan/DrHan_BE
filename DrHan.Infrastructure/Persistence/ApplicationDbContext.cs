@@ -10,6 +10,7 @@ using DrHan.Domain.Entities.FoodProducts;
 using DrHan.Domain.Entities.Ingredients;
 using DrHan.Domain.Entities.MealPlans;
 using DrHan.Domain.Entities.Recipes;
+using DrHan.Domain.Entities.Notifications;
 
 namespace DrHan.Infrastructure.Persistence;
 
@@ -103,6 +104,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public virtual DbSet<UserOtp> UserOtps { get; set; }
     public virtual DbSet<UserDeviceToken> UserDeviceTokens { get; set; }
     public virtual DbSet<SubscriptionUsage> SubscriptionUsages { get; set; }
+    public virtual DbSet<UserMealNotificationSettings> UserMealNotificationSettings { get; set; }
+    public virtual DbSet<MealNotificationLog> MealNotificationLogs { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
