@@ -15,7 +15,7 @@ public class GeminiRecipeService : IGeminiRecipeService
     private readonly IConfiguration _configuration;
     private readonly ILogger<GeminiRecipeService> _logger;
 
-    private const int MaxRetryAttempts = 3;
+    private const int MaxRetryAttempts = 2;
     private const int BaseDelayMs = 1000;
 
     public GeminiRecipeService(
@@ -155,7 +155,7 @@ public class GeminiRecipeService : IGeminiRecipeService
             generationConfig = new
             {
                 temperature = 0.1,
-                maxOutputTokens = 4500, // Further reduced for complete responses
+                maxOutputTokens = 10000, // Further reduced for complete responses
                 topP = 0.8,
                 topK = 40
             }
