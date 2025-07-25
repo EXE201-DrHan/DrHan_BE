@@ -10,6 +10,7 @@ using DrHan.Domain.Entities.Recipes;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory; // ADD THIS
 using System.Linq;
 
 namespace DrHan.Application.Services.RecipeServices.Queries.SearchRecipes;
@@ -21,18 +22,25 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
     private readonly IGeminiRecipeService _geminiService;
     private readonly IRecipePersistenceService _recipePersistenceService;
     private readonly ILogger<SearchRecipesQueryHandler> _logger;
+    private readonly IMemoryCache _memoryCache; // ADD THIS
+
+    // ADD THESE OPTIMIZATION CONSTANTS
+    private const int QUERY_CACHE_MINUTES = 2; // Cache identical queries for 2 minutes
+    private const int AI_RECIPE_CACHE_MINUTES = 30; // Cache AI recipe lookups
 
     public SearchRecipesQueryHandler(
         IUnitOfWork unitOfWork,
         IMapper mapper,
         IGeminiRecipeService geminiService,
         IRecipePersistenceService recipePersistenceService,
+        IMemoryCache memoryCache, // ADD THIS
         ILogger<SearchRecipesQueryHandler> logger)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         _geminiService = geminiService ?? throw new ArgumentNullException(nameof(geminiService));
         _recipePersistenceService = recipePersistenceService ?? throw new ArgumentNullException(nameof(recipePersistenceService));
+        _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache)); // ADD THIS
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -42,14 +50,14 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
     {
         var searchDto = request.SearchDto;
         
-        _logger.LogInformation("Bắt đầu tìm kiếm công thức với từ khóa: {SearchTerm}, Trang: {Page}, Kích thước trang: {PageSize}", 
+        _logger.LogInformation("🔍 Starting search: '{SearchTerm}' | Page: {Page} | Size: {PageSize}", 
             searchDto.SearchTerm, searchDto.Page, searchDto.PageSize);
 
         try
         {
-            var dbRecipes = await GetRecipesFromDatabase(searchDto, cancellationToken);
+            var dbRecipes = await GetRecipesFromDatabaseAsync(searchDto, cancellationToken);
             
-            _logger.LogInformation("Tìm thấy {Count} công thức trong database cho từ khóa '{SearchTerm}' trang {Page}", 
+            _logger.LogInformation("📊 Found {Count} recipes in database for '{SearchTerm}' page {Page}", 
                 dbRecipes.Items.Count, searchDto.SearchTerm, searchDto.Page);
 
             // NEW LOGIC: Check if we need more recipes (less than 10 for any page)
@@ -57,29 +65,28 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
 
             if (needsMoreRecipes)
             {
-                _logger.LogInformation("Có {Count} công thức < 10, cần bổ sung từ AI cho từ khóa '{SearchTerm}'", 
+                _logger.LogInformation("📈 Need more recipes ({Count} < 10), checking AI for '{SearchTerm}'", 
                     dbRecipes.Items.Count, searchDto.SearchTerm);
                 
-                // Check if we already have AI-generated recipes for this search term
-                var existingAIRecipes = await CheckForExistingAIRecipes(searchDto, cancellationToken);
+                // OPTIMIZED: Check cached AI recipes first
+                var existingAIRecipes = await GetCachedAIRecipesAsync(searchDto, cancellationToken);
                 
                 if (existingAIRecipes.Any())
                 {
-                    _logger.LogInformation("Sử dụng {Count} công thức AI hiện có cho từ khóa '{SearchTerm}'", 
+                    _logger.LogInformation("⚡ Using {Count} cached AI recipes for '{SearchTerm}'", 
                         existingAIRecipes.Count, searchDto.SearchTerm);
                     
-                    // Combine existing database and AI recipes and return immediately
                     return CreateSuccessResponseWithExistingAI(dbRecipes, existingAIRecipes, searchDto);
                 }
                 else
                 {
                     // Generate new AI recipes and show them immediately, then persist later
-                    _logger.LogInformation("Tạo công thức AI mới cho từ khóa '{SearchTerm}' và hiển thị ngay", searchDto.SearchTerm);
+                    _logger.LogInformation("🤖 Generating new AI recipes for '{SearchTerm}'", searchDto.SearchTerm);
                     var aiRecipeDtos = await TryGetRecipesFromAIAsync(searchDto, 10 - dbRecipes.Items.Count, cancellationToken);
                     
                     if (aiRecipeDtos.Any())
                     {
-                        _logger.LogInformation("Đã tạo thành công {Count} công thức AI mới cho từ khóa '{SearchTerm}', hiển thị ngay và sẽ lưu sau", 
+                        _logger.LogInformation("✅ Generated {Count} AI recipes for '{SearchTerm}', showing immediately", 
                             aiRecipeDtos.Count, searchDto.SearchTerm);
                         
                         // Queue recipes for background persistence (fire and forget)
@@ -101,19 +108,19 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                     }
                     else
                     {
-                        _logger.LogWarning("Không thể tạo công thức AI cho từ khóa '{SearchTerm}'", searchDto.SearchTerm);
+                        _logger.LogWarning("❌ Could not generate AI recipes for '{SearchTerm}'", searchDto.SearchTerm);
                     }
                 }
             }
 
             // Return what we have from database
-            _logger.LogInformation("Trả về {Count} công thức từ database cho từ khóa '{SearchTerm}'", 
+            _logger.LogInformation("📋 Returning {Count} database recipes for '{SearchTerm}'", 
                 dbRecipes.Items.Count, searchDto.SearchTerm);
             return CreateSuccessResponse(dbRecipes, searchDto);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Lỗi khi tìm kiếm công thức với từ khóa '{SearchTerm}', Trang: {Page}", 
+            _logger.LogError(ex, "❌ Search failed for '{SearchTerm}', Page: {Page}", 
                 searchDto.SearchTerm, searchDto.Page);
             return new AppResponse<IPaginatedList<RecipeDto>>()
                 .SetErrorResponse("Lỗi", "Đã xảy ra lỗi khi tìm kiếm công thức nấu ăn");
@@ -121,20 +128,69 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
     }
 
     /// <summary>
-    /// Get recipes from database using search criteria
+    /// OPTIMIZED: Get recipes from database with caching for repeated queries
     /// </summary>
-    private async Task<IPaginatedList<Recipe>> GetRecipesFromDatabase(
+    private async Task<IPaginatedList<Recipe>> GetRecipesFromDatabaseAsync(
         RecipeSearchDto searchDto,
         CancellationToken cancellationToken)
     {
+        // OPTIMIZATION 1: Cache identical queries for 2 minutes
+        var cacheKey = $"db_search_{searchDto.GetHashCode()}";
+        if (_memoryCache.TryGetValue(cacheKey, out IPaginatedList<Recipe>? cachedResult))
+        {
+            _logger.LogDebug("⚡ Database query cache hit for '{SearchTerm}'", searchDto.SearchTerm);
+            return cachedResult!;
+        }
+
         var paginationRequest = new PaginationRequest(searchDto.Page, searchDto.PageSize);
 
-        return await _unitOfWork.Repository<Recipe>().ListAsyncWithPaginated(
+        var result = await _unitOfWork.Repository<Recipe>().ListAsyncWithPaginated(
             filter: RecipeSearchQuery.BuildFilter(searchDto),
             orderBy: RecipeSearchQuery.BuildOrderBy(searchDto),
             includeProperties: RecipeSearchQuery.BuildSearchIncludes(),
             pagination: paginationRequest,
             cancellationToken: cancellationToken);
+
+        // Cache for 2 minutes to handle rapid repeated requests
+        _memoryCache.Set(cacheKey, result, TimeSpan.FromMinutes(QUERY_CACHE_MINUTES));
+
+        return result;
+    }
+
+    /// <summary>
+    /// OPTIMIZED: Get AI recipes with caching to avoid repeated database queries
+    /// </summary>
+    private async Task<List<Recipe>> GetCachedAIRecipesAsync(RecipeSearchDto searchDto, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(searchDto.SearchTerm))
+            return new List<Recipe>();
+
+        // OPTIMIZATION 2: Cache AI recipe lookups for 30 minutes
+        var cacheKey = $"ai_recipes_{searchDto.SearchTerm?.ToLower()}_{searchDto.CuisineType}_{searchDto.MealType}";
+        if (_memoryCache.TryGetValue(cacheKey, out List<Recipe>? cachedAIRecipes))
+        {
+            _logger.LogDebug("⚡ AI recipes cache hit for '{SearchTerm}'", searchDto.SearchTerm);
+            return cachedAIRecipes!;
+        }
+
+        // OPTIMIZATION 3: Use more efficient query with EF.Functions.Contains for better performance
+        var aiRecipes = await _unitOfWork.Repository<Recipe>()
+            .ListAsync(r => r.OriginalAuthor == "AI Generated" &&
+                           (EF.Functions.Contains(r.Name, searchDto.SearchTerm) ||
+                            EF.Functions.Contains(r.Description, searchDto.SearchTerm) ||
+                            r.RecipeIngredients.Any(ri => EF.Functions.Contains(ri.IngredientName, searchDto.SearchTerm))));
+
+        var result = aiRecipes.Take(5).ToList(); // Return max 5 existing AI recipes
+
+        // Cache the results for 30 minutes
+        _memoryCache.Set(cacheKey, result, TimeSpan.FromMinutes(AI_RECIPE_CACHE_MINUTES));
+
+        if (result.Any())
+        {
+            _logger.LogInformation("🎯 Found {Count} existing AI recipes for '{SearchTerm}'", result.Count, searchDto.SearchTerm);
+        }
+
+        return result;
     }
 
     /// <summary>
