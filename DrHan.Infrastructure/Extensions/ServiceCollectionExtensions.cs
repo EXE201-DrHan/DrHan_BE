@@ -23,7 +23,11 @@ public static class ServiceCollectionExtensions
         // Recipe Cache Service (both as scoped service and hosted service)
         services.AddScoped<IRecipeCacheService, Infrastructure.Services.RecipeCacheService>();
         services.AddHostedService<Infrastructure.Services.RecipeCacheService>();
-        services.AddScoped<ISmartMealPlanService, SmartMealPlanService>(); 
+        services.AddScoped<ISmartMealPlanService, SmartMealPlanService>();
+        
+        // Recipe Persistence Service (for async background processing)
+        services.AddSingleton<IRecipePersistenceService, Infrastructure.Services.RecipePersistenceService>();
+        services.AddHostedService<Infrastructure.BackgroundServices.RecipePersistenceBackgroundService>(); 
         
         // OTP and Push Notification Services
         services.AddScoped<IOtpService, OtpService>();
