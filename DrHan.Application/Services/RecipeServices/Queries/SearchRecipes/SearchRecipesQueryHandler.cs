@@ -2,6 +2,7 @@ using AutoMapper;
 using DrHan.Application.Commons;
 using DrHan.Application.DTOs.Gemini;
 using DrHan.Application.DTOs.Recipes;
+using DrHan.Application.Extensions;
 using DrHan.Application.Interfaces.Repository;
 using DrHan.Application.Interfaces.Services;
 using DrHan.Application.StaticQuery;
@@ -10,7 +11,9 @@ using DrHan.Domain.Entities.Recipes;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 using System.Linq;
+using System.Text.Json;
 
 namespace DrHan.Application.Services.RecipeServices.Queries.SearchRecipes;
 
@@ -20,17 +23,24 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
     private readonly IMapper _mapper;
     private readonly IGeminiRecipeService _geminiService;
     private readonly ILogger<SearchRecipesQueryHandler> _logger;
+    private readonly IMemoryCache _cache;
+
+    // Cache settings
+    private static readonly TimeSpan SearchCacheExpiry = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan AISearchCacheExpiry = TimeSpan.FromHours(1);
 
     public SearchRecipesQueryHandler(
         IUnitOfWork unitOfWork,
         IMapper mapper,
         IGeminiRecipeService geminiService,
-        ILogger<SearchRecipesQueryHandler> logger)
+        ILogger<SearchRecipesQueryHandler> logger,
+        IMemoryCache cache)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         _geminiService = geminiService ?? throw new ArgumentNullException(nameof(geminiService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _cache = cache ?? throw new ArgumentNullException(nameof(cache));
     }
 
     public async Task<AppResponse<IPaginatedList<RecipeDto>>> Handle(
@@ -39,12 +49,17 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
     {
         var searchDto = request.SearchDto;
         
+        using var performanceScope = _logger.CreatePerformanceScope($"RecipeSearch_{searchDto.SearchTerm}");
+        
         _logger.LogInformation("Bắt đầu tìm kiếm công thức với từ khóa: {SearchTerm}, Trang: {Page}, Kích thước trang: {PageSize}", 
             searchDto.SearchTerm, searchDto.Page, searchDto.PageSize);
 
         try
         {
-            var dbRecipes = await GetRecipesFromDatabase(searchDto, cancellationToken);
+            var dbRecipes = await _logger.ExecuteWithTimingAsync(
+                () => GetRecipesFromDatabase(searchDto, cancellationToken),
+                $"DatabaseSearch_{searchDto.SearchTerm}",
+                SearchPerformanceConstants.AcceptableQueryThreshold);
             
             _logger.LogInformation("Tìm thấy {Count} công thức trong database cho từ khóa '{SearchTerm}'", 
                 dbRecipes.Items.Count, searchDto.SearchTerm);
@@ -56,7 +71,9 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                 _logger.LogInformation("Không tìm thấy công thức nào trong database, kiểm tra công thức AI hiện có");
                 
                 // Check if we already have AI-generated recipes for this search term
-                var existingAIRecipes = await CheckForExistingAIRecipes(searchDto, cancellationToken);
+                var existingAIRecipes = await _logger.ExecuteWithTimingAsync(
+                    () => CheckForExistingAIRecipes(searchDto, cancellationToken),
+                    $"CheckExistingAI_{searchDto.SearchTerm}");
                 
                 if (existingAIRecipes.Any())
                 {
@@ -70,7 +87,11 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                 {
                     // No existing AI recipes, generate new ones
                     _logger.LogInformation("Không tìm thấy công thức AI cho từ khóa '{SearchTerm}', tạo mới", searchDto.SearchTerm);
-                    var aiRecipes = await TryGetRecipesFromAI(searchDto, 3, cancellationToken); // Reduced to 3 for complete responses
+                    var aiRecipes = await _logger.ExecuteWithTimingAsync(
+                        () => TryGetRecipesFromAI(searchDto, 3, cancellationToken),
+                        $"GenerateAIRecipes_{searchDto.SearchTerm}",
+                        TimeSpan.FromSeconds(10)); // AI calls can take longer
+                    
                     if (aiRecipes.Any())
                     {
                         _logger.LogInformation("Đã tạo thành công {Count} công thức AI mới cho từ khóa '{SearchTerm}'", 
@@ -99,20 +120,83 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
     }
 
     /// <summary>
-    /// Get recipes from database using search criteria
+    /// Get recipes from database using search criteria with caching
     /// </summary>
     private async Task<IPaginatedList<Recipe>> GetRecipesFromDatabase(
         RecipeSearchDto searchDto,
         CancellationToken cancellationToken)
     {
+        // Create cache key based on search parameters
+        var cacheKey = GenerateSearchCacheKey(searchDto);
+        
+        // Try to get from cache first
+        if (_cache.TryGetValue(cacheKey, out IPaginatedList<Recipe> cachedResults))
+        {
+            _logger.LogInformation("Trả về kết quả tìm kiếm từ cache cho từ khóa '{SearchTerm}'", searchDto.SearchTerm);
+            return cachedResults;
+        }
+
         var paginationRequest = new PaginationRequest(searchDto.Page, searchDto.PageSize);
 
-        return await _unitOfWork.Repository<Recipe>().ListAsyncWithPaginated(
+        // Determine if we need complex filtering
+        var needsComplexFiltering = NeedsComplexFiltering(searchDto);
+        var includeProperties = needsComplexFiltering 
+            ? RecipeSearchQuery.BuildSearchIncludes()
+            : RecipeSearchQuery.BuildMinimalSearchIncludes();
+
+        var results = await _unitOfWork.Repository<Recipe>().ListAsyncWithPaginated(
             filter: RecipeSearchQuery.BuildFilter(searchDto),
             orderBy: RecipeSearchQuery.BuildOrderBy(searchDto),
-            includeProperties: RecipeSearchQuery.BuildSearchIncludes(),
+            includeProperties: includeProperties,
             pagination: paginationRequest,
             cancellationToken: cancellationToken);
+
+        // Cache the results
+        var cacheOptions = new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = SearchCacheExpiry,
+            SlidingExpiration = TimeSpan.FromMinutes(5),
+            Priority = CacheItemPriority.Normal
+        };
+
+        _cache.Set(cacheKey, results, cacheOptions);
+        
+        return results;
+    }
+
+    /// <summary>
+    /// Generate cache key for search parameters
+    /// </summary>
+    private string GenerateSearchCacheKey(RecipeSearchDto searchDto)
+    {
+        var keyParts = new[]
+        {
+            "recipe_search",
+            searchDto.SearchTerm ?? "empty",
+            searchDto.CuisineType ?? "any",
+            searchDto.MealType ?? "any",
+            searchDto.MaxPrepTime?.ToString() ?? "no_limit",
+            searchDto.Page.ToString(),
+            searchDto.PageSize.ToString(),
+            searchDto.SortBy ?? "default",
+            searchDto.IsDescending.ToString(),
+            string.Join(",", searchDto.ExcludeAllergens ?? new List<string>()),
+            string.Join(",", searchDto.RequireAllergenFree ?? new List<string>()),
+            string.Join(",", searchDto.IncludeIngredients ?? new List<string>()),
+            string.Join(",", searchDto.ExcludeIngredients ?? new List<string>())
+        };
+
+        return string.Join("_", keyParts).Replace(" ", "_").ToLower();
+    }
+
+    /// <summary>
+    /// Determine if search requires complex filtering (joins to related tables)
+    /// </summary>
+    private bool NeedsComplexFiltering(RecipeSearchDto searchDto)
+    {
+        return !string.IsNullOrEmpty(searchDto.IngredientCategory) ||
+               (searchDto.IncludeIngredients?.Any() == true) ||
+               (searchDto.ExcludeIngredients?.Any() == true);
     }
 
     /// <summary>
