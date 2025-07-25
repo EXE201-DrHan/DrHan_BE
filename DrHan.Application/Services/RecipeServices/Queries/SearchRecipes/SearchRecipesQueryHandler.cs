@@ -19,17 +19,20 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
     private readonly IGeminiRecipeService _geminiService;
+    private readonly IRecipePersistenceService _recipePersistenceService;
     private readonly ILogger<SearchRecipesQueryHandler> _logger;
 
     public SearchRecipesQueryHandler(
         IUnitOfWork unitOfWork,
         IMapper mapper,
         IGeminiRecipeService geminiService,
+        IRecipePersistenceService recipePersistenceService,
         ILogger<SearchRecipesQueryHandler> logger)
     {
         _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         _geminiService = geminiService ?? throw new ArgumentNullException(nameof(geminiService));
+        _recipePersistenceService = recipePersistenceService ?? throw new ArgumentNullException(nameof(recipePersistenceService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -46,14 +49,16 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
         {
             var dbRecipes = await GetRecipesFromDatabase(searchDto, cancellationToken);
             
-            _logger.LogInformation("Tìm thấy {Count} công thức trong database cho từ khóa '{SearchTerm}'", 
-                dbRecipes.Items.Count, searchDto.SearchTerm);
+            _logger.LogInformation("Tìm thấy {Count} công thức trong database cho từ khóa '{SearchTerm}' trang {Page}", 
+                dbRecipes.Items.Count, searchDto.SearchTerm, searchDto.Page);
 
-            var shouldUseAI = searchDto.Page == 1 && dbRecipes.Items.Count == 0;
+            // NEW LOGIC: Check if we need more recipes (less than 10 for any page)
+            var needsMoreRecipes = dbRecipes.Items.Count < 10;
 
-            if (shouldUseAI)
+            if (needsMoreRecipes)
             {
-                _logger.LogInformation("Không tìm thấy công thức nào trong database, kiểm tra công thức AI hiện có");
+                _logger.LogInformation("Có {Count} công thức < 10, cần bổ sung từ AI cho từ khóa '{SearchTerm}'", 
+                    dbRecipes.Items.Count, searchDto.SearchTerm);
                 
                 // Check if we already have AI-generated recipes for this search term
                 var existingAIRecipes = await CheckForExistingAIRecipes(searchDto, cancellationToken);
@@ -63,19 +68,36 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                     _logger.LogInformation("Sử dụng {Count} công thức AI hiện có cho từ khóa '{SearchTerm}'", 
                         existingAIRecipes.Count, searchDto.SearchTerm);
                     
-                    // We already have AI recipes for this search, return them instead of generating new ones
-                    return CreateSuccessResponse(dbRecipes, existingAIRecipes, searchDto, "Kết quả bao gồm công thức do AI tạo");
+                    // Combine existing database and AI recipes and return immediately
+                    return CreateSuccessResponseWithExistingAI(dbRecipes, existingAIRecipes, searchDto);
                 }
                 else
                 {
-                    // No existing AI recipes, generate new ones
-                    _logger.LogInformation("Không tìm thấy công thức AI cho từ khóa '{SearchTerm}', tạo mới", searchDto.SearchTerm);
-                    var aiRecipes = await TryGetRecipesFromAI(searchDto, 3, cancellationToken); // Reduced to 3 for complete responses
-                    if (aiRecipes.Any())
+                    // Generate new AI recipes and show them immediately, then persist later
+                    _logger.LogInformation("Tạo công thức AI mới cho từ khóa '{SearchTerm}' và hiển thị ngay", searchDto.SearchTerm);
+                    var aiRecipeDtos = await TryGetRecipesFromAIAsync(searchDto, 10 - dbRecipes.Items.Count, cancellationToken);
+                    
+                    if (aiRecipeDtos.Any())
                     {
-                        _logger.LogInformation("Đã tạo thành công {Count} công thức AI mới cho từ khóa '{SearchTerm}'", 
-                            aiRecipes.Count, searchDto.SearchTerm);
-                        return CreateSuccessResponse(dbRecipes, aiRecipes, searchDto, "Kết quả bao gồm công thức do AI tạo");
+                        _logger.LogInformation("Đã tạo thành công {Count} công thức AI mới cho từ khóa '{SearchTerm}', hiển thị ngay và sẽ lưu sau", 
+                            aiRecipeDtos.Count, searchDto.SearchTerm);
+                        
+                        // Queue recipes for background persistence (fire and forget)
+                        var searchContext = $"{searchDto.SearchTerm}|{searchDto.CuisineType}|{searchDto.MealType}|Page:{searchDto.Page}";
+                        _ = Task.Run(async () => 
+                        {
+                            try
+                            {
+                                await _recipePersistenceService.QueueRecipesForPersistenceAsync(aiRecipeDtos, searchContext);
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Failed to queue AI recipes for persistence");
+                            }
+                        }, cancellationToken);
+                        
+                        // Return results immediately without waiting for database persistence
+                        return CreateSuccessResponseWithAIDtos(dbRecipes, aiRecipeDtos, searchDto, "Kết quả bao gồm công thức mới do AI tạo");
                     }
                     else
                     {
@@ -84,10 +106,10 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                 }
             }
 
-            // Step 4: Return what we have from database
+            // Return what we have from database
             _logger.LogInformation("Trả về {Count} công thức từ database cho từ khóa '{SearchTerm}'", 
                 dbRecipes.Items.Count, searchDto.SearchTerm);
-            return CreateSuccessResponse(dbRecipes, new List<Recipe>(), searchDto);
+            return CreateSuccessResponse(dbRecipes, searchDto);
         }
         catch (Exception ex)
         {
@@ -116,23 +138,24 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
     }
 
     /// <summary>
-    /// Try to get recipes from AI - only when first page has no results
+    /// Get recipes from AI and return as DTOs immediately (without persisting to database)
     /// </summary>
-    private async Task<List<Recipe>> TryGetRecipesFromAI(
+    private async Task<List<GeminiRecipeResponseDto>> TryGetRecipesFromAIAsync(
         RecipeSearchDto searchDto,
         int count,
         CancellationToken cancellationToken)
     {
         try
         {
-            _logger.LogInformation("Không tìm thấy công thức trong cơ sở dữ liệu cho trang đầu, yêu cầu {Count} công thức từ AI", count);
+            _logger.LogInformation("Yêu cầu {Count} công thức từ AI để bổ sung kết quả", count);
 
             var geminiRequest = CreateGeminiRequest(searchDto, count);
             var geminiRecipes = await _geminiService.SearchRecipesAsync(geminiRequest);
 
             if (geminiRecipes.Any())
             {
-                return await ConvertAndSaveGeminiRecipes(geminiRecipes, cancellationToken);
+                _logger.LogInformation("Nhận được {Count} công thức từ Gemini API", geminiRecipes.Count);
+                return geminiRecipes;
             }
         }
         catch (Exception ex)
@@ -140,13 +163,35 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
             _logger.LogError(ex, "Không thể lấy công thức từ AI");
         }
 
-        return new List<Recipe>();
+        return new List<GeminiRecipeResponseDto>();
     }
 
     /// <summary>
-    /// Create a success response with database and AI recipes combined
+    /// Create a success response with only database recipes
     /// </summary>
     private AppResponse<IPaginatedList<RecipeDto>> CreateSuccessResponse(
+        IPaginatedList<Recipe> dbRecipes,
+        RecipeSearchDto searchDto,
+        string? message = null)
+    {
+        // Convert to DTOs
+        var recipeDtos = _mapper.Map<List<RecipeDto>>(dbRecipes.Items);
+
+        // Create paginated result
+        var result = PaginatedList<RecipeDto>.Create(
+            recipeDtos,
+            searchDto.Page,
+            searchDto.PageSize,
+            dbRecipes.TotalCount);
+
+        return new AppResponse<IPaginatedList<RecipeDto>>()
+            .SetSuccessResponse(result, "Thành công", message);
+    }
+
+    /// <summary>
+    /// Create a success response with database and existing AI recipes combined
+    /// </summary>
+    private AppResponse<IPaginatedList<RecipeDto>> CreateSuccessResponseWithExistingAI(
         IPaginatedList<Recipe> dbRecipes,
         List<Recipe> aiRecipes,
         RecipeSearchDto searchDto,
@@ -165,6 +210,54 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
             searchDto.Page,
             searchDto.PageSize,
             dbRecipes.TotalCount + aiRecipes.Count);
+
+        return new AppResponse<IPaginatedList<RecipeDto>>()
+            .SetSuccessResponse(result, "Thành công", message ?? "Kết quả bao gồm công thức do AI tạo");
+    }
+
+    /// <summary>
+    /// Create a success response with database recipes and new AI recipe DTOs
+    /// </summary>
+    private AppResponse<IPaginatedList<RecipeDto>> CreateSuccessResponseWithAIDtos(
+        IPaginatedList<Recipe> dbRecipes,
+        List<GeminiRecipeResponseDto> aiRecipeDtos,
+        RecipeSearchDto searchDto,
+        string? message = null)
+    {
+        // Convert database recipes to DTOs
+        var dbRecipeDtos = _mapper.Map<List<RecipeDto>>(dbRecipes.Items);
+
+        // Convert AI recipes to DTOs (without database IDs)
+        var aiDtos = aiRecipeDtos.Select(ai => new RecipeDto
+        {
+            // Use negative IDs for AI recipes to distinguish them (temporary until persisted)
+            Id = -(aiRecipeDtos.IndexOf(ai) + 1), 
+            BusinessId = Guid.NewGuid(),
+            Name = ai.Name,
+            Description = ai.Description,
+            CuisineType = ai.CuisineType,
+            MealType = ai.MealType,
+            PrepTimeMinutes = ai.PrepTimeMinutes,
+            CookTimeMinutes = ai.CookTimeMinutes,
+            Servings = ai.Servings,
+            DifficultyLevel = ai.DifficultyLevel,
+            IsCustom = false,
+            IsPublic = true,
+            SourceUrl = "Được tạo bởi AI",
+            OriginalAuthor = "AI Generated",
+            CreateAt = DateTime.Now,
+            UpdateAt = DateTime.Now
+        }).ToList();
+
+        // Combine all recipe DTOs
+        var allRecipeDtos = dbRecipeDtos.Concat(aiDtos).ToList();
+
+        // Create paginated result
+        var result = PaginatedList<RecipeDto>.Create(
+            allRecipeDtos,
+            searchDto.Page,
+            searchDto.PageSize,
+            dbRecipes.TotalCount + aiRecipeDtos.Count);
 
         return new AppResponse<IPaginatedList<RecipeDto>>()
             .SetSuccessResponse(result, "Thành công", message);
