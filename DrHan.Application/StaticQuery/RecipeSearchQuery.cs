@@ -11,14 +11,10 @@ public static class RecipeSearchQuery
     public static Expression<Func<Recipe, bool>>? BuildFilter(RecipeSearchDto searchDto)
     {
         return recipe =>
-            (string.IsNullOrEmpty(searchDto.SearchTerm) ||
-            recipe.Name.Contains(searchDto.SearchTerm) ||
-            recipe.Description.Contains(searchDto.SearchTerm)) &&
-
+            // Start with simple indexed fields first (most selective)
             (string.IsNullOrEmpty(searchDto.CuisineType) ||
             recipe.CuisineType == searchDto.CuisineType) &&
 
-            // Filter by meal type (indexed field)
             (string.IsNullOrEmpty(searchDto.MealType) ||
             recipe.MealType == searchDto.MealType) &&
 
@@ -26,33 +22,41 @@ public static class RecipeSearchQuery
             (!searchDto.MaxPrepTime.HasValue ||
             recipe.PrepTimeMinutes <= searchDto.MaxPrepTime) &&
 
-            // Complex related entity filters (moved to end for performance)
+            // Simple string searches (avoid multiple Contains in OR)
+            (string.IsNullOrEmpty(searchDto.SearchTerm) ||
+            recipe.Name.Contains(searchDto.SearchTerm) ||
+            recipe.Description.Contains(searchDto.SearchTerm)) &&
+
+            // Simplified ingredient search - avoid complex Any operations
             (string.IsNullOrEmpty(searchDto.SearchTerm) ||
             recipe.RecipeIngredients.Any(ri => ri.IngredientName.Contains(searchDto.SearchTerm))) &&
 
-            // Allergen filters
+            // Simplified allergen filters
             (searchDto.ExcludeAllergens == null || !searchDto.ExcludeAllergens.Any() ||
             !recipe.RecipeAllergens.Any(ra => searchDto.ExcludeAllergens.Contains(ra.AllergenType))) &&
 
+            // Simplified allergen-free claims
             (searchDto.RequireAllergenFree == null || !searchDto.RequireAllergenFree.Any() ||
             searchDto.RequireAllergenFree.All(claim =>
                 recipe.RecipeAllergenFreeClaims.Any(rc => rc.Claim == claim))) &&
 
-            // Ingredient filters
+            // Include ingredient filters - simplified
             (searchDto.IncludeIngredients == null || !searchDto.IncludeIngredients.Any() ||
             searchDto.IncludeIngredients.All(ingredient =>
-                recipe.RecipeIngredients.Any(ri => ri.IngredientName.ToLower().Contains(ingredient.ToLower())))) &&
+                recipe.RecipeIngredients.Any(ri => ri.IngredientName.Contains(ingredient)))) &&
 
+            // Exclude ingredient filters
             (searchDto.ExcludeIngredients == null || !searchDto.ExcludeIngredients.Any() ||
             !recipe.RecipeIngredients.Any(ri => 
                 searchDto.ExcludeIngredients.Any(ingredient => 
-                    ri.IngredientName.ToLower().Contains(ingredient.ToLower())))) &&
+                    ri.IngredientName.Contains(ingredient)))) &&
 
+            // Category filter - simplified
             (string.IsNullOrEmpty(searchDto.IngredientCategory) ||
             recipe.RecipeIngredients.Any(ri => 
                 ri.IngredientId.HasValue && ri.Ingredient != null && 
                 ri.Ingredient.Category != null &&
-                ri.Ingredient.Category.ToLower().Contains(searchDto.IngredientCategory.ToLower())));
+                ri.Ingredient.Category.Contains(searchDto.IngredientCategory)));
     }
 
     public static Func<IQueryable<Recipe>, IOrderedQueryable<Recipe>>? BuildOrderBy(RecipeSearchDto searchDto)
@@ -90,10 +94,24 @@ public static class RecipeSearchQuery
     /// </summary>
     public static Func<IQueryable<Recipe>, IIncludableQueryable<Recipe, object>>? BuildSearchIncludes()
     {
-        // For search results, we need ingredients for filtering and basic display
-        // Include linked ingredient entities for category filtering
+        // For search results, we only include what's absolutely necessary for filtering and basic display
+        // Avoid expensive joins like RecipeInstructions, RecipeNutritions, etc. for search listing
         return query => query
-            .Include(r => r.RecipeIngredients)
-                .ThenInclude(ri => ri.Ingredient); // Include for ingredient category filtering
+            .Include(r => r.RecipeIngredients.Take(5)) // Limit ingredients for search performance
+            .Include(r => r.RecipeAllergens)           // Needed for allergen filtering
+            .Include(r => r.RecipeAllergenFreeClaims); // Needed for dietary restriction filtering
+        // Removed: .ThenInclude(ri => ri.Ingredient) - This causes expensive joins
+        // Load ingredient details separately when needed
+    }
+
+    /// <summary>
+    /// Minimal includes for basic search - fastest performance
+    /// </summary>
+    public static Func<IQueryable<Recipe>, IIncludableQueryable<Recipe, object>>? BuildMinimalSearchIncludes()
+    {
+        // For very fast search when complex filtering isn't needed
+        return query => query
+            .Include(r => r.RecipeAllergens)
+            .Include(r => r.RecipeAllergenFreeClaims);
     }
 } 
