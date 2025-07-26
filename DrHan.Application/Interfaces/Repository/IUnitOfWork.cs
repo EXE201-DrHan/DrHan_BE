@@ -14,6 +14,7 @@ namespace DrHan.Application.Interfaces.Repository
         bool HasChanges();
         void RejectChanges();
         void DetachAllEntities();
+        void DetachEntity(object entity);
         IGenericRepository<TEntity> Repository<TEntity>() where TEntity : BaseEntity;
         Task RollbackTransactionAsync(CancellationToken cancellationToken = default);
     }

@@ -42,7 +42,7 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var isBackgroundServiceEnabled = _configuration.GetValue<bool>("RecipeCache:EnableBackgroundService", false);
-        
+
         if (!isBackgroundServiceEnabled)
         {
             _logger.LogInformation("Recipe cache background service is disabled in configuration");
@@ -120,7 +120,7 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
                 {
                     SearchQuery = searchTerm,
                     Count = 5 - existingCount, // Request up to 5 recipes per term
-                    CuisineType = searchTerm.Contains("Việt Nam") ? "Vietnamese" : 
+                    CuisineType = searchTerm.Contains("Việt Nam") ? "Vietnamese" :
                                  searchTerm.Contains("châu Á") ? "Asian" : null,
                     MealType = searchTerm.Contains("tráng miệng") ? "Dessert" :
                               searchTerm.Contains("canh") ? "Soup" :
@@ -130,27 +130,27 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
 
                 _logger.LogInformation("Requesting {Count} recipes for '{SearchTerm}'", recipeRequest.Count, searchTerm);
                 var recipes = await geminiService.SearchRecipesAsync(recipeRequest);
-                
+
                 if (recipes.Any())
                 {
                     _logger.LogInformation("Received {Count} recipes from Gemini for '{SearchTerm}'", recipes.Count, searchTerm);
-                    
+
                     // Debug: Log recipe details
                     foreach (var recipe in recipes)
                     {
-                        _logger.LogDebug("Recipe '{Name}': {IngredientCount} ingredients, {InstructionCount} instructions, {AllergenCount} allergens, {ClaimCount} allergen-free claims, HasImage: {HasImage}", 
-                            recipe.Name, 
-                            recipe.Ingredients?.Count ?? 0, 
-                            recipe.Instructions?.Count ?? 0, 
-                            recipe.Allergens?.Count ?? 0, 
+                        _logger.LogDebug("Recipe '{Name}': {IngredientCount} ingredients, {InstructionCount} instructions, {AllergenCount} allergens, {ClaimCount} allergen-free claims, HasImage: {HasImage}",
+                            recipe.Name,
+                            recipe.Ingredients?.Count ?? 0,
+                            recipe.Instructions?.Count ?? 0,
+                            recipe.Allergens?.Count ?? 0,
                             recipe.AllergenFreeClaims?.Count ?? 0,
                             !string.IsNullOrEmpty(recipe.ImageUrl));
                     }
-                    
+
                     var newRecipes = await ConvertAndSaveGeminiRecipes(recipes, searchTerm);
                     recipesAdded += newRecipes.Count;
-                    
-                    _logger.LogInformation("Pre-populated {Count} recipes for '{SearchTerm}'", 
+
+                    _logger.LogInformation("Pre-populated {Count} recipes for '{SearchTerm}'",
                         newRecipes.Count, searchTerm);
                 }
                 else
@@ -172,7 +172,7 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
 
         if (recipesAdded > 0)
         {
-            _logger.LogInformation("Recipe pre-population completed. Added {TotalRecipes} new recipes with {Errors} errors", 
+            _logger.LogInformation("Recipe pre-population completed. Added {TotalRecipes} new recipes with {Errors} errors",
                 recipesAdded, errors);
         }
         else
@@ -196,7 +196,7 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
     {
         using var scope = _serviceProvider.CreateScope();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        
+
         var newRecipes = new List<Recipe>();
         var errors = new List<(string RecipeName, string Error)>();
 
@@ -213,7 +213,7 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
 
                 // Check if recipe already exists
                 var exists = await unitOfWork.Repository<Recipe>()
-                    .ExistsAsync(r => r.Name.ToLower() == geminiRecipe.Name.ToLower() && 
+                    .ExistsAsync(r => r.Name.ToLower() == geminiRecipe.Name.ToLower() &&
                                     r.CuisineType.ToLower() == geminiRecipe.CuisineType.ToLower());
 
                 if (exists)
@@ -247,8 +247,8 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
                 var validImageUrl = ValidateAndCleanImageUrl(geminiRecipe.ImageUrl);
                 if (!string.IsNullOrEmpty(validImageUrl))
                 {
-                    recipe.RecipeImages.Add(new RecipeImage 
-                    { 
+                    recipe.RecipeImages.Add(new RecipeImage
+                    {
                         BusinessId = Guid.NewGuid(),
                         ImageUrl = validImageUrl,
                         CreateAt = DateTime.Now,
@@ -323,7 +323,7 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
 
     private bool ValidateRecipeData(GeminiRecipeResponseDto recipe)
     {
-        if (string.IsNullOrWhiteSpace(recipe.Name) || 
+        if (string.IsNullOrWhiteSpace(recipe.Name) ||
             string.IsNullOrWhiteSpace(recipe.Description) ||
             string.IsNullOrWhiteSpace(recipe.CuisineType) ||
             string.IsNullOrWhiteSpace(recipe.MealType))
@@ -536,16 +536,16 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
             }
 
             var lowerName = ingredientName.ToLower();
-            
+
             if (ContainsAny(lowerName, new[] { "nước mắm", "tương", "miso", "sake", "mirin", "kimchi", "dầu hào", "dầu mè", "dầu điều" }))
                 return FindBestCategoryMatch(existingCategories, new[] { "gia vị", "sauce", "condiment", "seasoning" });
-            
+
             if (ContainsAny(lowerName, new[] { "thịt", "gà", "vịt", "heo", "bò", "chicken", "beef", "pork", "meat", "lợn", "trâu" }))
                 return FindBestCategoryMatch(existingCategories, new[] { "thịt", "meat", "protein" });
-            
+
             if (ContainsAny(lowerName, new[] { "cá", "tôm", "cua", "mực", "fish", "shrimp", "seafood", "hải sản", "tôm hùm", "sò điệp" }))
                 return FindBestCategoryMatch(existingCategories, new[] { "hải sản", "seafood", "fish" });
-            
+
             if (ContainsAny(lowerName, new[] { "rau", "cải", "salad", "vegetable", "lettuce", "spinach", "xà lách", "rau muống", "rau cải" }))
                 return FindBestCategoryMatch(existingCategories, new[] { "rau", "vegetable", "greens" });
 
@@ -580,7 +580,7 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
     {
         foreach (var preferred in preferredCategories)
         {
-            var match = existingCategories.FirstOrDefault(cat => 
+            var match = existingCategories.FirstOrDefault(cat =>
                 cat.ToLower().Contains(preferred.ToLower()) || preferred.ToLower().Contains(cat.ToLower()));
             if (!string.IsNullOrEmpty(match))
                 return match;
@@ -591,26 +591,26 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
     private static string CreateNewCategoryName(string ingredientName)
     {
         var lowerName = ingredientName.ToLower();
-        
+
         // Create meaningful category names for Vietnamese ingredients
         if (ContainsAny(lowerName, new[] { "lá", "leaf", "rau thơm", "herb" }))
             return "Lá gia vị"; // Herb leaves
-        
+
         if (ContainsAny(lowerName, new[] { "hạt", "seed", "nut", "đậu", "bean" }))
             return "Hạt & Đậu"; // Seeds & Nuts
-        
+
         if (ContainsAny(lowerName, new[] { "nước", "liquid", "broth", "soup", "canh" }))
             return "Nước dùng"; // Liquids/Broths
-        
+
         if (ContainsAny(lowerName, new[] { "bột", "flour", "starch", "tinh bột" }))
             return "Bột & Tinh bột"; // Flours & Starches
-        
+
         if (ContainsAny(lowerName, new[] { "trái cây", "fruit", "quả" }))
             return "Trái cây"; // Fruits
-        
+
         if (ContainsAny(lowerName, new[] { "sữa", "milk", "cream", "bơ", "butter" }))
             return "Sữa & Bơ sữa"; // Dairy & Dairy Products
-        
+
         return "AI Generated"; // Default fallback
     }
 
@@ -628,7 +628,7 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
             if (imageUrl.Length > 500)
             {
                 _logger.LogWarning("Image URL too long ({Length} characters), truncating or rejecting", imageUrl.Length);
-                
+
                 // Try to find a reasonable truncation point
                 var truncatedUrl = TruncateImageUrl(imageUrl);
                 if (!string.IsNullOrEmpty(truncatedUrl))
@@ -637,7 +637,7 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
                 }
                 else
                 {
-                    return null; 
+                    return null;
                 }
             }
 
@@ -654,12 +654,12 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
             }
 
             var validImageExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp" };
-            var validImageHosts = new[] { "images.unsplash.com", "cdn.pixabay.com", "images.pexels.com", 
+            var validImageHosts = new[] { "images.unsplash.com", "cdn.pixabay.com", "images.pexels.com",
                                         "www.simplyrecipes.com", "images.immediate.co.uk", "www.foodnetwork.com" };
 
-            var hasValidExtension = validImageExtensions.Any(ext => 
+            var hasValidExtension = validImageExtensions.Any(ext =>
                 uri.AbsolutePath.ToLower().Contains(ext));
-            var hasValidHost = validImageHosts.Any(host => 
+            var hasValidHost = validImageHosts.Any(host =>
                 uri.Host.ToLower().Contains(host.ToLower()));
 
             if (!hasValidExtension && !hasValidHost)
@@ -698,18 +698,18 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
                 if (index > 0 && index < 400) // Make sure we're not truncating too early
                 {
                     var truncated = imageUrl.Substring(0, index);
-                    
+
                     // Add common image extension if missing
-                    if (!truncated.ToLower().EndsWith(".jpg") && 
-                        !truncated.ToLower().EndsWith(".jpeg") && 
+                    if (!truncated.ToLower().EndsWith(".jpg") &&
+                        !truncated.ToLower().EndsWith(".jpeg") &&
                         !truncated.ToLower().EndsWith(".png"))
                     {
                         truncated += ".jpg"; // Default to jpg
                     }
-                    
-                    _logger.LogInformation("Truncated long image URL from {OriginalLength} to {NewLength} characters", 
+
+                    _logger.LogInformation("Truncated long image URL from {OriginalLength} to {NewLength} characters",
                         imageUrl.Length, truncated.Length);
-                    
+
                     return truncated;
                 }
             }
@@ -718,11 +718,11 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
             if (imageUrl.Length > 400)
             {
                 var truncated = imageUrl.Substring(0, 400);
-                
+
                 // Try to end at a reasonable character
                 var lastSlash = truncated.LastIndexOf('/');
                 var lastDot = truncated.LastIndexOf('.');
-                
+
                 if (lastDot > lastSlash && lastDot > 350)
                 {
                     // Truncate after the file extension
@@ -732,7 +732,7 @@ public class RecipeCacheService : BackgroundService, IRecipeCacheService
                         return truncated.Substring(0, lastDot + Math.Min(4, extension.Length));
                     }
                 }
-                
+
                 if (lastSlash > 300)
                 {
                     return truncated.Substring(0, lastSlash) + ".jpg";

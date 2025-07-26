@@ -1,6 +1,7 @@
 using DrHan.Application.Commons;
 using DrHan.Application.DTOs.Gemini;
 using DrHan.Application.Interfaces.Services;
+using DrHan.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,12 +12,12 @@ namespace DrHan.Controllers
     //[Authorize(Roles = "Admin")] // Uncomment to restrict to admin users
     public class RecipeCacheController : ControllerBase
     {
-        private readonly IRecipeCacheService _recipeCacheService;
+        private readonly RecipeCacheService _recipeCacheService;
         private readonly IGeminiRecipeService _geminiRecipeService;
         private readonly ILogger<RecipeCacheController> _logger;
 
         public RecipeCacheController(
-            IRecipeCacheService recipeCacheService,
+            RecipeCacheService recipeCacheService,
             IGeminiRecipeService geminiRecipeService,
             ILogger<RecipeCacheController> logger)
         {

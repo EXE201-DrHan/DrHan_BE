@@ -212,16 +212,23 @@ namespace DrHan.Infrastructure.Repositories.HCP.Repository.GenericRepository
         /// </summary>
         public void DetachAllEntities()
         {
-            ThrowIfDisposed();
+            var entries = _context.ChangeTracker.Entries()
+                .Where(e => e.State != EntityState.Detached)
+                .ToList();
 
-            foreach (var entry in _context.ChangeTracker.Entries().ToList())
+            foreach (var entry in entries)
             {
                 entry.State = EntityState.Detached;
             }
-
-            _logger?.LogDebug("All entities detached from change tracker");
         }
-
+        public void DetachEntity(object entity)
+        {
+            var entry = _context.Entry(entity);
+            if (entry != null)
+            {
+                entry.State = EntityState.Detached;
+            }
+        }
         private void ThrowIfDisposed()
         {
             ObjectDisposedException.ThrowIf(_disposed, this); // Modern .NET approach

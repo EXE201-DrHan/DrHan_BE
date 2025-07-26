@@ -60,7 +60,6 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
             _logger.LogInformation("📊 Found {Count} recipes in database for '{SearchTerm}' page {Page}", 
                 dbRecipes.Items.Count, searchDto.SearchTerm, searchDto.Page);
 
-            // NEW LOGIC: Check if we need more recipes (less than 10 for any page)
             var needsMoreRecipes = dbRecipes.Items.Count < 10;
 
             if (needsMoreRecipes)
@@ -82,7 +81,7 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
                 {
                     // Generate new AI recipes and show them immediately, then persist later
                     _logger.LogInformation("🤖 Generating new AI recipes for '{SearchTerm}'", searchDto.SearchTerm);
-                    var aiRecipeDtos = await TryGetRecipesFromAIAsync(searchDto, 10 - dbRecipes.Items.Count, cancellationToken);
+                    var aiRecipeDtos = await TryGetRecipesFromAIAsync(searchDto, dbRecipes.Items.Count, cancellationToken);
                     
                     if (aiRecipeDtos.Any())
                     {
@@ -144,13 +143,19 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
 
         var paginationRequest = new PaginationRequest(searchDto.Page, searchDto.PageSize);
 
+        //var result = await _unitOfWork.Repository<Recipe>().ListAsyncWithPaginated(
+        //    filter: RecipeSearchQuery.BuildFilter(searchDto),
+        //    orderBy: RecipeSearchQuery.BuildOrderBy(searchDto),
+        //    includeProperties: RecipeSearchQuery.BuildSearchIncludes(),
+        //    pagination: paginationRequest,
+        //    cancellationToken: cancellationToken);
+
         var result = await _unitOfWork.Repository<Recipe>().ListAsyncWithPaginated(
-            filter: RecipeSearchQuery.BuildFilter(searchDto),
+            filter: c => c.Name.Contains(searchDto.SearchTerm),
             orderBy: RecipeSearchQuery.BuildOrderBy(searchDto),
             includeProperties: RecipeSearchQuery.BuildSearchIncludes(),
             pagination: paginationRequest,
             cancellationToken: cancellationToken);
-
         // Cache for 2 minutes to handle rapid repeated requests
         _memoryCache.Set(cacheKey, result, TimeSpan.FromMinutes(QUERY_CACHE_MINUTES));
 
@@ -176,9 +181,9 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
         // OPTIMIZATION 3: Use more efficient query with EF.Functions.Contains for better performance
         var aiRecipes = await _unitOfWork.Repository<Recipe>()
             .ListAsync(r => r.OriginalAuthor == "AI Generated" &&
-                           (EF.Functions.Contains(r.Name, searchDto.SearchTerm) ||
-                            EF.Functions.Contains(r.Description, searchDto.SearchTerm) ||
-                            r.RecipeIngredients.Any(ri => EF.Functions.Contains(ri.IngredientName, searchDto.SearchTerm))));
+                           (EF.Functions.Like(r.Name, searchDto.SearchTerm) ||
+                            EF.Functions.Like(r.Description, searchDto.SearchTerm) ||
+                            r.RecipeIngredients.Any(ri => EF.Functions.Like(ri.IngredientName, searchDto.SearchTerm))));
 
         var result = aiRecipes.Take(5).ToList(); // Return max 5 existing AI recipes
 
@@ -287,7 +292,7 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
         var aiDtos = aiRecipeDtos.Select(ai => new RecipeDto
         {
             // Use negative IDs for AI recipes to distinguish them (temporary until persisted)
-            Id = -(aiRecipeDtos.IndexOf(ai) + 1), 
+            Id = 0, 
             BusinessId = Guid.NewGuid(),
             Name = ai.Name,
             Description = ai.Description,
@@ -299,8 +304,7 @@ public class SearchRecipesQueryHandler : IRequestHandler<SearchRecipesQuery, App
             DifficultyLevel = ai.DifficultyLevel,
             IsCustom = false,
             IsPublic = true,
-            SourceUrl = "Được tạo bởi AI",
-            OriginalAuthor = "AI Generated",
+            ThumbnailImageUrl = "Được tạo bởi AI",
             CreateAt = DateTime.Now,
             UpdateAt = DateTime.Now
         }).ToList();
