@@ -1,4 +1,6 @@
+using AutoMapper;
 using DrHan.Application.Commons;
+using DrHan.Application.DTOs.Recipes;
 using DrHan.Application.Interfaces.Repository;
 using DrHan.Application.Interfaces.Services;
 using DrHan.Domain.Constants;
@@ -17,42 +19,38 @@ public class RecommendNewService : IRecommendNewService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<RecommendNewService> _logger;
+    private readonly IMapper _mapper;
     private readonly Random _random = new Random();
 
     public RecommendNewService(
         IUnitOfWork unitOfWork,
-        ILogger<RecommendNewService> logger)
+        ILogger<RecommendNewService> logger,
+        IMapper mapper)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _mapper = mapper;
     }
 
-    public async Task<AppResponse<List<int>>> GetRecommendationsAsync(int userId, int count = 10)
+    public async Task<AppResponse<List<RecipeDto>>> GetRecommendationsAsync(int userId, int count = 10)
     {
-        var response = new AppResponse<List<int>>();
-
+        var response = new AppResponse<List<RecipeDto>>();
         try
         {
-            // Determine meal type based on current time
             var currentMealType = GetMealTypeByCurrentTime();
-            
             _logger.LogInformation("Getting recommendations for user {UserId} at meal type {MealType}", userId, currentMealType);
-
-            // Get user allergies
             var userAllergies = await GetUserAllergiesAsync(userId);
-            
-            // Get user's cuisine preferences from past meal plans
             var userPreferences = await GetUserCuisinePreferencesAsync(userId);
-            
-            // Get recommendations based on past preferences and current meal type
-            var recommendations = await GetRecommendationsBasedOnHistoryAsync(userId, currentMealType, userAllergies, userPreferences, count);
-
-            if (!recommendations.Any())
+            var recipeIds = await GetRecommendationsBasedOnHistoryAsync(userId, currentMealType, userAllergies, userPreferences, count);
+            if (!recipeIds.Any())
             {
                 return response.SetErrorResponse("NoRecommendations", "No suitable recommendations found based on your preferences");
             }
-
-            return response.SetSuccessResponse(recommendations, "Success", $"Found {recommendations.Count} recommendations for {currentMealType}");
+            var recipes = await _unitOfWork.Repository<Recipe>().ListAsync(r => recipeIds.Contains(r.Id));
+            var recipeDtos = _mapper.Map<List<RecipeDto>>(recipes);
+            // Ensure order matches recipeIds
+            var orderedRecipeDtos = recipeIds.Select(id => recipeDtos.FirstOrDefault(r => r.Id == id)).Where(r => r != null).ToList();
+            return response.SetSuccessResponse(orderedRecipeDtos!, "Success", $"Found {orderedRecipeDtos.Count} recommendations for {currentMealType}");
         }
         catch (Exception ex)
         {
@@ -61,29 +59,23 @@ public class RecommendNewService : IRecommendNewService
         }
     }
 
-    public async Task<AppResponse<List<int>>> GetRecommendationsByMealTypeAsync(int userId, string mealType, int count = 10)
+    public async Task<AppResponse<List<RecipeDto>>> GetRecommendationsByMealTypeAsync(int userId, string mealType, int count = 10)
     {
-        var response = new AppResponse<List<int>>();
-
+        var response = new AppResponse<List<RecipeDto>>();
         try
         {
             _logger.LogInformation("Getting {MealType} recommendations for user {UserId}", mealType, userId);
-
-            // Get user allergies
             var userAllergies = await GetUserAllergiesAsync(userId);
-            
-            // Get user's cuisine preferences from past meal plans
             var userPreferences = await GetUserCuisinePreferencesAsync(userId);
-            
-            // Get recommendations for specific meal type
-            var recommendations = await GetRecommendationsBasedOnHistoryAsync(userId, mealType, userAllergies, userPreferences, count);
-
-            if (!recommendations.Any())
+            var recipeIds = await GetRecommendationsBasedOnHistoryAsync(userId, mealType, userAllergies, userPreferences, count);
+            if (!recipeIds.Any())
             {
                 return response.SetErrorResponse("NoRecommendations", $"No suitable {mealType} recommendations found based on your preferences");
             }
-
-            return response.SetSuccessResponse(recommendations, "Success", $"Found {recommendations.Count} {mealType} recommendations");
+            var recipes = await _unitOfWork.Repository<Recipe>().ListAsync(r => recipeIds.Contains(r.Id));
+            var recipeDtos = _mapper.Map<List<RecipeDto>>(recipes);
+            var orderedRecipeDtos = recipeIds.Select(id => recipeDtos.FirstOrDefault(r => r.Id == id)).Where(r => r != null).ToList();
+            return response.SetSuccessResponse(orderedRecipeDtos!, "Success", $"Found {orderedRecipeDtos.Count} {mealType} recommendations");
         }
         catch (Exception ex)
         {

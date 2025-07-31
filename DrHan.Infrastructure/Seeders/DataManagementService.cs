@@ -99,7 +99,7 @@ namespace DrHan.Infrastructure.Seeders
             try
             {
                 _logger.LogInformation("Starting subscription plan seeding...");
-                await SubscriptionPlanSeeder.SeedSubscriptionPlansAsync(_context, _logger);
+                await SubscriptionPlanSeeder.SeedSubscriptionPlansAsync1(_context, _logger);
                 _logger.LogInformation("Subscription plan seeding completed!");
             }
             catch (Exception ex)

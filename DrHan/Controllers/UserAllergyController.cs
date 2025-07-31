@@ -7,6 +7,7 @@ using DrHan.Application.Services.UserAllergyServices.Commands.AddUserAllergy;
 using DrHan.Application.Services.UserAllergyServices.Commands.AddMultipleUserAllergies;
 using DrHan.Application.Services.UserAllergyServices.Commands.RemoveUserAllergy;
 using DrHan.Application.Services.UserAllergyServices.Commands.UpdateUserAllergy;
+using DrHan.Application.Services.UserAllergyServices.Commands.ChangeUserAllergy;
 using DrHan.Application.Services.UserAllergyServices.Queries.GetUserAllergyProfile;
 using DrHan.Application.Services.UserAllergyServices.Queries.GetUserAllergies;
 using DrHan.Application.Interfaces.Services.AuthenticationServices;
@@ -245,6 +246,52 @@ public class UserAllergyController : ControllerBase
         {
             _logger.LogError(ex, "Error updating user allergy for allergen {AllergenId}", allergenId);
             return StatusCode(500, "An error occurred while updating the allergy");
+        }
+    }
+
+    /// <summary>
+    /// Change an allergy from one allergen to another (e.g., from shrimp to beef)
+    /// </summary>
+    [HttpPatch("profile/{currentAllergenId}/change")]
+    [Authorize]
+    public async Task<IActionResult> ChangeAllergy(int currentAllergenId, [FromBody] ChangeUserAllergyDto changeAllergyDto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userId = _userContext.GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized("User ID not found in token");
+
+            var command = new ChangeUserAllergyCommand
+            {
+                UserId = userId.Value,
+                CurrentAllergenId = currentAllergenId,
+                NewAllergenId = changeAllergyDto.NewAllergenId,
+                Severity = changeAllergyDto.Severity,
+                DiagnosisDate = changeAllergyDto.DiagnosisDate,
+                DiagnosedBy = changeAllergyDto.DiagnosedBy,
+                LastReactionDate = changeAllergyDto.LastReactionDate,
+                AvoidanceNotes = changeAllergyDto.AvoidanceNotes,
+                Outgrown = changeAllergyDto.Outgrown,
+                OutgrownDate = changeAllergyDto.OutgrownDate,
+                NeedsVerification = changeAllergyDto.NeedsVerification
+            };
+            
+            var response = await _mediator.Send(command);
+            
+            if (!response.IsSucceeded)
+                return BadRequest(response);
+                
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error changing user allergy from {CurrentAllergenId} to {NewAllergenId}", 
+                currentAllergenId, changeAllergyDto.NewAllergenId);
+            return StatusCode(500, "An error occurred while changing the allergy");
         }
     }
 

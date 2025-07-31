@@ -1,0 +1,64 @@
+### Add Allergen to Ingredient API Test
+
+# Add an allergen to an ingredient
+POST {{baseUrl}}/api/ingredients/add-allergen
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "ingredientId": 1,
+  "allergenId": 1,
+  "allergenType": "Primary"
+}
+
+###
+
+# Add another allergen to the same ingredient
+POST {{baseUrl}}/api/ingredients/add-allergen
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "ingredientId": 1,
+  "allergenId": 2,
+  "allergenType": "Cross-reactive"
+}
+
+###
+
+# Test with invalid ingredient ID
+POST {{baseUrl}}/api/ingredients/add-allergen
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "ingredientId": 999,
+  "allergenId": 1,
+  "allergenType": "Primary"
+}
+
+###
+
+# Test with invalid allergen ID
+POST {{baseUrl}}/api/ingredients/add-allergen
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "ingredientId": 1,
+  "allergenId": 999,
+  "allergenType": "Primary"
+}
+
+###
+
+# Test adding duplicate allergen (should fail)
+POST {{baseUrl}}/api/ingredients/add-allergen
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "ingredientId": 1,
+  "allergenId": 1,
+  "allergenType": "Primary"
+} 

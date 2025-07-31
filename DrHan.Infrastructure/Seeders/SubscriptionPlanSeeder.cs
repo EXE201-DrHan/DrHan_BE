@@ -1,4 +1,4 @@
-using DrHan.Domain.Entities.Users;
+﻿using DrHan.Domain.Entities.Users;
 using DrHan.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -148,7 +148,177 @@ namespace DrHan.Infrastructure.Seeders
                 throw;
             }
         }
+        public static async Task SeedSubscriptionPlansAsync1(ApplicationDbContext context, ILogger? logger = null)
+        {
+            try
+            {
+                logger?.LogInformation("Starting subscription plan seeding...");
 
+                // Define subscription plans with their features
+                var subscriptionPlans = new List<(string Name, string Description, decimal Price, string Currency, string BillingCycle, int? UsageQuota, bool IsActive, List<(string FeatureName, string Description, bool IsEnabled)> Features)>
+        {
+            // Free Plan
+            ("Miễn phí", "Các tính năng cơ bản để bắt đầu", 0m, "VND", "Hàng tháng", 50, true, new List<(string, string, bool)>
+            {
+                ("Tìm kiếm công thức nấu ăn", "Tìm kiếm trong cơ sở dữ liệu công thức cơ bản", true),
+                ("Lập kế hoạch bữa ăn cơ bản", "Tạo các kế hoạch bữa ăn đơn giản", true),
+                ("Cảnh báo dị ứng", "Phát hiện dị ứng cơ bản", true),
+                ("Quản lý hồ sơ", "Quản lý hồ sơ và sở thích của người dùng", true),
+                ("Truy cập cộng đồng", "Truy cập các tính năng cộng đồng", false),
+                ("Phân tích nâng cao", "Phân tích dinh dưỡng chi tiết", false),
+                ("Hỗ trợ cao cấp", "Hỗ trợ khách hàng ưu tiên", false),
+                ("Công thức tùy chỉnh", "Tạo và lưu công thức tùy chỉnh", false)
+            }),
+
+            // Basic Plan
+            ("Cơ bản", "Các tính năng nâng cao cho người dùng thông thường", 9.99m, "VND", "Hàng tháng", 200, true, new List<(string, string, bool)>
+            {
+                ("Tìm kiếm công thức nấu ăn", "Tìm kiếm trong cơ sở dữ liệu công thức toàn diện", true),
+                ("Lập kế hoạch bữa ăn cơ bản", "Tạo và tùy chỉnh kế hoạch bữa ăn", true),
+                ("Cảnh báo dị ứng", "Phát hiện và cảnh báo dị ứng nâng cao", true),
+                ("Quản lý hồ sơ", "Quản lý hồ sơ và sở thích của người dùng", true),
+                ("Truy cập cộng đồng", "Truy cập các tính năng và diễn đàn cộng đồng", true),
+                ("Danh sách mua sắm", "Tạo danh sách mua sắm từ kế hoạch bữa ăn", true),
+                ("Theo dõi dinh dưỡng", "Theo dõi lượng dinh dưỡng hàng ngày", true),
+                ("Phân tích nâng cao", "Phân tích dinh dưỡng chi tiết", false),
+                ("Hỗ trợ cao cấp", "Hỗ trợ khách hàng ưu tiên", false),
+                ("Công thức tùy chỉnh", "Tạo và lưu công thức tùy chỉnh không giới hạn", true)
+            }),
+
+            // Premium Plan
+            ("Cao cấp", "Truy cập đầy đủ tất cả các tính năng", 19.99m, "VND", "Hàng tháng", 1000, true, new List<(string, string, bool)>
+            {
+                ("Tìm kiếm công thức nấu ăn", "Tìm kiếm trong cơ sở dữ liệu công thức toàn diện với gợi ý AI", true),
+                ("Lập kế hoạch bữa ăn cơ bản", "Tạo, tùy chỉnh và chia sẻ kế hoạch bữa ăn", true),
+                ("Cảnh báo dị ứng", "Phát hiện dị ứng nâng cao với mức độ nghiêm trọng", true),
+                ("Quản lý hồ sơ", "Hồ sơ toàn diện với theo dõi sức khỏe", true),
+                ("Truy cập cộng đồng", "Tính năng cộng đồng cao cấp và truy cập chuyên gia", true),
+                ("Danh sách mua sắm", "Danh sách mua sắm thông minh với theo dõi giá", true),
+                ("Theo dõi dinh dưỡng", "Theo dõi dinh dưỡng nâng cao với mục tiêu", true),
+                ("Phân tích nâng cao", "Phân tích dinh dưỡng chi tiết và báo cáo", true),
+                ("Hỗ trợ cao cấp", "Hỗ trợ khách hàng ưu tiên 24/7", true),
+                ("Công thức tùy chỉnh", "Tạo, lưu và kiếm tiền từ công thức tùy chỉnh", true),
+                ("Chia sẻ gia đình", "Chia sẻ kế hoạch với các thành viên gia đình", true),
+                ("Truy cập ngoại tuyến", "Truy cập công thức và kế hoạch ngoại tuyến", true),
+                ("Xuất dữ liệu", "Xuất tất cả dữ liệu cá nhân và công thức", true)
+            }),
+
+            // Annual Basic Plan
+            ("Cơ bản hàng năm", "Các tính năng nâng cao với tiết kiệm hàng năm", 99.99m, "VND", "Hàng năm", 2500, true, new List<(string, string, bool)>
+            {
+                ("Tìm kiếm công thức nấu ăn", "Tìm kiếm trong cơ sở dữ liệu công thức toàn diện", true),
+                ("Lập kế hoạch bữa ăn cơ bản", "Tạo và tùy chỉnh kế hoạch bữa ăn", true),
+                ("Cảnh báo dị ứng", "Phát hiện và cảnh báo dị ứng nâng cao", true),
+                ("Quản lý hồ sơ", "Quản lý hồ sơ và sở thích của người dùng", true),
+                ("Truy cập cộng đồng", "Truy cập các tính năng và diễn đàn cộng đồng", true),
+                ("Danh sách mua sắm", "Tạo danh sách mua sắm từ kế hoạch bữa ăn", true),
+                ("Theo dõi dinh dưỡng", "Theo dõi lượng dinh dưỡng hàng ngày", true),
+                ("Phân tích nâng cao", "Phân tích dinh dưỡng cơ bản", true),
+                ("Hỗ trợ cao cấp", "Hỗ trợ khách hàng qua email", true),
+                ("Công thức tùy chỉnh", "Tạo và lưu công thức tùy chỉnh không giới hạn", true)
+            }),
+
+            // Annual Premium Plan
+            ("Cao cấp hàng năm", "Truy cập đầy đủ với tiết kiệm tối đa", 199.99m, "VND", "Hàng năm", 12000, true, new List<(string, string, bool)>
+            {
+                ("Tìm kiếm công thức nấu ăn", "Tìm kiếm trong cơ sở dữ liệu công thức toàn diện với gợi ý AI", true),
+                ("Lập kế hoạch bữa ăn cơ bản", "Tạo, tùy chỉnh và chia sẻ kế hoạch bữa ăn", true),
+                ("Cảnh báo dị ứng", "Phát hiện dị ứng nâng cao với mức độ nghiêm trọng", true),
+                ("Quản lý hồ sơ", "Hồ sơ toàn diện với theo dõi sức khỏe", true),
+                ("Truy cập cộng đồng", "Tính năng cộng đồng cao cấp và truy cập chuyên gia", true),
+                ("Danh sách mua sắm", "Danh sách mua sắm thông minh với theo dõi giá", true),
+                ("Theo dõi dinh dưỡng", "Theo dõi dinh dưỡng nâng cao với mục tiêu", true),
+                ("Phân tích nâng cao", "Phân tích dinh dưỡng chi tiết và báo cáo", true),
+                ("Hỗ trợ cao cấp", "Hỗ trợ khách hàng ưu tiên 24/7", true),
+                ("Công thức tùy chỉnh", "Tạo, lưu và kiếm tiền từ công thức tùy chỉnh", true),
+                ("Chia sẻ gia đình", "Chia sẻ kế hoạch với các thành viên gia đình", true),
+                ("Truy cập ngoại tuyến", "Truy cập công thức và kế hoạch ngoại tuyến", true),
+                ("Xuất dữ liệu", "Xuất tất cả dữ liệu cá nhân và công thức", true),
+                ("Truy cập API", "Truy cập API dành cho nhà phát triển", true),
+                ("Nhãn trắng", "Tùy chọn tùy chỉnh thương hiệu", true)
+            })
+        };
+
+                // Process each subscription plan
+                foreach (var (name, description, price, currency, billingCycle, usageQuota, isActive, features) in subscriptionPlans)
+                {
+                    // Check if plan exists by name
+                    var existingPlan = await context.SubscriptionPlans
+                        .Include(p => p.PlanFeatures)
+                        .FirstOrDefaultAsync(p => p.Name == name);
+
+                    if (existingPlan != null)
+                    {
+                        // Update existing plan
+                        existingPlan.Description = description;
+                        existingPlan.Currency = currency;
+                        existingPlan.BillingCycle = billingCycle;
+                        existingPlan.UsageQuota = usageQuota;
+                        existingPlan.UpdateAt = DateTime.Now;
+
+                        // Remove all existing features
+                        context.PlanFeatures.RemoveRange(existingPlan.PlanFeatures);
+
+                        // Add new features
+                        foreach (var (featureName, featureDescription, isEnabled) in features)
+                        {
+                            var newFeature = new PlanFeature
+                            {
+                                PlanId = existingPlan.Id,
+                                FeatureName = featureName,
+                                Description = featureDescription,
+                                IsEnabled = isEnabled,
+                                CreatedAt = DateTime.Now.AddDays(-Random.Shared.Next(1, 30))
+                            };
+                            context.PlanFeatures.Add(newFeature);
+                        }
+
+                        context.SubscriptionPlans.Update(existingPlan);
+                    }
+                    else
+                    {
+                        // Create new plan
+                        var newPlan = new SubscriptionPlan
+                        {
+                            Name = name,
+                            Description = description,
+                            Price = price,
+                            Currency = currency,
+                            BillingCycle = billingCycle,
+                            UsageQuota = usageQuota,
+                            IsActive = isActive,
+                            CreatedAt = DateTime.Now.AddDays(-Random.Shared.Next(1, 30))
+                        };
+
+                        context.SubscriptionPlans.Add(newPlan);
+                        await context.SaveChangesAsync(); // Save to get the ID
+
+                        // Add features for the new plan
+                        foreach (var (featureName, featureDescription, isEnabled) in features)
+                        {
+                            var planFeature = new PlanFeature
+                            {
+                                PlanId = newPlan.Id,
+                                FeatureName = featureName,
+                                Description = featureDescription,
+                                IsEnabled = isEnabled,
+                                CreatedAt = DateTime.Now.AddDays(-Random.Shared.Next(1, 30))
+                            };
+
+                            context.PlanFeatures.Add(planFeature);
+                        }
+                    }
+                }
+
+                await context.SaveChangesAsync();
+                logger?.LogInformation("Gói đăng ký đã được khởi tạo và cập nhật thành công!");
+            }
+            catch (Exception ex)
+            {
+                logger?.LogError(ex, "Lỗi xảy ra trong quá trình khởi tạo hoặc cập nhật gói đăng ký");
+                throw;
+            }
+        }
         public static async Task CleanSubscriptionPlansAsync(ApplicationDbContext context, ILogger? logger = null)
         {
             try

@@ -1,6 +1,7 @@
 using DrHan.Application.Commons;
 using DrHan.Application.Interfaces.Services;
 using DrHan.Application.Interfaces.Services.AuthenticationServices;
+using DrHan.Application.DTOs.Recipes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,24 +32,24 @@ public class RecommendNewController : ControllerBase
     /// <param name="count">Number of recommendations to return (default: 10, max: 50)</param>
     /// <returns>List of recommended recipe IDs based on your preferences and current meal time</returns>
     [HttpGet("recommendations")]
-    [ProducesResponseType(typeof(AppResponse<List<int>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AppResponse<List<RecipeDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<AppResponse<List<int>>>> GetRecommendations([FromQuery] int count = 10)
+    public async Task<ActionResult<AppResponse<List<RecipeDto>>>> GetRecommendations([FromQuery] int count = 10)
     {
         try
         {
             // Validate count parameter
             if (count <= 0 || count > 50)
             {
-                return BadRequest(new AppResponse<List<int>>()
+                return BadRequest(new AppResponse<List<RecipeDto>>()
                     .SetErrorResponse("InvalidCount", "Count must be between 1 and 50"));
             }
 
             var userId = _userContext.GetCurrentUserId().GetValueOrDefault();
             if (userId == 0)
             {
-                return Unauthorized(new AppResponse<List<int>>()
+                return Unauthorized(new AppResponse<List<RecipeDto>>()
                     .SetErrorResponse("Unauthorized", "User not authenticated"));
             }
 
@@ -58,7 +59,7 @@ public class RecommendNewController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting recommendations for user");
-            var errorResponse = new AppResponse<List<int>>()
+            var errorResponse = new AppResponse<List<RecipeDto>>()
                 .SetErrorResponse("Error", "An error occurred while getting recommendations");
             return StatusCode(StatusCodes.Status500InternalServerError, errorResponse);
         }
@@ -71,10 +72,10 @@ public class RecommendNewController : ControllerBase
     /// <param name="count">Number of recommendations to return (default: 10, max: 50)</param>
     /// <returns>List of recommended recipe IDs for the specified meal type</returns>
     [HttpGet("recommendations/{mealType}")]
-    [ProducesResponseType(typeof(AppResponse<List<int>>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(AppResponse<List<RecipeDto>>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<AppResponse<List<int>>>> GetRecommendationsByMealType(
+    public async Task<ActionResult<AppResponse<List<RecipeDto>>>> GetRecommendationsByMealType(
         [FromRoute] string mealType,
         [FromQuery] int count = 10)
     {
@@ -83,7 +84,7 @@ public class RecommendNewController : ControllerBase
             // Validate count parameter
             if (count <= 0 || count > 50)
             {
-                return BadRequest(new AppResponse<List<int>>()
+                return BadRequest(new AppResponse<List<RecipeDto>>()
                     .SetErrorResponse("InvalidCount", "Count must be between 1 and 50"));
             }
 
@@ -91,14 +92,14 @@ public class RecommendNewController : ControllerBase
             var validMealTypes = new[] { "breakfast", "lunch", "dinner", "snack" };
             if (!validMealTypes.Contains(mealType.ToLower()))
             {
-                return BadRequest(new AppResponse<List<int>>()
+                return BadRequest(new AppResponse<List<RecipeDto>>()
                     .SetErrorResponse("InvalidMealType", "Meal type must be one of: breakfast, lunch, dinner, snack"));
             }
 
             var userId = _userContext.GetCurrentUserId().GetValueOrDefault();
             if (userId == 0)
             {
-                return Unauthorized(new AppResponse<List<int>>()
+                return Unauthorized(new AppResponse<List<RecipeDto>>()
                     .SetErrorResponse("Unauthorized", "User not authenticated"));
             }
 
@@ -108,7 +109,7 @@ public class RecommendNewController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting {MealType} recommendations for user", mealType);
-            var errorResponse = new AppResponse<List<int>>()
+            var errorResponse = new AppResponse<List<RecipeDto>>()
                 .SetErrorResponse("Error", "An error occurred while getting recommendations");
             return StatusCode(StatusCodes.Status500InternalServerError, errorResponse);
         }

@@ -34,6 +34,9 @@ public static class ServiceCollectionExtensions
         services.AddHostedService<Infrastructure.BackgroundServices.MealNotificationBackgroundService>();
         services.AddScoped<ISmartScoringService, SmartScoringService>();
         services.AddScoped<IRecommendNewService, RecommendNewService>();
+        services.AddScoped<IVisionService, VisionService>();
+        services.AddScoped<IFoodRecognitionService, FoodRecognitionService>();
+        services.AddScoped<IMappingService, MappingService>(); 
 
         // Payment Services
         //services.AddScoped<IPayOSService, PayOSService>();

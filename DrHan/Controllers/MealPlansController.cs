@@ -92,9 +92,9 @@ public class MealPlansController : ControllerBase
         try
         {
             var userId = _userContext.GetCurrentUserId();
-            //var result = await _smartMealPlanService.GetRecommendedRecipesAsync(preferences, userId, mealType);
+            var result = await _smartMealPlanService.GetRecommendedRecipesAsync(preferences, (int)userId, mealType);
 
-            var result = await recommendNew.GetRecommendationsAsync(count);
+            //var result = await recommendNew.GetRecommendationsAsync(count);
 
             return Ok(result);
         }

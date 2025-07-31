@@ -6,6 +6,7 @@ using DrHan.Application.DTOs.Ingredients;
 using DrHan.Application.Services.IngredientServices.Commands.CreateIngredient;
 using DrHan.Application.Services.IngredientServices.Commands.DeleteIngredient;
 using DrHan.Application.Services.IngredientServices.Commands.UpdateIngredient;
+using DrHan.Application.Services.IngredientServices.Commands.AddAllergenToIngredient;
 using DrHan.Application.Services.IngredientServices.Queries.GetAllIngredients;
 using DrHan.Application.Services.IngredientServices.Queries.GetIngredientById;
 using DrHan.Application.Services.IngredientServices.Queries.GetIngredientCategories;
@@ -131,6 +132,28 @@ public class IngredientsController : ControllerBase
             AllergenIds = updateDto.AllergenIds
         };
         
+        var response = await _mediator.Send(command);
+        return response.IsSucceeded ? Ok(response) : BadRequest(response);
+    }
+
+    /// <summary>
+    /// Add an allergen to an ingredient
+    /// </summary>
+    /// <param name="addAllergenDto">Data for adding allergen to ingredient</param>
+    /// <returns>Created ingredient allergen relationship</returns>
+    [HttpPost("add-allergen")]
+    public async Task<ActionResult<AppResponse<IngredientAllergenDto>>> AddAllergenToIngredient([FromBody] AddAllergenToIngredientDto addAllergenDto)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var command = new AddAllergenToIngredientCommand
+        {
+            IngredientId = addAllergenDto.IngredientId,
+            AllergenId = addAllergenDto.AllergenId,
+            AllergenType = addAllergenDto.AllergenType
+        };
+
         var response = await _mediator.Send(command);
         return response.IsSucceeded ? Ok(response) : BadRequest(response);
     }
